@@ -3,6 +3,7 @@
   import json
   from django.utils.translation import ugettext as _
   from openedx.core.djangolib.js_utils import js_escaped_string, dump_js_escaped_json
+  from django.urls import reverse
 %>
 <%inherit file="../main.html" />
 <%
@@ -124,6 +125,60 @@
         </div>
         % endif
 
+<div class="carousel">
+   <div id="myCarousel" class="carousel slide" data-ride="carousel">
+    <!-- Indicators -->
+            <ul class="carousel-indicators">
+        % if banner_list:
+            % for y in banner_list:
+                % if loop.index==1:
+                    <li data-target="#myCarousel" data-slide-to="${y.slide_position}" class="active"></li>
+                % else:
+                    <li data-target="#myCarousel" data-slide-to="${y.slide_position}" ></li>
+                % endif
+            % endfor
+        % endif
+            </ul>
+            <!-- Wrapper for slides -->
+            <div class="carousel-inner">
+            % if banner_list:
+                % for y in banner_list:
+                        % if loop.index==1:
+                        <div class="item active" >
+                            <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
+                            <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
+                                </a>
+                        <div class="carousel-caption">
+                            <h4 >${y.course_over_view.display_name_with_default}</h4>
+                        </div>
+                        </div>
+                        % else:
+                        <div class="item">
+                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
+                            <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
+                             </a>
+                        <div class="carousel-caption">
+                            <h3>${y.course_over_view.display_name_with_default}</h3>
+                        </div>
+                        </div>
+                        % endif
+                % endfor
+            % endif
+            </div>
+
+    <!-- Left and right controls -->
+    <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+      <span class="glyphicon glyphicon-chevron-left"></span>
+      <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#myCarousel" data-slide="next">
+      <span class="glyphicon glyphicon-chevron-right"></span>
+      <span class="sr-only">Next</span>
+    </a>
+
+  </div>
+</div>
+
         <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
           <ul class="courses-listing courses-list">
             %for course in courses:
@@ -146,3 +201,4 @@
       </section>
     </section>
 </main>
+
