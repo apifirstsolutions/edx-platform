@@ -1,0 +1,253 @@
+{% extends 'base_admin_v2.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% load static %}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Side Navigation Bar -->
+        {% include 'admin_dashboard_nav.html' %}
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Revenue</h1>
+                <!-- <div class="btn-toolbar mb-2 mb-md-0 dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="dropdownMenuButtonCourse" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span data-feather="calendar"></span>
+                        Filter by Course
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonCourse">
+                        {% for c in courses %}
+                            <li><a class="dropdown-item" href="#">{{ c.display_name }}</a></li>
+                        {% endfor %}
+                      </ul>
+                </div> -->
+            </div>
+
+            <div class="fluid-container">
+                <div class="row my-4">
+                    <h2>Orders</h2>
+
+                    <div class="row my-5">
+                        <!-- Median Learner Age -->
+                        <!-- <div class="col-sm-1"></div> -->
+                        <div class="col-sm-3 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase" style="font-size: small;">Overall Revenue</p>
+                                    <p class="card-text fs-1">$ {{ orders_sum }}</p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Learner 25 and Under -->
+                        <!-- <div class="col-sm-1"></div> -->
+                        <div class="col-sm-3 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase" style="font-size: small;">Current month
+                                        revenue</p>
+                                    <p class="card-text fs-1">$ {{ current_month_revenue }} </p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Learner 26 to 40 -->
+                        <!-- <div class="col-sm-1"></div> -->
+<!--                        <div class="col-sm-3 col-md-3">-->
+<!--                            <div class="card text-center">-->
+<!--                                <div class="card-body">-->
+<!--                                    <p class="card-title text-uppercase" style="font-size: small;">Learner 26 to 40</p>-->
+<!--                                    <p class="card-text fs-1">{{ age_dist.age_btw_26_and_40 }} %</p>-->
+<!--                                    &lt;!&ndash; <a href="#" class="btn btn-primary">Go somewhere</a> &ndash;&gt;-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+                        <!-- Courses Completed -->
+                        <!-- <div class="col-sm-1"></div> -->
+<!--                        <div class="col-sm-3 col-md-3">-->
+<!--                            <div class="card text-center">-->
+<!--                                <div class="card-body">-->
+<!--                                    <p class="card-title text-uppercase" style="font-size: small;">Learner 41 and-->
+<!--                                        Over</p>-->
+<!--                                    <p class="card-text fs-1">{{ age_dist.age_gt_40 }} %</p>-->
+<!--                                    &lt;!&ndash; <a href="#" class="btn btn-primary">Go somewhere</a> &ndash;&gt;-->
+<!--                                </div>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <h3>Year over Year</h3>
+                        <div class="col-sm-1"></div>
+                        <div class="col-sm-8">
+                            <canvas id="revenueByMonthAndYearChart" height="300" width="500"></canvas>
+                        </div>
+<!--                        <div class="col-sm-3">-->
+<!--                            <ul class="list-group list-group-flush mt-5">-->
+<!--                                {% for k, v in learners_age_list.items %}-->
+<!--                                <li class="list-group-item d-flex justify-content-between align-items-center"-->
+<!--                                    style="font-size: smaller;">-->
+<!--                                    {{ k }}-->
+<!--                                    <span class="badge badge"-->
+<!--                                          style="font-size:small; background-color:#1a345c;">{{ v }}</span>-->
+<!--                                </li>-->
+<!--                                {% endfor %}-->
+<!--                            </ul>-->
+<!--                        </div>-->
+
+
+                        <script>
+                            const year_label = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                            var years = [{% for k,val in orders_revenue_by_month.items %} '{{ k | safe }}', {% endfor %}]
+                            var course_count_data = [{% for k,val in orders_revenue_by_month.items %} [{% for k,v in val.items %}'{{ v | safe }}', {% endfor %}], {% endfor %}]
+                            var ctx = document.getElementById('revenueByMonthAndYearChart')
+                            // eslint-disable-next-line no-unused-vars
+
+                            console.log('cslen', course_count_data.length)
+
+                            function genRand(min, max, decimalPlaces) {
+                                return (Math.random() * (max - min) + min).toFixed(decimalPlaces) * 1;
+                            }
+
+                            var ds = [];
+                            var rgb_alpha = 0.5;
+                            var rgb_colors = [
+                                `rgba(255,102,102, ${rgb_alpha})`,
+                                `rgba(255,178,102, ${rgb_alpha})`,
+                                `rgba(51,102,0, ${rgb_alpha})`,
+                                `rgba(0,153,0, ${rgb_alpha})`,
+                                `rgba(0,153,76, ${rgb_alpha})`,
+                                `rgba(0,204,204, ${rgb_alpha})`,
+                                `rgba(102,178,255, ${rgb_alpha})`,
+                                `rgba(102,102,255, ${rgb_alpha})`,
+                                `rgba(178,102,255, ${rgb_alpha})`,
+                                `rgba(255,102,255, ${rgb_alpha})`,
+                                `rgba(255,102,178, ${rgb_alpha})`,
+                                ]
+                            for (i = 0; i < course_count_data.length; i++){
+                                const clr = genRand(0,10,0);
+                                console.log('clr', clr);
+                                ds.push(
+                                    {
+                                        label: years[i],
+                                        data: course_count_data[i],
+                                        //backgroundColor: 'rgba(' + 49 + ',' + 107 + ',' + 196 + ',' + genRand(0.3, 1.0, 1) + ')',
+                                        borderColor: rgb_colors[clr],
+                                        backgroundColor: rgb_colors[clr],
+                                    },
+                                )
+                            }
+                            console.log('dataset', ds)
+
+
+                            const numberOfCoursesChartLabels = year_label;
+                            const numberOfCoursesChartData = {
+                                labels: numberOfCoursesChartLabels,
+                                datasets: ds
+                            };
+
+                            var myChart = new Chart(ctx, {
+                                type: 'line',
+                                data: numberOfCoursesChartData,
+                                options: {
+                                    responsive: true,
+                                    parsing: {
+                                        xAxisKey: 'id',
+                                        yAxisKey: 'nested.value'
+                                    },
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                        },
+                                        title: {
+                                            display: true,
+                                            text: 'Revenue by year'
+                                        }
+                                    }
+                                },
+
+
+                            })
+                        </script>
+                    </div>
+
+                    <div class="row my-4">
+                        <div class="table-responsive">
+                            <div class="row my-3">
+                                <form action="" id="myForm">
+
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                        {{ orders_filter.form }}
+                                        <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Order Number</th>
+                                    <th>Order Datetime</th>
+                                    <th>User ID</th>
+                                    <th data-field="order-total" data-sortable="true">Order Total (S$)</th>
+                                    <th>Order Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>{{ order.number }}</td>
+                                    <td>{{ order.date_placed|date:"j M Y h:i A" }}</td>
+                                    <td>{{ order.user_id }}</td>
+                                    <td>$ {{ order.total_incl_tax }}</td>
+                                    <td>
+                                        {% if order.status == 'Complete'%}
+                                        <span class="badge bg-success">{{ order.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">{{ order.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <!-- pagination bar-->
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-end">
+                                    <li class="page-item {% if not prev_url %} disabled {% endif %}">
+                                        <a class="page-link" href="{{ prev_url }}" tabindex="-1" aria-disabled="true">Previous</a>
+                                    </li>
+
+                                    {% for n in orders.paginator.page_range %}
+                                    {% if orders.number == n %}
+                                    <li class="page-item active" aria-current="page">
+                                        <a a class="page-link" href="?page={{ n }}">{{ n }}</a>
+                                    </li>
+                                    {% elif n > orders.number|add:-3 and n < orders.number|add:3 %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ n }}">{{ n }}</a></li>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    <li class="page-item {% if not next_url %} disabled {% endif %}">
+                                        <a class="page-link" href="{{ next_url }}">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

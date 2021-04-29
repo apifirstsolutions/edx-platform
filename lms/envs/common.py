@@ -2777,7 +2777,10 @@ INSTALLED_APPS = [
     'lms.djangoapps.lhub_extended_api.apps.LhubExtendedApiConfig',
 
     #banner related
-    'lms.djangoapps.banner.apps.BannerConfig'
+    'lms.djangoapps.banner.apps.BannerConfig',
+
+    # Analytics Dashboard
+    'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig'
 ]
 
 ######################### CSRF #########################################

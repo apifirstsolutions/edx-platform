@@ -1,0 +1,29 @@
+## mako
+
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%def name="online_help_token()"><% return "profile" %></%def>
+<%namespace name='static' file='/static_content.html'/>
+
+<%!
+import json
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import dump_js_escaped_json
+from openedx.core.djangolib.markup import HTML
+%>
+
+<%block name="pagetitle">${_("Learner Profile")}</%block>
+
+<%block name="bodyclass">view-profile</%block>
+
+<%block name="headextra">
+<%static:css group='style-course'/>
+</%block>
+
+<h2>Analytics dashboard</h2>
+
+
+<%block name="js_extra">
+
+</%block>
