@@ -1,6 +1,58 @@
+Grid Synergy edx-platform fork
+==============================
+
+.. image:: https://img.shields.io/badge/hack.d-Lawrence%20McDaniel-orange.svg
+     :target: https://lawrencemcdaniel.com
+     :alt: Hack.d Lawrence McDaniel
+
+
+Developers
+----------
+
+- open-release/* branches are locked. Do not attempt to push commits to any of these branches.
+- gs/* branches are limited. You'll need to use pull requests. You should create your own personal feature branch, make your code commits to this branch, push these commits, and then create a pull request.
+
+The default branch of this repo is gs/koa.master. You should create your feature branches from this branch, and you should rebase often.
+
+.. code-block:: bash
+
+  # Branch gs/koa.master was created as follows
+  #   -------------------------------------------
+  git checkout open-release/koa.master
+  git checkout -b gs/koa-master
+  git push --set-upstream origin gs/koa.master
+
+
+  # This fork is sync'd to edx/edx-platform using the following pull/rebase procedure
+  # 1.) pull any new commits from edx/edx-platform 
+  # -------------------------------------------
+  git checkout open-release/koa.master
+  git pull
+  git push
+
+  # 2.) rebase gs/koa.master with these new commits
+  # -------------------------------------------
+  git checkout gs/koa.master
+  git rebase open-release/koa.master
+  git push
+
+
 This is the core repository of the Open edX software. It includes the LMS
 (student-facing, delivering courseware), and Studio (course authoring)
 components.
+
+Testing
+-------
+
+Following is a shortcut for getting started running tests in your local environment. 
+
+.. code-block:: bash
+
+  # run python tests without compiling assets, but running migrations
+  paver test_system -s lms --fasttest --enable-migrations --verbose --disable_capture
+
+Official Testing how-to documentation is located here: https://github.com/grid-synergy/edx-platform/blob/master/docs/guides/testing/testing.rst
+
 
 Installation
 ------------

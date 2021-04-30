@@ -210,7 +210,7 @@ font-weight: 800 !important;
              <li>Discounted Price: <span class="main_price">Free</span>
        % else:
             <li>Price: <span class="main_price_cut">S$${format(course.price, ".2f")}</span></li>
-            <li>Discounted Price: <span class="main_price">S$${format(course.discounted_price, ".2f")}</span>
+            <li>Discounted Price: <span class="main_price">S$${course.discounted_price}</span>
        % endif
      </ul>
 

@@ -191,7 +191,7 @@ class Course(object):
         if len(self.modes) > 0:
             price = float(self.modes[0].min_price)
             discounted_price = price -  (self.modes[0].discount_percentage/100) * price
-            return discounted_price
+            return "%.2f" % discounted_price
         course_mode_price = self.get_paid_mode_price()
         return course_mode_price
 
