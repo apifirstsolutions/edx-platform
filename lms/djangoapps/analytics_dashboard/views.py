@@ -3,11 +3,13 @@ import random
 import MySQLdb.cursors
 from django.core.paginator import Paginator
 from django.db import connection
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth, TruncYear
 from datetime import datetime
 from itertools import chain
+
 
 # from lms.djangoapps.analytics_dashboard.demographics import (
 #     calculate_age,
@@ -30,6 +32,15 @@ from custom_reg_form.models import UserExtraInfo
 #     OrderOrder
 # )
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
+
+from common.djangoapps.student.views.dashboard import (
+    get_org_black_and_whitelist_for_site,
+    get_course_enrollments,
+    get_dashboard_course_limit,
+    get_filtered_course_entitlements,
+)
 
 def querySet_to_list(qs):
     """
@@ -54,36 +65,69 @@ def index(request):
 
     return render(request, 'analytics_dashboard/index.html', context)
 
+@ensure_csrf_cookie
+@login_required
+def learner_profile_view(request, *args, **kwargs):
+    user = request.user
+    if not UserProfile.objects.filter(user=user).exists():
+        return redirect(reverse('account_settings'))
 
-def learner_profile_view(request, user_id, *args, **kwargs):
-    print(f'user_id: {user_id}')
+    disable_course_limit = request and 'course_limit' in request.GET
+    course_limit = get_dashboard_course_limit() if not disable_course_limit else None
 
-    username = 'LearnerJohn'
+    # Get the org whitelist or the org blacklist for the current site
+    site_org_whitelist, site_org_blacklist = get_org_black_and_whitelist_for_site()
+    course_enrollments = list(
+        get_course_enrollments(user, site_org_whitelist, site_org_blacklist, course_limit, request=request))
+
+    # Get the entitlements for the user and a mapping to all available sessions for that entitlement
+    # If an entitlement has no available sessions, pass through a mock course overview object
+    (course_entitlements,
+     course_entitlement_available_sessions,
+     unfulfilled_entitlement_pseudo_sessions) = get_filtered_course_entitlements(
+        user,
+        site_org_whitelist,
+        site_org_blacklist
+    )
+
+    # Sort the enrollment pairs by the enrollment date
+    course_enrollments.sort(key=lambda x: x.created, reverse=True)
+
+    # Filter out any course enrollment course cards that are associated with fulfilled entitlements
+    for entitlement in [e for e in course_entitlements if e.enrollment_course_run is not None]:
+        course_enrollments = [
+            enr for enr in course_enrollments if entitlement.enrollment_course_run.course_id != enr.course_id
+        ]
+
+    web_course_enrollments = []
+    for course in course_enrollments:
+        platform = course._course_overview.platform_visibility
+        if platform == None or platform == 'Web' or platform == 'Both':
+            web_course_enrollments.append(course)
+
+    in_progress_courses = []
+    completed_courses = []
+    for course in course_enrollments:
+        if course.completed_units == course.total_units:
+            completed_courses.append(course)
+        else:
+            in_progress_courses.append(course)
+
+    user_id = request.user.id
     learner = User.objects.filter(id=user_id).get()
-    print(learner.username)
-
 
     learner_profile = UserProfile.objects.filter(user=learner).get()
-    print(f'user_profile_id: {learner_profile}')
-
-    course_enrolled = CourseEnrollment.objects.filter(user=learner)
-    for x in course_enrolled:
-        pass
-    course_enrolled_ids = [c.course_id for c in course_enrolled]
-
-    courses = CourseOverview.objects.filter(id__in=course_enrolled_ids)
-
-    for c in courses:
-        print(c)
 
     context = {
         'learner': learner,
         'profile': learner_profile,
-        'course_enrolled': course_enrolled,
-        'courses': courses
+        'course_enrollments': web_course_enrollments,
+        'course_entitlements': course_entitlements,
+        'in_progress_courses': in_progress_courses,
+        'completed_courses': completed_courses,
     }
 
-    return render(request, 'learner_profile.html', context)
+    return render(request, 'analytics_dashboard/learner_profile.html', context)
 
 #
 # def admin_view(request, *args, **kwargs):

@@ -1,8 +1,25 @@
-{% extends 'base_v2.html' %}
+## mako
 
-{% block content %}
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%def name="online_help_token()"><% return "profile" %></%def>
+<%namespace name='static' file='/static_content.html'/>
 
-{% load static %}
+<%!
+import json
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import dump_js_escaped_json
+from openedx.core.djangolib.markup import HTML
+%>
+
+<%block name="pagetitle">${_("Learner Profile")}</%block>
+
+<%block name="bodyclass">view-profile</%block>
+
+<%block name="headextra">
+<%static:css group='style-course'/>
+</%block>
 
 <style>
     .learner-profile .profile-img{
@@ -13,6 +30,7 @@
         margin-left: auto;
         margin-right: auto;
         padding: 10px;
+        border: 0
     }
     div.profile-details table{
         margin: 10px 0 !important;
@@ -29,89 +47,107 @@
     }
 </style>
 
-<div class="container learner-profile" >
-    <div class="row">
-        <div class="col-md-4 profile-details">
-            <img class="profile-img" src="{% static '/img/profile_avatar_placeholder.png' %}" alt="profile image">
+<%!
+import json
 
+from django.conf import settings
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+
+from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_urls_for_user
+%>
+
+<%
+## This template should not use the target student's details when masquerading, see TNL-4895
+self.real_user = getattr(user, 'real_user', user)
+username = self.real_user.username
+profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
+%>
+
+<div class="container learner-profile" >
+    <div class="row" style="border: 0;">
+        <div class="col-md-4 profile-details">
+                <img class="profile-img" src="${profile_image_url}" alt="profile image">
+            ## ${static_url('/img/profile_avatar_placeholder.png')}
             <table class='table borderless table-responsive'>
                 <tr>
                     <td>Username</td>
-                    <td>{{ learner.username }}</td> 
+                    <td>${ learner.username }</td>
                 </tr>
                 <tr>
                     <td>Full Name</td>
                     <td>
-                        {% if learner.first_name %}
-                            {{ learner.first_name }}
-                        {% else %}
+                        % if learner.first_name:
+                            ${ learner.first_name }
+                        % else:
                         -
-                        {% endif %}
-                        
-                        {% if learner.last_name %}
-                            {{ learner.last_name }}
-                        {% else %}
+                        % endif %}
+
+                        % if learner.last_name:
+                            ${ learner.last_name }
+                        % else:
                         -
-                        {% endif %}
+                        % endif:
                     </td>
                 </tr>
                 <tr>
                     <td>E-mail</td>
-                    <td>{{ profile.user.email }}</td>
+                    <td>${ profile.user.email }</td>
                 </tr>
                 <tr>
                     <td>Year of birth</td>
-                    <td>{{ profile.year_of_birth }}</td>
+                    <td>${ profile.year_of_birth }</td>
                 </tr>
                 <tr>
                     <td>Gender</td>
-                    {% if profile.gender == 'm' %}
+                    % if profile.gender == 'm':
                     <td>Male</td>
-                    {% elif profile.gender == 'f' %}
+                    % elif profile.gender == 'f':
                     <td>Female</td>
-                    {% else %}
+                    % else:
                     <td>Others / Prefer Not to say</td>
-                    {% endif %}
+                    % endif:
                 </tr>
                 <tr>
                     <td>Level of Education</td>
-                    {% if profile.level_of_education == 'p' %}
+                    % if profile.level_of_education == 'p':
                     <td>Doctorate</td>
-                    {% elif profile.level_of_education == 'm' %}
+                    % elif profile.level_of_education == 'm':
                     <td>Master’s or professional degree</td>
-                    {% elif profile.level_of_education == 'b' %}
+                    % elif profile.level_of_education == 'b':
                     <td>Bachelor’s degree</td>
-                    {% elif profile.level_of_education == 'a' %}
+                    % elif profile.level_of_education == 'a':
                     <td>Associate degree</td>
-                    {% elif profile.level_of_education == 'hs' %}
+                    % elif profile.level_of_education == 'hs':
                     <td>Secondary/high school</td>
-                    {% elif profile.level_of_education == 'jhs' %}
+                    % elif profile.level_of_education == 'jhs':
                     <td>Junior secondary/junior high/middle school</td>
-                    {% elif profile.level_of_education == 'el' %}
+                    % elif profile.level_of_education == 'el':
                     <td>Elementary/primary school</td>
-                    {% elif profile.level_of_education == None %}
+                    % elif profile.level_of_education == None:
                     <td>No Formal Education</td>
-                    {% elif profile.level_of_education == '' %}
+                    % elif profile.level_of_education == '':
                     <td>Not set by user</td>
-                    {% endif %}
+                    % endif:
                 </tr>
                 <tr>
                     <td>Status</td>
                     <td>
-                        {% if learner.is_active %}
+                        % if learner.is_active:
                             <span class="badge bg-success">Active</span>
-                        {% else %}
+                        % else:
                             <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
+                        % endif:
                     </td>
                 </tr>
                 <tr>
-                    <td>Courses atteneded </td>
-                    <td>{{course_enrolled.count}}</td>
+                    <td>Courses attended </td>
+                    <td>${len(course_enrollments)}</td>
                 </tr>
                 <tr>
                     <td>Date joined</td>
-                    <td>{{ learner.date_joined|date:"j M Y" }}</td>
+                    <td>${ learner.date_joined.strftime('%d %b %Y') }</td>
+                    ##<td>${ learner.date_joined|date:"j M Y" }</td>
                 </tr>
             </table>
         </div>
@@ -122,35 +158,32 @@
                 <div class="row mb-4">
                     <!-- Courses Enrolled Card -->
                     <div class="col-sm-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="card-title text-uppercase">Courses Enrolled</h5>
-                                    <p class="card-text">{{ course_enrolled.count }}</p>
-                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                        <div class="panel panel-default text-center">
+                            <div class="panel-body">
+                                <h6 class="panel-title text-uppercase text-center">Courses Enrolled</h6>
+                                    <p class="panel-text text-center my-3">${ len(course_enrollments) }</p>
                             </div>
                         </div>
                     </div>
                     <!-- <div class="col-sm-1"></div> -->
-    
+
                     <!-- Courses In Progress -->
                     <div class="col-sm-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="card-title text-uppercase">Courses In Progress</h5>
-                                    <p class="card-text">{{ course_enrolled.count }}</p>
-                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                        <div class="panel panel-default text-center">
+                            <div class="panel-body">
+                                <h6 class="panel-title text-uppercase text-center">Courses In Progress</h6>
+                                    <p class="panel-text text-center my-3">${ len(in_progress_courses) }</p>
                             </div>
                         </div>
                     </div>
                     <!-- <div class="col-sm-1"></div> -->
-    
+
                     <!-- Courses Completed -->
                     <div class="col-sm-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="card-title text-uppercase">Courses Completed</h5>
-                                    <p class="card-text">-</p>
-                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                        <div class="panel panel-default text-center">
+                            <div class="panel-body">
+                                <h6 class="panel-title text-uppercase text-center">Courses Completed</h6>
+                                    <p class="panel-text text-center my-3">${ len(completed_courses) }</p>
                             </div>
                         </div>
                     </div>
@@ -158,16 +191,16 @@
                 </div>
             <!-- </div> -->
 
-            <h5>Enrolled Courses</h3>
-            {% for course in courses %}
-                
-                <div class="card mb-3 course-card" >
+            <h5 class="mb-3">Enrolled Courses</h5>
+
+            % for dashboard_index, enrollment in enumerate(course_entitlements + course_enrollments):
+                <div class="panel panel-default mb-3 course-card" >
                     <!-- <div class="card-header">Header</div> -->
-                    <div class="card-body pb-0">
+                    <div class="panel-body pb-0">
                         <table class="table table-responsive table-borderless table-sm">
                             <tr>
                                 <td class="text-muted text-wrap">
-                                    <small class="text-muted text-wrap">{{course.id}}</small>
+                                    <small class="text-muted text-wrap">${enrollment.course_id}</small>
                                     <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> -->
                                 </td>
                                 <!-- <td></td> -->
@@ -175,7 +208,7 @@
                                     Date Enrolled
                                 </td>
                                 <td class="text-center">
-                                    Course completed             
+                                    Course completed
                                 </td>
                                 <td class="text-center">
                                     Overall progress
@@ -183,26 +216,28 @@
                             </tr>
                             <tr class="text-center align-middle">
                                 <td class="col-6">
-                                    <h6 class="card-title text-start"> 
+                                    <h6 class="card-title text-start">
                                         <a class="text-secondary" href="">
-                                            {{ course.display_name }}
+                                            ${ enrollment.course_overview.display_name }
                                         </a>
                                     </h6>
                                 </td>
-                                <td class="col-2">10 Mar 2021</td>
-                                <td class="col-2">-</td>
-                                <td class="col-2" id="{{ course.id }}_col"></td>
+                                <td class="col-2">${enrollment.created.strftime('%d %b %Y') }</td>
+                                <td class="col-2">${enrollment.completed_units} / ${enrollment.total_units}</td>
+                               <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format(enrollment.completed_units / \
+                                    enrollment.total_units * 100) }</td>
+                               ## <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format(40 / \
+                                    enrollment.total_units * 100) }</td>
                             </tr>
                         </table>
                     </div>
-                    <div class="progress" style="border-radius: 0; height: 5px;">
-                        <div class="progress-bar bg-ntuc" id="{{ course.id }}" role="progressbar"  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress" style="border-radius: 0; height: 5px; margin:0">
+                        <div class="progress-bar bg-ntuc" id="${enrollment.course_id}" role="progressbar"
+                             aria-valuenow="%{'{:.2f}'.format(enrollment.completed_units / enrollment.total_units * 100)}" aria-valuemin="0"
+                             aria-valuemax="100"></div>
                     </div>
                 </div>
-            {% empty %}
-                <h6>Explore our biggest collection of courses</h6>
-            {% endfor %}
-            <!-- <div style="background-color: hotpink; height: 200px;"></div> -->
+            % endfor
         </div>
     </div>
     <script>
@@ -218,4 +253,6 @@
     </script>
 </div>
 
-{% endblock %}
+<%block name="js_extra">
+
+</%block>
