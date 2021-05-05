@@ -142,6 +142,7 @@ from ..entrance_exams import user_can_skip_entrance_exam
 from ..module_render import get_module, get_module_by_usage_id, get_module_for_descriptor
 from commerce.api.v1.models import Course
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
+from lms.djangoapps.course_block_user.models import CourseBlockUser
 
 log = logging.getLogger("edx.courseware")
 
@@ -606,9 +607,9 @@ def course_info(request, course_id):
             configuration_helpers.get_value('COURSE_HOMEPAGE_SHOW_ORG', True)
 
         course_title = course.display_number_with_default
-        course_subtitle = course.display_name_with_default
+        course_subtitle = course.display_name_with_default if course else None
         if course_homepage_invert_title:
-            course_title = course.display_name_with_default
+            course_title = course.display_name_with_default if course else None
             course_subtitle = course.display_number_with_default
 
         context = {
@@ -1766,6 +1767,8 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
     course_key = usage_key.course_key
 
     requested_view = request.GET.get('view', 'student_view')
+    next_ = None
+    previous = None
     if requested_view != 'student_view':
         return HttpResponseBadRequest(
             u"Rendering of the xblock view '{}' is not supported.".format(bleach.clean(requested_view, strip=True))
@@ -1797,6 +1800,57 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
                 }
 
         missed_deadlines, missed_gated_content = dates_banner_should_display(course_key, request.user)
+        path_ = request.get_full_path()
+        next_qry = None
+        previous_qry = None
+        if path_ and request.user.id:
+            ref_obj = CourseBlockUser.objects.filter(block_mobile_view__icontains = path_, user=request.user)
+            ref_obj.id = ref_obj[0].id if ref_obj else None
+            base_url = path_.split("/xblock/")
+            if ref_obj and ref_obj.id:
+                next_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) + 1)
+                previous_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) - 1)
+                ref_obj = ref_obj[0]
+            else:
+                ref_obj = CourseBlockUser.objects.filter(descendants__icontains=path_, user=request.user)
+                ref_obj = ref_obj[0] if ref_obj else None
+
+            if ref_obj and ref_obj.descendants:
+                #loop and split
+                sub_sections = ref_obj.descendants.strip('[]').split(",")
+                #process middle
+                if ref_obj.processed_descendants and ref_obj.processed_descendants+1 < len(sub_sections):
+                    next_ = base_url[0] +'/xblock/'+ (sub_sections[ref_obj.processed_descendants+1]).replace("'", "")
+                    ref_obj.processed_descendants += 1
+                else:
+                    # start of black , initial
+                    if len(sub_sections) >=1 and not ref_obj.processed_descendants:
+                        next_ = base_url[0] + '/xblock/'+(sub_sections[1]).replace("'", "")
+                    else:
+                        # start of block , other condition , jump to next major block
+                        next_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) + 1)
+                        if next_qry.exists():
+                            next_ = next_qry[0].block_mobile_view
+                    ref_obj.processed_descendants = 0
+
+                if ref_obj.processed_descendants and ref_obj.processed_descendants > 0:
+
+                    previous = base_url[0]+ '/xblock/'+(sub_sections[ref_obj.processed_descendants-1]).replace("'", "")
+                    ref_obj.processed_descendants += 1
+                else:
+                    previous_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) - 1)
+                    if not ref_obj.processed_descendants and previous_qry.exists():
+                        previous = previous_qry[0].block_mobile_view
+                    else:
+                        previous = base_url[0]+ '/xblock/'+(sub_sections[0]).replace("'", "")
+                    ref_obj.processed_descendants = 0
+            #no sub section
+            else:
+                if next_qry and next_qry.exists():
+                    next_ = next_qry[0].block_mobile_view
+                if previous_qry and previous_qry.exists():
+                    previous = previous_qry[0].block_mobile_view
+            ref_obj.save() if ref_obj else None
 
         context = {
             'fragment': block.render('student_view', context=student_view_context),
@@ -1819,7 +1873,10 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
             'is_learning_mfe': is_request_from_learning_mfe(request),
             'is_mobile_app': is_request_from_mobile_app(request),
             'reset_deadlines_url': reverse(RESET_COURSE_DEADLINES_NAME),
+            'next_': next_ if next_ else False,
+            'previous': previous if previous else False
         }
+
         return render_to_response('courseware/courseware-chromeless.html', context)
 
 

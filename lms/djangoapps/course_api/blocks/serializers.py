@@ -9,6 +9,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from lms.djangoapps.course_blocks.transformers.visibility import VisibilityTransformer
+from lms.djangoapps.course_block_user.models import CourseBlockUser
 
 from .transformers.block_completion import BlockCompletionTransformer
 from .transformers.block_counts import BlockCountsTransformer
@@ -176,6 +177,14 @@ class BlockSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
             children = block_structure.get_children(block_key)
             if children:
                 data['children'] = [six.text_type(child) for child in children]
+        if 'descendants' in data:
+            x,_ = CourseBlockUser.objects.get_or_create(user=self.context['request'].user,
+                                              course_id_block=six.text_type(block_key.block_id), block_mobile_view=data['student_view_url'], descendants=data['descendants'])
+        else:
+            y,_ = CourseBlockUser.objects.get_or_create(user=self.context['request'].user,
+                                                  course_id_block=six.text_type(block_key.block_id),
+                                                  block_mobile_view=data['student_view_url'])
+
 
         if authorization_denial_reason and authorization_denial_message:
             data['authorization_denial_reason'] = authorization_denial_reason

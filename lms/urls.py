@@ -1033,3 +1033,8 @@ urlpatterns += [
     url(r'^api/banner/', include('lms.djangoapps.banner.api.urls')),
 
 ]
+# #Banner API
+# urlpatterns += [
+#     url(r'^/course_block_user/', include('lms.djangoapps.course_block_user.urls')),
+#
+# ]

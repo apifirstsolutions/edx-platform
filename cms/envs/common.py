@@ -1518,7 +1518,10 @@ INSTALLED_APPS = [
     'ratelimitbackend',
 
     #banner related
-    'lms.djangoapps.banner.apps.BannerConfig'
+    'lms.djangoapps.banner.apps.BannerConfig',
+
+    # course_block_user related
+    'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig'
 ]
 
 

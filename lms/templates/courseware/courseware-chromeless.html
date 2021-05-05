@@ -13,7 +13,9 @@ from openedx.core.djangolib.js_utils import js_escaped_string
 </%def>
 % if is_mobile_app:
   <%include file="/dates_banner.html" />
+
 % endif
+
 <%block name="bodyclass">view-in-course view-courseware courseware ${course.css_class or ''}</%block>
 <%block name="title"><title>
     % if section_title:
@@ -85,6 +87,18 @@ ${HTML(fragment.foot_html())}
     style="display: block; width: auto; margin: 0;"
   >
       <main id="main" tabindex="-1" aria-label="Content">
+          % if previous:
+              <button class="sequence-nav-button button-previous"><a href="${previous}">
+                  <span class="icon fa fa-chevron-prev" aria-hidden="true"></span>
+                  <span class="sequence-nav-button-label">Previous</span></a>
+                </button>
+          % endif
+          % if next_:
+              <button class="sequence-nav-button button-next" style="float:right"><a href="${next_}" >
+                    <span class="sequence-nav-button-label">Next</span>
+                    <span class="icon fa fa-chevron-next" aria-hidden="true"></span></a>
+                </button>
+          % endif
         ${HTML(fragment.body_html())}
       </main>
   </section>
@@ -109,7 +123,6 @@ ${HTML(fragment.foot_html())}
     <%include file="/edxnotes/toggle_notes.html" args="course=course"/>
   % endif
 % endif
-
 % if is_learning_mfe:
 <script type="text/javascript">
   (function() {
