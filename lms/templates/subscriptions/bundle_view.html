@@ -1,0 +1,26 @@
+<%page expression_filter="h"/>
+<%! from django.utils.translation import ugettext as _ %>
+<%inherit file="../main.html" />
+
+<%block name="pagetitle">${name}</%block>
+
+<main id="main" aria-label="Content" tabindex="-1">
+    <section class="container about">
+        <h1>
+            <%block name="pageheader">${name}</%block>
+        </h1>
+        <p>
+            <%block name="pagecontent">Description: ${description}</%block>
+        </p>
+
+        <ul>
+          % for course in courses:
+              % for key, val in course.items():
+                % if key=='name':
+                  <li><a href="http://localhost:18000/courses/${course['id']}/about">${val}</a></li>
+                % endif
+              % endfor
+          % endfor
+        </ul>
+    </section>
+</main>

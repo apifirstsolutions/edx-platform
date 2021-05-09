@@ -991,3 +991,9 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/course_experience/', include('openedx.features.course_experience.api.v1.urls')),
 ]
+
+# Bundles and Subscriptiossns
+urlpatterns += [
+    url(r'^api/subscriptions/', include('lms.djangoapps.subscriptions.urls.api')),
+    url(r'', include('lms.djangoapps.subscriptions.urls.ui')),
+]
