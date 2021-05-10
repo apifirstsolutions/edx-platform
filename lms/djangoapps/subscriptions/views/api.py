@@ -6,8 +6,8 @@ from rest_framework.mixins import (
 )
 from rest_framework.viewsets import GenericViewSet
 
-from ..models import Bundle, SubscriptionPlan, Subscription
-from ..serializers import BundleSerializer, SubscriptionPlanSerializer
+from ..models import Bundle, SubscriptionPlan, Subscription, License
+from ..serializers import BundleSerializer, SubscriptionPlanSerializer, SubscriptionSerializer, LicenseSerializer
 
 class BundleViewSet(
   GenericViewSet,  # generic view functionality
@@ -30,6 +30,23 @@ class SubscriptionPlanViewSet(
   serializer_class = SubscriptionPlanSerializer
   queryset = SubscriptionPlan.objects.all()
 
+class SubscriptionViewSet(
+  GenericViewSet,  # generic view functionality
+  CreateModelMixin,  # handles POSTs
+  RetrieveModelMixin,  # handles GETs for 1 Company
+  UpdateModelMixin,  # handles PUTs and PATCHes
+  ListModelMixin):  # handles GETs for many Companies
 
-def BundleUIViewdetail(request, bundle_id):
-    return HttpResponse("Bundle %s." % bundle_id)
+  serializer_class = SubscriptionSerializer
+  queryset = Subscription.objects.all()
+
+class LicenseViewSet(
+  GenericViewSet,  # generic view functionality
+  CreateModelMixin,  # handles POSTs
+  RetrieveModelMixin,  # handles GETs for 1 Company
+  UpdateModelMixin,  # handles PUTs and PATCHes
+  ListModelMixin):  # handles GETs for many Companies
+
+  serializer_class = LicenseSerializer
+  queryset = License.objects.all()
+

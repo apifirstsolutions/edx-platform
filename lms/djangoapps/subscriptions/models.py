@@ -46,3 +46,8 @@ class Subscription(models.Model):
 
     def __str__(self):
         return 'Subscription: ' + self.subscription_plan.name
+class License(models.Model):
+    subscription_id = models.IntegerField()
+    user_id =  models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
