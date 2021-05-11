@@ -45,7 +45,7 @@ def mobile_home_page(request, api_version):
                 data = actual_request.json()
                 home_page_url[key] = data
                 response_code_list.append(data['status_code'])
-		break
+                break
         except Exception as ex:
             #dont' expose the specify error internal to system to outside API, Put it in generic manner
             logger.error("Error while processing mobile home API - Exception as %s", ex)
