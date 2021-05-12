@@ -17,7 +17,7 @@
           % for course in courses:
               % for key, val in course.items():
                 % if key=='name':
-                  <li><a href="http://localhost:18000/courses/${course['id']}/about">${val}</a></li>
+                  <li><a href="/courses/${course['id']}/about">${val}</a></li>
                 % endif
               % endfor
           % endfor
