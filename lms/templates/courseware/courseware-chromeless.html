@@ -85,6 +85,18 @@ ${HTML(fragment.foot_html())}
     style="display: block; width: auto; margin: 0;"
   >
       <main id="main" tabindex="-1" aria-label="Content">
+        % if previous:
+              <button class="sequence-nav-button button-previous"><a href="${previous}">
+                  <span class="icon fa fa-chevron-prev" aria-hidden="true"></span>
+                  <span class="sequence-nav-button-label">Previous</span></a>
+                </button>
+          % endif
+          % if next_:
+              <button class="sequence-nav-button button-next" style="float:right"><a href="${next_}" >
+                    <span class="sequence-nav-button-label">Next</span>
+                    <span class="icon fa fa-chevron-next" aria-hidden="true"></span></a>
+                </button>
+          % endif
         ${HTML(fragment.body_html())}
       </main>
   </section>
