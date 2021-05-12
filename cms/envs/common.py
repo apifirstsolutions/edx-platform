@@ -1521,7 +1521,10 @@ INSTALLED_APPS = [
     'lms.djangoapps.banner.apps.BannerConfig',
 
     # course_block_user related
-    'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig'
+    'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig',
+
+    #Courese Tag related
+    'lms.djangoapps.course_tag.apps.CourseTagConfig'
 ]
 
 
