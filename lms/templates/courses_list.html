@@ -12,13 +12,14 @@
             % if course_tag:
                 %for key in course_tag:
                   %for val  in key.items():
-                    % for tag in val[1]: #  #val[0] - category, val[1] - course listing as array in that category
+                    % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
                         % if loop.index == 0 :
                          <ul class="courses-listing">
                              <li class="courses-listing-item" >
                                  <h3>${val[0]}</h3>
                                  <%include file="course.html" args="course=tag" />
                              </li>
+                             <br>
                          </ul>
                         % else:
                             <li class="courses-listing-item" >
