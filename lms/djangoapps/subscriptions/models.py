@@ -1,8 +1,15 @@
 import collections
 from django.db import models
+from enum import Enum
 from jsonfield.fields import JSONField
 from enterprise.models import EnterpriseCustomer
 from django.contrib.auth.models import User
+
+class Statuses(Enum):   # A subclass of Enum
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    EXPIRED = "expired"
+    CANCELLED = "cancelled"
 class Bundle(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     course_metadata = JSONField(
@@ -45,8 +52,14 @@ class Subscription(models.Model):
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.CASCADE, null=True, blank=True)
     start_at = models.DateTimeField(default=None, null=True, blank=True)
     end_at = models.DateTimeField(default=None, null=True, blank=True)
-    status = models.CharField(max_length=20)
-    license_count = models.IntegerField()
+    status = models.CharField(
+      max_length=10,
+      choices=[(status, status.value) for status in Statuses],
+      default='active'
+    )
+    license_count = models.IntegerField(default=1, null=False, blank=False)
+    biller_subscription_id = models.CharField(max_length=50, null=True, blank=True)
+    ecommerce_transaction_id = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,9 +68,29 @@ class Subscription(models.Model):
 class License(models.Model):
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(
+      max_length=10,
+      choices=[(status, status.value) for status in Statuses],
+      default='active'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.user.email + '::' + subscription.billing_cycle + subscription.subscription_plan.name
 
+class Transactions(models.Model):
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
+    status = models.CharField(
+      max_length=10,
+      choices=[(status, status.value) for status in Statuses],
+      default='active'
+    )
+    license_count = models.IntegerField()
+    description = models.CharField(max_length=100, default=None, null=True, blank=True)
+    biller_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
+    ecommerce_trans_id = models.IntegerField(default=None, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '#' + self.id + ' - (' + subscription.billing_cycle + ')' + subscription.subscription_plan.name

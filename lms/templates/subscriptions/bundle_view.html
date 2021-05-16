@@ -9,18 +9,30 @@
         <h1>
             <%block name="pageheader">${name}</%block>
         </h1>
-        <p>
+        <span>
             <%block name="pagecontent">Description: ${description}</%block>
-        </p>
+        </span>
 
-        <ul>
+        <a href="/courses/course-v1:AFS+AFS03+2021_Q1/course/">
+            <strong>Subscribe</strong>
+        </a>
+
+        <table>
           % for course in courses:
               % for key, val in course.items():
                 % if key=='name':
-                  <li><a href="/courses/${course['id']}/about">${val}</a></li>
+                  <tr>
+                    <td>
+                      <a href="/courses/${course['id']}/about">${val}</a>
+                    </td>
+                  </tr>
                 % endif
               % endfor
           % endfor
-        </ul>
+        </table>
     </section>
 </main>
+
+
+
+
