@@ -5,10 +5,9 @@ URLs for CourseTag API
 
 from django.conf.urls import url
 
-from .views import CourseTagApi
+from .views import  CourseTagTypeApi
 
 
 urlpatterns = [
-    url('^$', CourseTagApi.as_view(), name='course_tag_api'),
-
+    url('^type$', CourseTagTypeApi.as_view(), name='course_tag_api'),
 ]

@@ -23,14 +23,16 @@
                          </ul>
                         % else:
                             <li class="courses-listing-item" >
-                                <h3>&nbsp;</h3>
+                                %if len(key.items()) > 1:
+                                    <h3>&nbsp;</h3>
+                                % endif
                                  <%include file="course.html" args="course=tag" />
                              </li>
                         % endif
                     %endfor
                   %endfor
                 %endfor
-              %endif
+            %endif
              </ul>
       </section>
       <section  class="courses">
