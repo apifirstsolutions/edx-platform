@@ -917,7 +917,7 @@ def create_course_tag(courses=None, course_tag_name=None):
         if course_tag_name:
             # Course API to process course tag ids
             tagged_courses = CourseTag.objects.filter(course_tag_type__platform__in=['MOBILE', 'BOTH'],
-                                                      course_tag_type__is_enabled=True, course_tag_type__display_name__lower=course_tag_name).values_list('course_over_view', flat=True).order_by("course_tag_type__display_name")
+                                                      course_tag_type__is_enabled=True, course_tag_type__display_name__lower__icontains=course_tag_name).values_list('course_over_view', flat=True).order_by("course_tag_type__display_name")
             for course_over_view in tagged_courses:
                 crs_ove_viw_full_obj = CourseOverview.get_from_id(course_over_view)
                 if crs_ove_viw_full_obj:
