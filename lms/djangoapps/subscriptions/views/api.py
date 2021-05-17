@@ -1,6 +1,3 @@
-from django.http import HttpResponse
-from django.shortcuts import render
-
 from rest_framework.mixins import (
     CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 )

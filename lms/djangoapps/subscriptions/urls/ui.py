@@ -2,5 +2,5 @@ from django.urls import path
 from ..views import ui
 
 urlpatterns = [
-    path('bundle/<int:bundle_id>/', ui.render, {'template': 'bundle_view.html'}, name="single_bundle"),
+    path('plan/<slug:slug>/', ui.render_plan_view, {'template': 'plan_view.html'}, name="plan_view"),
 ]

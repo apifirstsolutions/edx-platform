@@ -1,0 +1,61 @@
+<%page expression_filter="h"/>
+<%! from django.utils.translation import ugettext as _ %>
+<%inherit file="../main.html" />
+
+<%block name="pagetitle">${name}</%block>
+
+<style>
+  .subscription-block {
+    margin: 1em;
+  }
+
+  .subscription-course-block {
+    border: 1px solid #dedede;
+    height: 8em;
+    padding: 0.5em;
+    margin: 0.5em 0
+  }
+
+  .subscription-course-btn {
+
+  }
+</style>
+<main id="main" aria-label="Content" tabindex="-1">
+    <section class="container about">
+        <div class="subscription-block">
+          <h1 style="text-align: left;">
+            <%block name="pageheader">${name}</%block>
+          </h1>
+        </div>
+        
+        <div class="subscription-block">
+            <%block name="pagecontent">${description}</%block>
+            ${options}
+        </div>
+        <div class="subscription-block">
+          <button href="#">Subscribe</button>
+        </div>
+
+        <div class="subscription-block">
+          % for course in courses:
+          <div class="subscription-course-block">
+
+            <img width="200" src="${course.course_image_url}"/>
+
+            <span>
+              ${course.display_name}
+            </span>
+            <span>
+              <a style="float: right;" href="/courses/${course.id}/course">
+                View Course
+              </a>
+            </span>
+          </div>
+          % endfor
+        </div>
+    </section>
+</main>
+
+
+
+
