@@ -204,7 +204,7 @@ font-weight: 800 !important;
 
     <ul>
 
-       <li>Discount Percentage: <span class="main_price-percentage">${format(course.discount_percentage, ".2f")}%</span></li>
+       <li>Discount Percentage: <span class="main_price-percentage">${course.discount_percentage_string}</span></li>
        % if course.discounted_price == 0:
              <li>Price: <span class="main_price_cut">S$${format(course.price, ".2f")}</span></li>
              <li>Discounted Price: <span class="main_price">Free</span>
@@ -219,7 +219,7 @@ font-weight: 800 !important;
          <div class="price_details">
 
     <ul>
-    
+
     % if course.price == 0:
         <li>Price: <span class="main_price">Free</span></li>
     % else:
@@ -229,7 +229,7 @@ font-weight: 800 !important;
 
 </div>
 
-       
+
       % endif
       </h2>
       <%

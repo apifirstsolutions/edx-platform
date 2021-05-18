@@ -181,10 +181,10 @@ class MyNoteUpdateView(APIView):
             elif is_public == "true" or is_public == "True":
                 is_public = True
             image1 = request.data['image1']
-            #image1 = resize_image(image1)
+           # image1 = resize_image(image1)
             
             image2 = request.data['image2']
-            #image2 =resize_image(image2)
+           # image2 =resize_image(image2)
             
             image3 = request.data['image3']
             #image3 = resize_image(image3)
@@ -307,22 +307,22 @@ class NoteCreateView(CreateAPIView):
             is_public = True
             
         image1 = request.data['image1']
-        #image1 = resize_image(image1)
+        image1 = resize_image(image1)
         
         image2 = request.data['image2']
-        #image2 =resize_image(image2)
+        image2 =resize_image(image2)
         
         image3 = request.data['image3']
-        #image3 = resize_image(image3)
+        image3 = resize_image(image3)
 
         image4 = request.data['image4']
-        #image4 = resize_image(image4)
+        image4 = resize_image(image4)
 
         image5 = request.data['image5']
-        #image5 = resize_image(image5)
+        image5 = resize_image(image5)
 
         image6 = request.data['image6']
-        #image6 = resize_image(image6)
+        image6 = resize_image(image6)
 
         data = [
             {

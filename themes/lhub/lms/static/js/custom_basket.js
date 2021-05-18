@@ -1,19 +1,21 @@
 $(document).ready(function() {
+
     (async ()=>{
     await show_basket();
     var tax_percent = 0;
+    var is_basket_empty = true;
     get_recommended_courses();
     onclick_select();
     })();
-    
+
     add_checkout_function();
     });
-    
+
     // converts price to 2 decimal points e.g 2.1 to 2.10
     function append_decimal(price){
         return (price).toFixed(2);
     }
-    
+
     function show_basket()
     {
     $('#loader-sec').css('display', '')
@@ -30,13 +32,24 @@ $(document).ready(function() {
     if (response['status_code'] == 200)
     {
     $('.wish-list').empty()
-    response['result']['basket_total'] = append_decimal(response['result']['basket_total'])
+    response['result']['basket_total'] = append_decimal(response['result']['basket_total']);
+    if (response['result']['products'].length > 0)
+    {
+      is_basket_empty = false;
+    }
+    else
+    {
+      is_basket_empty = true;
+    }
+
+
     for (var i = 0; i < response['result']['products'].length; i++)
     {
+
     for (var j=0; j< response['result']['products'][i].length; j++)
     {
     var course_details = {}
-    
+
     if (response['result']['products'][i][j]['code'] == "course_details")
     {
     course_details = response['result']['products'][i][j]
@@ -110,8 +123,8 @@ $(document).ready(function() {
     </div>
     </div>
     </div>
-    
-    
+
+
     </div>`
     $('.wish-list').append(b)
     }
@@ -124,7 +137,7 @@ $(document).ready(function() {
     $('.list-group').append(`<li class="list-group-item d-flex justify-content-end align-items-center px-0 bg-transparent border-0">
     </li>
     `)
-    
+
     tax_percent = response['result']['tax_percent']
     var tax = response['result']['tax']
     tax = append_decimal_point(tax)
@@ -134,9 +147,9 @@ $(document).ready(function() {
     </div>
     <span><strong id="total_tax" class="color">S$`+tax+`</strong></span>
     </li>`)
-    
-    
-    
+
+
+
     $('.list-group').append(`<li id="total" class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3 bg-transparent">
     <div>
     <strong class="color">Total</strong>
@@ -144,31 +157,36 @@ $(document).ready(function() {
     <span><strong id="cart_total" class="color">S$`+response['result']['basket_total']+`</strong></span>
     </li>
     `)
-    $('#btn-checkout').attr("disabled", false)
+    if (is_basket_empty == true)
+    {
+      $('#btn-checkout').attr("disabled", true)
+
+    }
+    else
+    {
+      $('#btn-checkout').attr("disabled", false)
+    }
     $('#loader-sec').css('display', 'none')
-    
-    
-    
     //else if (response['status_code'] == 500)
     //{
     //alert(response['message']);
     //}
-    
+
     },
     error: function(data) {
     }
     })
-    
-    
-    
+
+
+
     }
-    
-    
-    
+
+
+
     function add_remove_click_function()
     {
     $(".btn-remove").click(function(){
-    
+
     $('#loader-sec').css('display', '')
     $.ajax({
     type:"POST",
@@ -182,19 +200,20 @@ $(document).ready(function() {
     //contentType: "application/json; charset=utf-8",
     success: function(response){
     if (response['status_code'] == 200)
-    {show_basket();}
+    {
+      show_basket();}
     }
     });
-    
+
     });
-    
+
     }
-    
+
     function add_checkout_function()
     {
-    
+
     $("#btn-checkout").click(function(){
-    
+
     $('#loader-sec').css('display', '')
     var selected_skus = $(".form-check-input:checked").map(function () {
     return {'sku':$(this).data('sku')}
@@ -211,22 +230,22 @@ $(document).ready(function() {
     if (response['status_code'] == 200)
     {
     $('#loader-sec').css('display', 'none')
-    window.location.href = $('#ecommerce_url').val() + "/checkout/card-selection"
+    window.location.href = $('#ecommerce_url').val() + "/basket"
     }
-    
+
     else
     {
     $('#loader-sec').css('display', 'none')
     alert(response['message']);
     }
-    
+
     }
     });
-    
+
     });
-    
+
     }
-    
+
     function append_decimal_point(price){
         str_price = price.toString()
         split_price = str_price.split(".")
@@ -245,12 +264,12 @@ $(document).ready(function() {
         }
     }
     function onclick_select()
-    
+
     {
     //$('#loader-sec').css('display', '')
-    
+
     $(".form-check-input").change(function(){
-    
+
     $('#loader-sec').css('display', '')
     //Set timeout is needed because without this, execution is so fast that user will not be able to know that cart total has been updated
     setTimeout(
@@ -263,7 +282,7 @@ $(document).ready(function() {
     var x_selected = selected[x]
     var cart_list = $(x_selected).parent().next();
     var price_elements = $(cart_list.children().find('.price-set').find('p')[0]).text().length > 0 ? cart_list.children().find('.price-set').find('p')[0] : cart_list.children().find('.price-set').find('p')[1]
-    
+
     var price_text = $(price_elements).text();
     var price = price_text.substring(2, price_text.length);
     var float_price = parseFloat(price);
@@ -277,7 +296,7 @@ $(document).ready(function() {
     var updated_cart_total = ((+two_decimal_price) + (+tax)).toFixed(2)
     var updated_cart_total = currency.concat(updated_cart_total)
     var tax = currency.concat(tax)
-    
+
     $("#cart_total").text(updated_cart_total)
     $("#sub_total").text(total)
     $("#total_tax").text(tax)
@@ -289,24 +308,24 @@ $(document).ready(function() {
     {
     $('#btn-checkout').attr("disabled", false)
     }
-    
+
     $('#loader-sec').css('display', 'none')
     }, 1000);
-    
+
     });
-    
-    
+
+
     }
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     function get_recommended_courses()
     {
-    
+
     $.ajax({
     type:"GET",
     url: "/api/courses/v2/web_recommended/courses/",
@@ -332,15 +351,15 @@ $(document).ready(function() {
     course_ratings = response['result']['result'][i]['ratings']
     course_ratings = course_ratings !== null ? course_ratings : "None"
     course_comments_count = response['result']['result'][i]['comments_count']
-    
+
     course_start = response['result']['result'][i]['start']
     course_discount_applicable = response['result']['result'][i]['discount_applicable']
     course_price = response['result']['result'][i]['price']
     course_discounted_price = response['result']['result'][i]['discounted_price']
     course_discount_percentage = response['result']['result'][i]['discount_percentage']
-    
-    
-    
+
+
+
     var course = `<li class="courses-listing-item">
     <article class="course" id="`+course_id+`" role="region" aria-label="`+course_name+`">
     <a href="/courses/`+course_id+`/about">
@@ -363,22 +382,22 @@ $(document).ready(function() {
     <ul>`
     if (course_discount_applicable == true)
     {
-    
+
     course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>
     <li>Price: <span class="main_price_cut">S$`+course_price+`</span></li>
     <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
     }
     else if (course_discount_applicable == false && course_price > 0 )
     {
-    
+
     course +=`<li>Price: <span class="main_price">S$`+course_price+`</span></li>`
     }
     else
     {
-    
+
     course +=`<li>Price: <span class="main_price">Free</span></li>`
     }
-    
+
     course +=`
     </ul>
     </div>
@@ -394,6 +413,5 @@ $(document).ready(function() {
     }
     }
     });
-    
+
     }
-    

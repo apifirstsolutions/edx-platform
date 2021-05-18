@@ -20,6 +20,7 @@ class CourseModeSerializer(serializers.ModelSerializer):
     """ CourseMode serializer. """
     name = serializers.CharField(source='mode_slug')
     price = serializers.FloatField(source='min_price')
+    price_string = serializers.CharField(source='get_price_string', required=False)
     expires = serializers.DateTimeField(
         source='expiration_datetime',
         required=False,
@@ -35,7 +36,7 @@ class CourseModeSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = CourseMode
-        fields = ('name', 'currency', 'price', 'sku', 'bulk_sku', 'expires')
+        fields = ('name', 'currency', 'price', 'price_string', 'sku', 'bulk_sku', 'expires')
         # For disambiguating within the drf-yasg swagger schema
         ref_name = 'commerce.CourseMode'
 
@@ -123,6 +124,7 @@ class CourseSerializer(serializers.Serializer):
     modes = CourseModeSerializer(many=True)
     discount_applicable = serializers.BooleanField(required=False)
     discounted_price = serializers.FloatField(required=False)
+    discounted_price_string = serializers.CharField(required=False)
     sale_type = serializers.CharField(required=False)
     subcategory_id = serializers.CharField(required=False)
     category = serializers.CharField(required=False)
@@ -130,12 +132,12 @@ class CourseSerializer(serializers.Serializer):
     is_premium = serializers.BooleanField(required=False)
     media = _CourseApiMediaCollectionSerializer(source='*',required=False)
     discount_percentage = serializers.FloatField(required=False)
+    discount_percentage_string = serializers.CharField(required=False)
     allow_review = serializers.BooleanField(required=False)
 
     class Meta(object):
         # For disambiguating within the drf-yasg swagger schema
         ref_name = 'commerce.Course'
-    
     def validate(self, attrs):
         """ Ensure the verification deadline occurs AFTER the course mode enrollment deadlines. """
         verification_deadline = attrs.get('verification_deadline', None)
@@ -210,12 +212,14 @@ class CourseDetailSerializer(serializers.Serializer):
     modes = CourseModeSerializer(many=True)
     discount_applicable = serializers.BooleanField(required=False)
     discounted_price = serializers.FloatField(required=False)
+    discounted_price_string = serializers.CharField(required=False)
     sale_type = serializers.CharField(required=False)
     subcategory_id = serializers.CharField(required=False)
     platform_visibility = serializers.CharField(required=False)
     is_premium = serializers.BooleanField(required=False)
     media = _CourseApiMediaCollectionSerializer(source='*',required=False)
     discount_percentage = serializers.FloatField(required=False)
+    discount_percentage_string = serializers.CharField(required=False)
     chapter_count = serializers.IntegerField(required=False)
     description = serializers.CharField(required=False)
     allow_review = serializers.BooleanField()

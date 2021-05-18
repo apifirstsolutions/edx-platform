@@ -31,7 +31,7 @@ from rest_framework.response import Response
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from django.apps import apps
 from common.djangoapps.feedback.models import CourseReview
-
+from common.djangoapps.student.views import create_course_tag
 CourseEnrollment = apps.get_model('student', 'CourseEnrollment')
 
 class CourseListView(ListAPIView):
@@ -62,7 +62,7 @@ class CourseListView(ListAPIView):
                 else:
                     request_filters[f] = filter_val.split(',')
 
-        courses = list(Course.iterator())        
+        courses = list(Course.iterator())
         platform_only_courses = []
         for course in courses:
             platform = course.platform_visibility
@@ -138,7 +138,12 @@ class CourseListView(ListAPIView):
                 search_string = self.request.query_params.get('coursename').lower()
                 if course.name.lower().find(search_string) > -1: #and course.platform_visibility in ['mobile', 'both', 'Mobile', 'Both', None]:
                     filtered_courses_list.append(course)
-
+            course_tag_type = self.request.query_params.get('coursename').lower()
+            course_tag_list_ids = create_course_tag(course_list, course_tag_type)
+            for tagged_course in course_tag_list_ids:
+                for course_ in course_list:
+                    if str(course_.id) == str(tagged_course) and course_ not in filtered_courses_list:
+                        filtered_courses_list.append(course_)
             return filtered_courses_list
 
         if not self.request.query_params.get('coursename', None) and not filter:
@@ -193,7 +198,9 @@ class CourseDetailView(RetrieveAPIView):
             course.difficulty_level = course.difficulty_level.capitalize() if course.difficulty_level else "Unknown"
             course.discount_applicable = course_extra_info.discount_applicable
             course.discount_percentage = course_extra_info.discount_percentage
-            course.discounted_price = course_extra_info.discounted_price
+            course.discount_percentage_string = course_extra_info.discount_percentage_string
+            course.discounted_price = float(course_extra_info.discounted_price)
+            course.discounted_price_string = str(course_extra_info.discounted_price)
             course.currency = course_extra_info.currency
             course.description = course_overview.short_description
             course_usage_key = modulestore().make_course_usage_key(course_id)
