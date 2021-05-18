@@ -1043,8 +1043,15 @@ urlpatterns += [
     url(r'^api/banner/', include('lms.djangoapps.banner.api.urls')),
 
 ]
-
 #Course Block User API
 urlpatterns += [
     url(r'^/course_block_user/', include('lms.djangoapps.course_block_user.urls')),
 ]
+
+#Course tag api related
+urlpatterns += [
+    url(r'^api/course_tag/', include('lms.djangoapps.course_tag.api.urls')),
+
+]
+
+

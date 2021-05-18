@@ -76,4 +76,3 @@ def mobile_home_page(request, api_version):
     else:
         obj = {"message": "Wrong API version", "net_response_chunk": {}, "status": False, "status_code": 400}
         return Response(obj)
-
