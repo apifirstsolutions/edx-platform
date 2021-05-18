@@ -181,6 +181,7 @@ class BlockSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
                 data['children'] = [six.text_type(child) for child in children]
 
 
+
         try:
             if 'descendants' in data:
 
