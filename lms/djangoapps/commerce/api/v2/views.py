@@ -145,8 +145,18 @@ class CourseListView(ListAPIView):
                     if str(course_.id) == str(tagged_course) and course_ not in filtered_courses_list:
                         filtered_courses_list.append(course_)
             return filtered_courses_list
+        if self.request.query_params.get('course_tag_type', None):
+            filtered_courses_list = []
+            course_list = filtered_courses if len(filtered_courses) > 0 else courses
+            course_tag_type = self.request.query_params.get('course_tag_type').lower()
+            course_tag_list_ids = create_course_tag(course_list, course_tag_type)
+            for tagged_course in course_tag_list_ids:
+                for course_ in course_list:
+                    if str(course_.id) == str(tagged_course) and course_ not in filtered_courses_list:
+                        filtered_courses_list.append(course_)
+            return filtered_courses_list
 
-        if not self.request.query_params.get('coursename', None) and not filter:
+        if not self.request.query_params.get('coursename', None) and not filter and not self.request.query_params.get('course_tag_type', None):
             return courses
 
         return filtered_courses
