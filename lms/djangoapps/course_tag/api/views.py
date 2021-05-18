@@ -22,16 +22,8 @@ from logging import getLogger
 logger = getLogger(__name__)
 #
 class LazyPageNumberPagination(pagination.PageNumberPagination):
-    """
-    NamespacedPageNumberPagination that works with a LazySequence queryset.
 
-    The paginator cache uses ``@cached_property`` to cache the property values for
-    count and num_pages.  It assumes these won't change, but in the case of a
-    LazySquence, its count gets updated as we move through it.  This class clears
-    the cached property values before reporting results so they will be recalculated.
-
-    """
-    page_size = 10
+    page_size = 100
     page_size_query_param = "page_size"
 
     def get_paginated_response(self, data):
