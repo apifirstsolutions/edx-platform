@@ -9,6 +9,7 @@ from django.utils.translation import ugettext as _
 
 from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_string
 from openedx.core.djangolib.markup import HTML
+from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_urls_for_user
 
 %>
 <style>
@@ -254,7 +255,7 @@ from openedx.core.djangolib.markup import HTML
             % for review in reviews:
                 <div class="review-item">
                     <div class="reviews-user-avatar">
-                        <img src="https://www.vettedpetcare.com/vetted-blog/wp-content/uploads/2018/08/How-To-Travel-With-a-Super-Anxious-Cat-square.jpeg" alt="">
+                        <img src="${get_profile_image_urls_for_user(review.user_id)['medium']}" alt="">
                     </div>
                     <div>
                         <div class="reviews-user-name">${review.user_id.username}</div>

@@ -6,3 +6,4 @@ from .models import CourseBlockUser
 
 # Register your models here.
 admin.site.register(CourseBlockUser)
+

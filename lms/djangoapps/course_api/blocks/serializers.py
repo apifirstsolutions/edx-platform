@@ -11,6 +11,8 @@ import logging
 from lms.djangoapps.course_blocks.transformers.visibility import VisibilityTransformer
 from lms.djangoapps.course_block_user.models import CourseBlockUser
 
+from lms.djangoapps.course_block_user.models import CourseBlockUser
+
 from .transformers.block_completion import BlockCompletionTransformer
 from .transformers.block_counts import BlockCountsTransformer
 from .transformers.milestones import MilestonesAndSpecialExamsTransformer
@@ -177,13 +179,6 @@ class BlockSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
             children = block_structure.get_children(block_key)
             if children:
                 data['children'] = [six.text_type(child) for child in children]
-        if 'descendants' in data:
-            x,_ = CourseBlockUser.objects.get_or_create(user=self.context['request'].user,
-                                              course_id_block=six.text_type(block_key.block_id), block_mobile_view=data['student_view_url'], descendants=data['descendants'])
-        else:
-            y,_ = CourseBlockUser.objects.get_or_create(user=self.context['request'].user,
-                                                  course_id_block=six.text_type(block_key.block_id),
-                                                  block_mobile_view=data['student_view_url'])
 
 
         try:
@@ -197,9 +192,9 @@ class BlockSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
                                                   block_mobile_view=data['student_view_url'])
         except Exception as ex:
             if 'descendants' in data:
-                logger.error("*************************ERROR fetching the query in CourseBlockUser for user %s with course_block_id %s and student web view url as %s . descendants as %s *********************", self.context['request'].user, six.text_type(block_key.block_id), data['student_view_url'], data['descendants'])
+                logger.error("*************************ERROR fetching the query in CourseBlockUser for user %s with course_block_id %s and student web view url as %s . descendants as %s *********************", str(self.context['request'].user), str(six.text_type(block_key.block_id)), str(data['student_view_url']), str(data['descendants']))
             else:
-                logger.error("*************************ERROR fetching the query in CourseBlockUser for user %s with course_block_id %s and student web view url as %s . *********************", self.context['request'].user, six.text_type(block_key.block_id), data['student_view_url'])
+                logger.error("*************************ERROR fetching the query in CourseBlockUser for user %s with course_block_id %s and student web view url as %s . *********************", str(self.context['request'].user), str(six.text_type(block_key.block_id)), str(data['student_view_url']))
         if authorization_denial_reason and authorization_denial_message:
             data['authorization_denial_reason'] = authorization_denial_reason
             data['authorization_denial_message'] = authorization_denial_message

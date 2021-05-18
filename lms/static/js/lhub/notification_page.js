@@ -36,4 +36,92 @@ $(document).ready(function() {
     });
     $ev.parents('.js-item-notification').remove();
   });
+
+  $('.js-mark-all-as-read').on('click', function(ev) {
+    ev.preventDefault();
+    let $ev = $(ev.currentTarget);
+    let url = $ev.data('url');
+    let checkedInputs = [];
+
+    $.each($("input[name='notification']:checked"), function(){
+      checkedInputs.push($(this).data('id'));
+    });
+
+    $.ajax({
+      url: url,
+      type: 'POST',
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      data: JSON.stringify({
+        ids: checkedInputs
+      }),
+      success: function () {
+        $.each(checkedInputs, function(){
+          let checkbox = $(`#notification-${this}`);
+          checkbox.removeAttr('checked');
+          checkbox.parents('.js-item-notification').removeClass('new-notification');
+          let actions = checkbox.parents('.js-item-notification').find('.notification-list-actions .js-mark-read-status');
+          actions.find('.js-mark-as-read').addClass('hidden');
+          actions.find('.js-mark-as-unread').removeClass('hidden');
+        });
+      }
+    })
+  });
+
+  $('.js-mark-all-as-unread').on('click', function(ev) {
+    ev.preventDefault();
+    let $ev = $(ev.currentTarget);
+    let url = $ev.data('url');
+    let checkedInputs = [];
+
+    $.each($("input[name='notification']:checked"), function(){
+      checkedInputs.push($(this).data('id'));
+    });
+
+    $.ajax({
+      url: url,
+      type: 'POST',
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      data: JSON.stringify({
+        ids: checkedInputs
+      }),
+      success: function () {
+        $.each(checkedInputs, function() {
+          let checkbox = $(`#notification-${this}`);
+          checkbox.removeAttr('checked');
+          checkbox.parents('.js-item-notification').addClass('new-notification');
+          let actions = checkbox.parents('.js-item-notification').find('.notification-list-actions .js-mark-read-status');
+          actions.find('.js-mark-as-read').removeClass('hidden');
+          actions.find('.js-mark-as-unread').addClass('hidden');
+        });
+      }
+    })
+  });
+
+  $('.js-delete-all').on('click', function(ev) {
+    ev.preventDefault();
+    let $ev = $(ev.currentTarget);
+    let url = $ev.data('url');
+    let checkedInputs = [];
+
+    $.each($("input[name='notification']:checked"), function(){
+      checkedInputs.push($(this).data('id'));
+    });
+
+    $.ajax({
+      url: url,
+      type: 'POST',
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      data: JSON.stringify({
+        ids: checkedInputs
+      }),
+      success: function () {
+        $.each(checkedInputs, function() {
+          $(`#notification-${this}`).parents('.js-item-notification').remove();
+        });
+      }
+    })
+  });
 });
