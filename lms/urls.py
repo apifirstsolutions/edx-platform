@@ -832,6 +832,16 @@ urlpatterns += [
     url(r'api/note/', include(('lms.djangoapps.note.urls', 'lms.djangoapps.note'), namespace='note')),
 ]
 
+if settings.FEATURES.get('IS_NOTE_TAB_ENABLED'):
+   urlpatterns += (
+       url(
+           r'^courses/{}/note/'.format(
+               settings.COURSE_ID_PATTERN,
+           ),
+           include('lms.djangoapps.note.urls'),
+           name='note',
+       ),
+   )
 # Embargo
 if settings.FEATURES.get('EMBARGO'):
     urlpatterns += [

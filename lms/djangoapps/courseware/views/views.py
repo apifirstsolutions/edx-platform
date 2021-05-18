@@ -1823,13 +1823,14 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
             if ref_obj and ref_obj.descendants:
                 #loop and split
                 sub_sections = ref_obj.descendants.strip('[]').split(",")
-                #process middle
+                print('tt', sub_sections)
+               #process middle
                 if ref_obj.processed_descendants and ref_obj.processed_descendants+1 < len(sub_sections):
                     next_ = base_url[0] +'/xblock/'+ (sub_sections[ref_obj.processed_descendants+1]).replace("'", "")
                     ref_obj.processed_descendants += 1
                 else:
                     # start of black , initial
-                    if len(sub_sections) >=1 and not ref_obj.processed_descendants:
+                    if len(sub_sections) >=2 and not ref_obj.processed_descendants:
                         next_ = base_url[0] + '/xblock/'+(sub_sections[1]).replace("'", "")
                     else:
                         # start of block , other condition , jump to next major block

@@ -177,6 +177,7 @@ FEATURES = {
     # in sync with the ones in lms/envs/common.py
     'ENABLE_DISCUSSION_SERVICE': True,
     'ENABLE_TEXTBOOK': True,
+    'IS_NOTE_TAB_ENABLED': True,
 
     # When True, all courses will be active, regardless of start date
     # DO NOT SET TO True IN THIS FILE
@@ -1519,6 +1520,9 @@ INSTALLED_APPS = [
 
     #banner related
     'lms.djangoapps.banner.apps.BannerConfig',
+
+    #Note
+    'lms.djangoapps.note.apps.NoteApiConfig',
 
     # course_block_user related
     'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig'
