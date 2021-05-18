@@ -570,8 +570,3 @@ if FEATURES.get('ENABLE_CORS_HEADERS'):
         'use-jwt-cookie',
     )
 
-################# Settings for brand logos. #################
-LOGO_URL = ENV_TOKENS.get('LOGO_URL', LOGO_URL)
-LOGO_URL_PNG = ENV_TOKENS.get('LOGO_URL_PNG', LOGO_URL_PNG)
-LOGO_TRADEMARK_URL = ENV_TOKENS.get('LOGO_TRADEMARK_URL', LOGO_TRADEMARK_URL)
-FAVICON_URL = ENV_TOKENS.get('FAVICON_URL', FAVICON_URL)
