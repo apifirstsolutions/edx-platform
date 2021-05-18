@@ -13,9 +13,7 @@ from openedx.core.djangolib.js_utils import js_escaped_string
 </%def>
 % if is_mobile_app:
   <%include file="/dates_banner.html" />
-
 % endif
-
 <%block name="bodyclass">view-in-course view-courseware courseware ${course.css_class or ''}</%block>
 <%block name="title"><title>
     % if section_title:
@@ -123,6 +121,7 @@ ${HTML(fragment.foot_html())}
     <%include file="/edxnotes/toggle_notes.html" args="course=course"/>
   % endif
 % endif
+
 % if is_learning_mfe:
 <script type="text/javascript">
   (function() {

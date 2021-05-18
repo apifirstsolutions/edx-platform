@@ -191,7 +191,16 @@ class Course(object):
         if len(self.modes) > 0:
             price = float(self.modes[0].min_price)
             discounted_price = price -  (self.modes[0].discount_percentage/100) * price
-            return discounted_price
+            return "%.2f" % discounted_price
+        course_mode_price = self.get_paid_mode_price()
+        return course_mode_price
+
+    @property
+    def discounted_price_string(self):
+        if len(self.modes) > 0:
+            price = float(self.modes[0].min_price)
+            discounted_price_string = price -  (self.modes[0].discount_percentage/100) * price
+            return str("%.2f" % discounted_price_string)
         course_mode_price = self.get_paid_mode_price()
         return course_mode_price
 
@@ -199,8 +208,14 @@ class Course(object):
     @property
     def discount_percentage(self):
         if len(self.modes) > 0:
-            return self.modes[0].discount_percentage
+            return "{:.2f}".format(self.modes[0].discount_percentage)
         return 0.0
+
+    @property
+    def discount_percentage_string(self):
+        if len(self.modes) > 0:
+            return str("%.2f" % self.modes[0].discount_percentage)
+        return "%.2f" % 0.0
 
 
     @property

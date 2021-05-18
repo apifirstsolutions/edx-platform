@@ -3,12 +3,16 @@
 
 import json
 import logging
+import pdfkit
 import random
+import urllib.parse
 from uuid import uuid4
 
 import lxml.html
 import six
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
@@ -446,6 +450,8 @@ class XQueueCertInterface(object):
         Generate a certificate for the student. If `generate_pdf` is True,
         sends a request to XQueue.
         """
+        from lms.djangoapps.certificates.api import get_certificate_url
+
         course_id = six.text_type(course.id)
 
         key = make_hashkey(random.random())
@@ -466,6 +472,14 @@ class XQueueCertInterface(object):
             cert.verify_uuid = uuid4().hex
 
         cert.save()
+
+        cert_web_view_url = get_certificate_url(student.id, course.id, uuid=cert.verify_uuid, user_certificate=cert)
+        full_url = urllib.parse.urljoin(settings.LMS_ROOT_URL, cert_web_view_url)
+        pdf_data = pdfkit.from_url(full_url, False)
+        path = default_storage.save(f'certificates_pdf/{cert.verify_uuid}.pdf', ContentFile(pdf_data))
+        cert.download_url = path
+        cert.save()
+
         logging.info(u'certificate generated for user: %s with generate_pdf status: %s',
                      student.username, generate_pdf)
 

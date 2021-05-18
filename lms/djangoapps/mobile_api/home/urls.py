@@ -5,7 +5,7 @@ URLs for Mobile Home API
 
 from django.conf.urls import url
 
-from lms.djangoapps.mobile_api.home import views
+# from lms.djangoapps.mobile_api.home import views
 
 urlpatterns = [
 

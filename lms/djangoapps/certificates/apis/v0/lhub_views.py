@@ -82,6 +82,7 @@ class LHUBCertificatesDetailView(CertificatesDetailView):
                     "status": user_cert.get('status'),
                     "is_passing": user_cert.get('is_passing'),
                     "download_url": user_cert.get('download_url'),
+                    "download_pdf_url": user_cert.get('download_pdf_url'),
                     "grade": user_cert.get('grade')
                 }
             }
@@ -133,6 +134,8 @@ class LHUBCertificatesListView(CertificatesListView):
 
             * download_url: A string representation of the certificate url.
 
+            * download_pdf_url: A string representation of path to certificate pdf file
+
             * grade: A string representation of a float for the user's course grade.
 
         **Example GET Response**
@@ -153,6 +156,7 @@ class LHUBCertificatesListView(CertificatesListView):
                         "status": "downloadable",
                         "is_passing": true,
                         "download_url": "/certificates/08f0e53458da4fbbb734db84d6181980",
+                        "download_pdf_url": "/media/certificates_pdf/08f0e53458da4fbbb734db84d6181980",
                         "grade": "1.0"
                     },
                     {
@@ -166,6 +170,7 @@ class LHUBCertificatesListView(CertificatesListView):
                         "status": "downloadable",
                         "is_passing": true,
                         "download_url": "/certificates/9e1b971ec5964f6a9d91bd2388237097",
+                        "download_pdf_url": "/media/certificates_pdf/9e1b971ec5964f6a9d91bd2388237097",
                         "grade": "0.0"
                     }
                 ]
@@ -185,6 +190,7 @@ class LHUBCertificatesListView(CertificatesListView):
                     'status': user_cert.get('status'),
                     'is_passing': user_cert.get('is_passing'),
                     'download_url': user_cert.get('download_url'),
+                    "download_pdf_url": user_cert.get('download_pdf_url'),
                     'grade': user_cert.get('grade'),
                 })
             return Response(

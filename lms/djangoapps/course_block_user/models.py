@@ -16,3 +16,4 @@ class CourseBlockUser(models.Model):
     descendants = models.TextField(blank=True, null=True)
     processed_descendants = models.IntegerField(blank=True, null=True)
 
+

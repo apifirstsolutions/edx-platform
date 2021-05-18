@@ -10,7 +10,8 @@ from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiv
 from .serializers import BannerSerializer
 from rest_framework import status
 from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, view_auth_classes
-
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from rest_framework.permissions import IsAuthenticated
 from edx_rest_framework_extensions.paginators import NamespacedPageNumberPagination
 from django.core.paginator import InvalidPage
 from rest_framework.serializers import ValidationError

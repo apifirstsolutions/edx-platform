@@ -45,6 +45,14 @@ Mode = namedtuple('Mode',
 
 @python_2_unicode_compatible
 class CourseMode(models.Model):
+
+    @property
+    def get_price_string(self):
+        if self.min_price > 0:
+            price_string = self.min_price
+            return "%.2f" % price_string
+        return "%.2f" % 0.0
+
     """
     We would like to offer a course in a variety of modes.
 
