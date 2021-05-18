@@ -224,16 +224,21 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
                                 </td>
                                 <td class="col-2">${enrollment.created.strftime('%d %b %Y') }</td>
                                 <td class="col-2">${enrollment.completed_units} / ${enrollment.total_units}</td>
-                               <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format(enrollment.completed_units / \
-                                    enrollment.total_units * 100) }</td>
-                               ## <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format(40 / \
+                                % if enrollment.total_units == 0 or enrollment.completed_units == 0:
+                                <td class="col-2" id="${enrollment.course_id}_col">0 %</td>
+                                % else:
+                                <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format( \
+                                enrollment.completed_units / enrollment.total_units * 100) }</td>
+                                % endif
+
+                                ## <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format(40 / \
                                     enrollment.total_units * 100) }</td>
                             </tr>
                         </table>
                     </div>
                     <div class="progress" style="border-radius: 0; height: 5px; margin:0">
                         <div class="progress-bar bg-ntuc" id="${enrollment.course_id}" role="progressbar"
-                             aria-valuenow="%{'{:.2f}'.format(enrollment.completed_units / enrollment.total_units * 100)}" aria-valuemin="0"
+                             aria-valuenow="%{'{:.2f}'.format(progress)}" aria-valuemin="0"
                              aria-valuemax="100"></div>
                     </div>
                 </div>
@@ -252,7 +257,6 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
         }
     </script>
 </div>
-
 <%block name="js_extra">
 
 </%block>

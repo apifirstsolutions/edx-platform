@@ -1,14 +1,8 @@
 from datetime import date
 from django.db.models import Count
-from data.models import (
-    CourseOverviewsCourseoverview,
-    AuthUser,
-    AuthUserprofile,
-    StudentCourseenrollment,
-    CourseOverviewsCourseoverview,
-    StudentCourseaccessrole,
-    CustomRegFormUserextrainfo
-)
+
+from common.djangoapps.student.models import UserProfile
+from custom_reg_form.models import UserExtraInfo
 
 
 def calculate_age(born):
@@ -24,9 +18,9 @@ def calculate_age(born):
 
 
 def get_learners_gender_list(user_ids):
-    learners_gender = AuthUserprofile.objects.filter(user__in=user_ids).values('gender').annotate(
+    learners_gender = UserProfile.objects.filter(user__in=user_ids).values('gender').annotate(
         total=Count('id')).order_by('-total')
-    print(AuthUserprofile.objects.filter(user__in=user_ids).values('gender').annotate(total=Count('id')).order_by(
+    print(UserProfile.objects.filter(user__in=user_ids).values('gender').annotate(total=Count('id')).order_by(
         '-total').query)
     for l in learners_gender:
         if l['gender'] == 'm':
@@ -63,7 +57,7 @@ def get_learners_gender_list(user_ids):
 
 
 def get_learners_edu(user_ids):
-    learners_edu = AuthUserprofile.objects.filter(user__in=user_ids).values('level_of_education').annotate(
+    learners_edu = UserProfile.objects.filter(user__in=user_ids).values('level_of_education').annotate(
         total=Count('id'))
     for l in learners_edu:
         if l['level_of_education'] == 'p':
@@ -89,7 +83,7 @@ def get_learners_edu(user_ids):
     for l in learners_edu:
         print(f'{l["level_of_education"]} {l["total"]}')
 
-    learners_yob = CustomRegFormUserextrainfo.objects.filter(user__in=user_ids).values()
+    learners_yob = UserExtraInfo.objects.filter(user__in=user_ids).values()
 
     print(f'\nTotal Learners({len(user_ids)}):')
     print(f'\nLearners Age({learners_yob.count()}):')
@@ -125,33 +119,43 @@ def spread_age_distribution(age_list):
 def median(lst):
     learners_age_without_duplicates = []
     [learners_age_without_duplicates.append(x) for x in lst if x not in learners_age_without_duplicates]
-    sortedLst = sorted(learners_age_without_duplicates)
-    lstLen = len(learners_age_without_duplicates)
-    index = (lstLen - 1) // 2
+    sorted_lst = sorted(learners_age_without_duplicates)
+    lst_len = len(learners_age_without_duplicates)
+    index = (lst_len - 1) // 2
 
-    if (lstLen % 2):
-        return sortedLst[index]
+    if index:
+        return 0
+
+    if lst_len % 2:
+        return sorted_lst[index]
     else:
-        return (sortedLst[index] + sortedLst[index + 1]) / 2.0
+        return (sorted_lst[index] + sorted_lst[index + 1]) / 2.0
 
 
 def age_dist(lst):
     learners_age_lte_25 = []
     [learners_age_lte_25.append(x) for x in lst if x <= 25]
 
-    age_lte_25 = (len(learners_age_lte_25) / len(lst) * 100)
+    age_lte_25 = 0.0
+    age_btw_26_and_40 = 0.0
+    age_gt_40 = 0.0
+
+    if learners_age_lte_25 and lst:
+        age_lte_25 = round((len(learners_age_lte_25) / len(lst) * 100), 2)
 
     learners_age_between_26_and_40 = []
-    [learners_age_between_26_and_40.append(x) for x in lst if x > 25 and x <= 40]
+    [learners_age_between_26_and_40.append(x) for x in lst if 25 < x <= 40]
 
-    age_btw_26_and_40 = len(learners_age_between_26_and_40) / len(lst) * 100
+    if learners_age_between_26_and_40 and lst:
+        age_btw_26_and_40 = round(len(learners_age_between_26_and_40) / len(lst) * 100, 2)
 
     learners_age_gt_41 = []
     [learners_age_gt_41.append(x) for x in lst if x > 41]
 
-    age_gt_40 = len(learners_age_gt_41) / len(lst) * 100
+    if learners_age_gt_41 and lst:
+        age_gt_40 = round(len(learners_age_gt_41) / len(lst) * 100, 2)
 
-    dist = {'age_lte_25': round(age_lte_25, 2), 'age_btw_26_and_40': round(age_btw_26_and_40, 2),
-            'age_gt_40': round(age_gt_40, 2)}
+    dist = {'age_lte_25': age_lte_25, 'age_btw_26_and_40': age_btw_26_and_40,
+            'age_gt_40': age_gt_40}
 
     return dist

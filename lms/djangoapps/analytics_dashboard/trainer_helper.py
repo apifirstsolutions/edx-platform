@@ -1,5 +1,3 @@
-from unicodedata import decimal
-
 
 def spread_course_by_month(course_list, column_name):
     year_dist = spread_course_by_year(course_list, column_name)

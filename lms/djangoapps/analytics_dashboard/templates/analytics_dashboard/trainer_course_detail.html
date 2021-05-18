@@ -1,8 +1,25 @@
-{% extends 'base_v2.html' %}
+## mako
 
-{% block content %}
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%def name="online_help_token()"><% return "profile" %></%def>
+<%namespace name='static' file='/static_content.html'/>
 
-{% load static %}
+<%!
+import json
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import dump_js_escaped_json
+from openedx.core.djangolib.markup import HTML
+%>
+
+<%block name="pagetitle">${_("Trainer's dashboard")}</%block>
+
+<%block name="bodyclass">view-profile</%block>
+
+<%block name="headextra">
+<%static:css group='style-course'/>
+</%block>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -107,7 +124,7 @@
         <main class="col-md-12 col-lg-12 px-md-4">
             <div
                 class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h2>{{ course.display_name }} <span class="badge bg-secondary text-wrap align-middle" style="font-size: small;">{{ course.id }}</span></h2>
+                <h2>${ course.display_name } <span class="badge bg-secondary text-wrap align-middle" style="font-size: small;">${ course.id }</span></h2>
                 <!-- <div class="btn-toolbar mb-2 mb-md-0">
                     <div class="btn-group me-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -123,40 +140,40 @@
             <!-- Cards  -->
             <div class="row my-4">
                 <div class="row mb-4">
-                    <!-- Courses Enrolled Card -->
+                    <!-- Courses Enrolled  -->
                     <div class="col-sm-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="card-title text-uppercase">Start Date</h6>
-                                {% if course.start %}
-                                <p class="card-text fs-1">{{ course.start|date:"j M Y"  }}</p>
-                                {% else %}
-                                <p class="card-text fs-1">-</p>
-                                {% endif %}
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <h6 class="panel-title text-uppercase text-center">Start Date</h6>
+                                % if course.start:
+                                <h1 class="panel-text text-center">${ course.start.strftime('%d %b %Y')  }</h1>
+                                % else:
+                                <h1 class="panel-text text-center">-</h1>
+                                % endif:
                             </div>
                         </div>
                     </div>
-            
+
                     <!-- Courses In Progress -->
                     <div class="col-sm-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="card-title text-uppercase">Students Enrolled</h6>
-                                {% if course_learners_count %}
-                                <p class="card-text fs-1">{{ course_learners_count }}</p>
-                                {% else %}
-                                <p class="card-text fs-1">-</p>
-                                {% endif %}
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <h6 class="panel-title text-uppercase text-center">Students Enrolled</h6>
+                                % if course_learners_count:
+                                <h1 class="panel-text text-center">${ course_learners_count }</h1>
+                                % else:
+                                <h1 class="panel-text text-center">-</h1>
+                                % endif:
                             </div>
                         </div>
                     </div>
-            
+
                     <!-- Courses Completed -->
                     <div class="col-sm-4">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h6 class="card-title text-uppercase">Course Completions</h6>
-                                <p class="card-text fs-1">-</p>
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <h6 class="panel-title text-uppercase text-center">Course Completions</h6>
+                                <h1 class="panel-text text-center">${course_completions}</h1>
                             </div>
                         </div>
                     </div>
@@ -179,31 +196,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for learner in course_learners %}
-                            <tr>
-                                <td>{{ learner.user.username }}</td>
-                                <td>{{ learner.user.first_name }} {{ learner.user.last_name }}</td>
-                                <td>{{ learner.created|date:"j M Y" }}</td>
-                                <td>{{ learner.user.email }}</td>
-                                <!-- <td>S$ {{ course.course_price }}</td> -->
-                                <td id="{{ learner.id }}_col">-</td>
-                            </tr>
-                            {% endfor %}
+                            % for enrollment in enrollments:
+                                ##% for e in enrollment:
+                                <tr>
+                                    <td>${ enrollment.user.username }</td>
+                                    <td>
+                                        % if enrollment.user.first_name or enrollment.user.last_name:
+                                            ${ enrollment.user.first_name } ${ enrollment.user.last_name}
+                                        % else:
+                                            -
+                                        % endif
+                                    </td>
+                                    <td>${ enrollment.created.strftime('%d %b %Y') }</td>
+                                    <td>${ enrollment.user.email }</td>
+                                    <td>${enrollment.completed_units} / ${ enrollment.total_units }</td>
+                                </tr>
+                                ##% endfor
+                            % endfor:
                         </tbody>
                     </table>
-                     <script>
-                        var courses = [{% for c in course_learners %} '{{ c.id|safe }}', {% endfor %}]
-                        var i = 0;
-
-                        for(i = 0; i<courses.length; i++) {
-                            const id_col = courses[i] + "_col"
-                            const prog = Math.floor(Math.random() * 100)
-                            document.getElementById(id_col).innerHTML= prog + "%";
-                        }
-                    </script>
                 </div>
             </div>
         </main>
     </div>
 </div>
-{% endblock %}
+
+
+<%block name="js_extra">
+
+</%block>

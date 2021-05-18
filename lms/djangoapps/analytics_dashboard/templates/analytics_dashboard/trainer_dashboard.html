@@ -1,8 +1,25 @@
-{% extends 'base_v2.html' %}
+## mako
+## -*- coding: utf-8 -*-
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%def name="online_help_token()"><% return "profile" %></%def>
+<%namespace name='static' file='/static_content.html'/>
 
-{% block content %}
+<%!
+import json
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import dump_js_escaped_json
+from openedx.core.djangolib.markup import HTML
+%>
 
-{% load static %}
+<%block name="pagetitle">${_("Trainer's dashboard")}</%block>
+
+<%block name="bodyclass">view-profile</%block>
+
+<%block name="headextra">
+<%static:css group='style-course'/>
+</%block>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -102,35 +119,21 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Side Navigation Bar -->
-
         <main class="col-md-10 col-lg-12 px-md-4">
             <div
                 class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">{{ trainer.username }} Dashboard</h1>
-                <!-- <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                        <span data-feather="calendar"></span>
-                        This week
-                    </button>
-                </div> -->
+                <h1 class="h2">${ trainer.username } Dashboard</h1>
             </div>
 
             <!-- Cards  -->
-            <!-- <div class="container "> -->
             <div class="row mb-4">
                 <!-- Courses Enrolled Card -->
                 <div class="col-sm-1"></div>
                 <div class="col-sm-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h6 class="card-title text-uppercase">Courses Created</h6>
-                            <p class="card-text fs-1">{{ trainer_courses.count }}</p>
-                            <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                    <div class="panel panel-default text-center">
+                        <div class="panel-body">
+                            <h6 class="panel-title text-uppercase text-center">Courses Created</h6>
+                            <h2 class="panel-text text-center">${ trainer_courses.count() }</h2>
                         </div>
                     </div>
                 </div>
@@ -138,11 +141,10 @@
                 <!-- Courses In Progress -->
                 <div class="col-sm-1"></div>
                 <div class="col-sm-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h6 class="card-title text-uppercase">Students Enrolled</h6>
-                            <p class="card-text fs-1">{{ trainer_total_learner_count }}</p>
-                            <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h6 class="panel-title text-uppercase text-center">Students Enrolled</h6>
+                            <h2 class="panel-text text-center">${ trainer_total_learner_count }</h2>
                         </div>
                     </div>
                 </div>
@@ -150,33 +152,46 @@
                 <!-- Courses Completed -->
                 <div class="col-sm-1"></div>
                 <div class="col-sm-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h6 class="card-title text-uppercase">Courses Completions</h6>
-                            <p class="card-text fs-1">-</p>
-                            <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h6 class="panel-title text-uppercase text-center">Courses Completions</h6>
+                            <h2 class="panel-text text-center">-</h2>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- </div> -->
-            
+
             <div class="row">
                 <canvas class="my-4 w-100" id="numberOfCoursesChart" width="900" height="300"></canvas>
+                <%
+                years = []
+                for k,val in trainer_course_year.items():
+                    years.append(k)
+
+                course_count_data = []
+                course_data = []
+                for k,val in trainer_course_year.items():
+                    for k,v in val.items():
+                        course_data.append(v)
+                    endfor
+                    course_count_data.append(course_data)
+                endfor
+                %>
+                <input type="hidden" id="chartLabel0" name="chartLabel0" value="${years}">
+
                 <script>
                     const year_label = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-                    var years = [{% for k,val in trainer_course_year.items %} '{{ k | safe }}', {% endfor %}]
-                    var course_count_data = [{% for k,val in trainer_course_year.items %} [{% for k,v in val.items %}'{{ v | safe }}', {% endfor %}], {% endfor %}]
+                    var years = ${years}
+                    var course_count_data = ${course_count_data}
                     var ctx = document.getElementById('numberOfCoursesChart')
                     // eslint-disable-next-line no-unused-vars
-                    console.log('couse data', {{ trainer_course_year | safe }})
 
                     console.log('cslen', course_count_data.length)
 
+                    <%text>
                     function genRand(min, max, decimalPlaces) {
                         return (Math.random() * (max - min) + min).toFixed(decimalPlaces) * 1;
                     }
-
                     var ds = [];
                     var rgb_alpha = 0.5;
                     var rgb_colors = [
@@ -192,7 +207,7 @@
                         `rgba(255,102,255, ${rgb_alpha})`,
                         `rgba(255,102,178, ${rgb_alpha})`,
                         ]
-                    for (i = 0; i < course_count_data.length; i++){
+                    for (i = 0; i < years.length; i++){
                         const clr = genRand(0,10,0);
                         console.log('clr', clr);
                         ds.push(
@@ -233,7 +248,7 @@
                                 }
                             }
                         },
-
+                    </%text>
 
                     })
                 </script>
@@ -241,9 +256,16 @@
 
             <div class="row">
                 <canvas class="my-4 w-100" id="myChart" width="900" height="300"></canvas>
+                <%
+                course_count_data = [c['total'] for c in trainer_course_learner_count]
+                %>
                 <script>
-                    var lb = [{% for c in trainer_course_learner_count %} '{{ c.course_id|escapejs }}', {% endfor %}]
-                    var course_count_data = [{% for c in trainer_course_learner_count %} {{ c.total | escapejs }}, {% endfor %}]
+                    var courseIdLabel = ${chart_label | n};
+
+                    console.log('courseIdLabel', courseIdLabel)
+                    var lb = courseIdLabel
+
+                    var courseCountData = ${course_count_data}
                     var ctx = document.getElementById('myChart')
                     // eslint-disable-next-line no-unused-vars
 
@@ -253,7 +275,7 @@
                         datasets: [
                             {
                                 label: 'Number of Students',
-                                data: course_count_data,
+                                data: courseCountData,
                                 backgroundColor: 'rgba(49, 107, 196, 0.7)',
                             },
                         ]
@@ -274,8 +296,6 @@
                                 }
                             }
                         },
-
-
                     })
                 </script>
             </div>
@@ -296,29 +316,31 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- <p>{{ trainer_courses }}</p> -->
-                        {% for course in trainer_courses %}
+                        %for course in trainer_courses:
                         <tr>
-                            <td><a href="{% url 'dashboard:trainer_course_detail' course.id  %}">{{ course.id }}</a></td>
-                            <td>{{ course.display_name }}</td>
-                            <td>{{ course.start_date|date:"j M Y" }}</td>
-                            <td>{{ course.difficulty_level }}</td>
-                            <!-- <td>{{ course.platform_visibility }}</td> -->
-                            <td>S$ {{ course.course_sale_type | upper  }}</td>
+                            <td><a
+                                href="${reverse('analytics_dashboard:trainer_course_detail', args=[str(course['id'])])}">${
+                                course['id'] }</a></td>
+                            <td>${ course["display_name"] }</td>
+                            <td>${ course["start_date"].strftime('%d %b %Y') }</td>
+                            <td>${ course["difficulty_level"] }</td>
+                            <td>S$ ${ course["course_sale_type"] }</td>
                             <td>
-                                {% if course.course_sale_type == 'paid' %}
-                                    S$ {{ course.course_price }}
-                                {% else %}
+                                %if course["course_sale_type"] == 'paid':
+                                    S$ ${ course["course_price"] }
+                                %else:
                                     -
-                                {% endif %}
+                                %endif:
                             </td>
-                            <td>{{ course.created|date:"j M Y" }}</td>
+                            <td>${ course["created"].strftime('%d %b %Y') }</td>
                         </tr>
-                        {% endfor %}
+                        %endfor:
                     </tbody>
                 </table>
             </div>
         </main>
     </div>
 </div>
-{% endblock %}
+<!--##<%block name="js_extra">-->
+
+</%block>
