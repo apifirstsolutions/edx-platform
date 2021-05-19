@@ -176,24 +176,22 @@ def index(request, extra_context=None, user=AnonymousUser()):
                 "course_name":  str(crs.display_name_with_default)
                 }
                 search_result = search_engine.search(field_dictionary=doc_string)
-                if search_result:
-                    key_obj.append(crs)
                 log.info("fetched the following from Elastic Search Engine %s", str(search_result))
-                #This block is used to clear index
-                test = []
-                # for x in other_result['results']:
-                #     print(x['_id'])
-                #     test.append(x['_id'])
-                #     print('added to Remove list ',(x['_id']))
-                # search_engine.remove('test_doc_type', test)
-                if search_result and not int(search_result['total']):
+                if search_result and int(search_result['total']):
+                    key_obj.append(crs)
+                    # This block is used to clear index
+                    # test = []
+                    # for x in search_result['results']:
+                    #     print(x['_id'])
+                    #     test.append(x['_id'])
+                    #     print('added to Remove list ',(x['_id']))
+                    # search_engine.remove('home', test)
+                else:
                     search_engine.index("home", [doc_string])
                     log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    if key_obj:
-                        courses = key_obj
-                else:
-                    if key_obj:
-                        courses = key_obj
+                    key_obj.append(crs)
+                courses = key_obj
+
 
     context = {
         'courses': courses,
