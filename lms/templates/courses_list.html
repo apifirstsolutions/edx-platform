@@ -7,7 +7,7 @@
 
     % if settings.FEATURES.get('COURSES_ARE_BROWSABLE'):
       <section class="courses">
-             <ul class="courses-listing">
+
           ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
             % if course_tag:
                 %for key in course_tag:
@@ -19,8 +19,7 @@
                                  <h3>${val[0]}</h3>
                                  <%include file="course.html" args="course=tag" />
                              </li>
-                             <br>
-                         </ul>
+
                         % else:
                             <li class="courses-listing-item" >
                                 %if len(key.items()) > 1:
@@ -30,10 +29,11 @@
                              </li>
                         % endif
                     %endfor
+                         </ul>
                   %endfor
                 %endfor
             %endif
-             </ul>
+
       </section>
       <section  class="courses">
 
