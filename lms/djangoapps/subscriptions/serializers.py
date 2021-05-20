@@ -17,7 +17,7 @@ class SubscriptionPlanSerializer(ModelSerializer):
     model = SubscriptionPlan
     fields = (
       'id', 'name', 'bundle_id', 'ecommerce_prod_id', 'description', 'is_active', 'valid_until', 
-      'billing_cycle_options', 'grace_period', 'enterprise_id', 'created_at', 'updated_at',
+      'monthly_price', 'yearly_price', 'one_time_price', 'grace_period', 'enterprise_id', 'created_at', 'updated_at',
     )
 
 class SubscriptionSerializer(ModelSerializer):

@@ -19,12 +19,21 @@ def render_plan_view(request, template, slug):
     
     if not perms[VIEW_SUBSCRIPTION_PLAN].check(request.user, plan):
         raise Http404()
+
+    prices = {}
+    if (plan.monthly_price is not None):
+        prices['month'] = plan.monthly_price
+    if (plan.yearly_price is not None):
+        prices['year'] = plan.yearly_price
+    if (plan.one_time_price is not None):
+        prices['one_time'] = plan.one_time_price
+
     try:
         context = {
             "name": plan.name,
             "description": plan.description,
             "courses": plan.bundle.courses.all(),
-            "options": plan.billing_cycle_options
+            "options": prices
         }
         return render_to_response('subscriptions/' + template, context, content_type='text/html')
 

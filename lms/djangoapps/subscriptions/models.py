@@ -13,9 +13,14 @@ class Statuses(Enum):
     EXPIRED = 'expired'
     CANCELLED = 'cancelled'
 class BillingCycles(Enum):
-    MONTHLY = 'monthly'
-    YEARLY = 'yearly'
+    MONTH = 'month'
+    YEAR = 'year'
     ONE_TIME = 'one-time'
+
+class SubscriptionTransaction(Enum):
+    CREATE = 'CREATED'
+    RENEWAL = 'RENEWAL'
+    CANCEL = 'CANCELLED'
 class Bundle(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
@@ -35,16 +40,23 @@ class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     bundle = models.ForeignKey(Bundle, on_delete=models.DO_NOTHING, null=True, blank=True)
-    ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True)  # FIXME
+    ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')  # FIXME
+    stripe_prod_id = models.CharField(max_length=50, null=False, blank=False, verbose_name='Stripe Product ID')
     description = models.CharField(max_length=500, default=None, null=True, blank=True)
     is_active = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
     valid_until = models.DateTimeField(default=None, null=True, blank=True)
-    billing_cycle_options = JSONField(
-        default=[{ "monthly": "0.00", "yearly": "0.00" }],
-        null=False,
-        blank=True,
-        load_kwargs={'object_pairs_hook': collections.OrderedDict}
-    )
+    # billing_cycle_options = JSONField(
+    #     default=[{ "month": "0.00", "year": "0.00" }],
+    #     null=False,
+    #     blank=True,
+    #     load_kwargs={'object_pairs_hook': collections.OrderedDict}
+    # )
+
+    monthly_price = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
+    yearly_price = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
+    one_time_price = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
+
     grace_period = models.IntegerField(default=0)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -62,7 +74,7 @@ class Subscription(models.Model):
     billing_cycle = models.CharField(
       max_length=10,
       choices=[(cycle, cycle.value) for cycle in BillingCycles],
-      default=BillingCycles.MONTHLY
+      default=BillingCycles.MONTH
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.CASCADE, null=True, blank=True)
@@ -75,7 +87,8 @@ class Subscription(models.Model):
     )
     license_count = models.IntegerField(default=1, null=False, blank=False)
     biller_subscription_id = models.CharField(max_length=50, null=True, blank=True)
-    ecommerce_trans_id = models.IntegerField(null=True, blank=False)
+    stripe_customer_id = models.CharField(max_length=50, null=False, blank=False)
+    stripe_price_id = models.CharField(max_length=50, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -102,8 +115,14 @@ class Transactions(models.Model):
       choices=[(status, status.value) for status in Statuses],
       default=Statuses.ACTIVE
     )
+    description = models.CharField(
+      max_length=10,
+      choices=[(trans, trans.value) for trans in SubscriptionTransaction],
+      default=None,
+      null=True,
+      blank=True,
+    )
     license_count = models.IntegerField()
-    description = models.CharField(max_length=100, default=None, null=True, blank=True)
     biller_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
     ecommerce_trans_id = models.IntegerField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
