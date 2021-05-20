@@ -31,16 +31,21 @@ class SubscriptionService:
           # idempotency_key=       # https://stripe.com/docs/api/idempotent_requests
       )
 
-      for cycle in prices.keys():
-        if prices[cycle] is not None and cycle is not 'one-time':   # FIXME handle one-time price
+      result = {}
+      result['product_id'] = product.id
+
+      for interval in prices.keys():
+        if prices[interval] is not None:
           price = stripe.Price.create(
-            unit_amount_decimal= prices[cycle] * 100,
+            unit_amount_decimal= prices[interval] * 100,
             currency=STRIPE_CURRENCY,
-            recurring={ "interval": cycle },
+            recurring={ 'interval': interval },
             product=product.id,
           )
+
+          result['price_' + interval + '_id'] = price.id
       
-      return { "product_id": product.id, "price_id": price.id }   # FIXME handle multiple price ids
+      return result
 
     except Exception as e:
       print('Stripe ERROR:: ' + str(e))

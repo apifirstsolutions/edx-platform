@@ -39,26 +39,23 @@ class Bundle(models.Model):
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
+    
     bundle = models.ForeignKey(Bundle, on_delete=models.DO_NOTHING, null=True, blank=True)
-    ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')  # FIXME
-    stripe_prod_id = models.CharField(max_length=50, null=False, blank=False, verbose_name='Stripe Product ID')
     description = models.CharField(max_length=500, default=None, null=True, blank=True)
-    is_active = models.BooleanField(default=False)
-    is_featured = models.BooleanField(default=False)
-    valid_until = models.DateTimeField(default=None, null=True, blank=True)
-    # billing_cycle_options = JSONField(
-    #     default=[{ "month": "0.00", "year": "0.00" }],
-    #     null=False,
-    #     blank=True,
-    #     load_kwargs={'object_pairs_hook': collections.OrderedDict}
-    # )
-
-    monthly_price = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
-    yearly_price = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
-    one_time_price = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
-
-    grace_period = models.IntegerField(default=0)
+    ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')  # FIXME
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
+    grace_period = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
+    price_month = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
+    price_onetime = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
+    price_year = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
+    stripe_prod_id = models.CharField(max_length=50, null=False, blank=False, verbose_name='Stripe Product ID')
+    stripe_price_month_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='Stripe Price ID (month)')
+    stripe_price_year_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='Stripe Product ID (year)')
+    
+    valid_until = models.DateTimeField(default=None, null=True, blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

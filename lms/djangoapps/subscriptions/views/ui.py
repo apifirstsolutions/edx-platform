@@ -21,12 +21,12 @@ def render_plan_view(request, template, slug):
         raise Http404()
 
     prices = {}
-    if (plan.monthly_price is not None):
-        prices['month'] = plan.monthly_price
-    if (plan.yearly_price is not None):
-        prices['year'] = plan.yearly_price
-    if (plan.one_time_price is not None):
-        prices['one_time'] = plan.one_time_price
+    if (plan.price_month is not None):
+        prices['month'] = plan.price_month
+    if (plan.price_year is not None):
+        prices['year'] = plan.price_year
+    if (plan.price_onetime is not None):
+        prices['one_time'] = plan.price_onetime
 
     try:
         context = {
