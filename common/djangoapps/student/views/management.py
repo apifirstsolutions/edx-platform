@@ -78,6 +78,8 @@ from lms.djangoapps.banner.models import Banner
 from lms.djangoapps.course_tag.models import CourseTag
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from commerce.api.v1.models import Course
+from elasticsearch.exceptions import ConnectionError
+from search.search_engine_base import SearchEngine
 
 log = logging.getLogger("edx.student")
 
@@ -120,6 +122,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     extra_context is used to allow immediate display of certain modal windows, eg signup.
     """
+
     if extra_context is None:
         extra_context = {}
 
@@ -160,6 +163,35 @@ def index(request, extra_context=None, user=AnonymousUser()):
         courses = sort_by_start_date(courses)
     else:
         courses = sort_by_announcement(courses)
+
+
+    if request.GET.get('search'):
+        search_engine = SearchEngine.get_search_engine(index="home_search")
+        key_word = str(request.GET.get('search'))
+        key_obj = []
+        for crs in courses:
+            if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
+                doc_string = {
+                "course_id": str(crs.id),
+                "course_name":  str(crs.display_name_with_default)
+                }
+                search_result = search_engine.search(field_dictionary=doc_string)
+                log.info("fetched the following from Elastic Search Engine %s", str(search_result))
+                if search_result and int(search_result['total']):
+                    key_obj.append(crs)
+                    # This block is used to clear index
+                    # test = []
+                    # for x in search_result['results']:
+                    #     print(x['_id'])
+                    #     test.append(x['_id'])
+                    #     print('added to Remove list ',(x['_id']))
+                    # search_engine.remove('home', test)
+                else:
+                    search_engine.index("home", [doc_string])
+                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                    key_obj.append(crs)
+                courses = key_obj
+
 
     context = {
         'courses': courses,
