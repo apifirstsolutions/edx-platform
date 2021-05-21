@@ -3,7 +3,6 @@ from django_filters import DateFilter, CharFilter, NumberFilter, ChoiceFilter, M
 # from ecommerce.models import *
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 
-
 # class OrderFilter(django_filters.FilterSet):
 #     start_date = DateFilter(field_name='date_placed', lookup_expr='gte')
 #     end_date = DateFilter(field_name='date_placed', lookup_expr='lte')
@@ -11,7 +10,7 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
 #     price_gt = NumberFilter(field_name='total_incl_tax', lookup_expr='gt')
 #
 #     class Meta:
-#         model = OrderOrder
+#         model = orders
 #         fields = []
 #
 #     def __init__(self, *args, **kwargs):

@@ -1,3 +1,10 @@
+<%!
+import json
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import dump_js_escaped_json
+from openedx.core.djangolib.markup import HTML
+%>
 
 <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="">
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
@@ -8,7 +15,7 @@
     <div class="position-sticky pt-3">
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="{% url 'dashboard:admin_dashboard' %}">
+                <a class="nav-link" aria-current="page" href="${ reverse('analytics_dashboard:admin_dashboard') }">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" class="feather feather-home">
@@ -19,7 +26,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a  class="nav-link" href="{% url 'dashboard:admin_demographics' %}">
+                <a  class="nav-link" href="${ reverse('analytics_dashboard:admin_demographics') }">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" class="feather feather-users">
@@ -32,7 +39,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a  class="nav-link" href="{% url 'dashboard:admin_revenue' %}">
+                <a  class="nav-link" href="${ reverse('analytics_dashboard:admin_revenue') }">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" class="feather feather-users">

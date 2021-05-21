@@ -5,6 +5,12 @@
 <%def name="online_help_token()"><% return "profile" %></%def>
 <%namespace name='static' file='/static_content.html'/>
 
+<!-- CSS only -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous">
+<link rel="stylesheet" href="${ STATIC_URL }css/dashboard.css">
+
 <%!
 import json
 from django.urls import reverse
@@ -17,9 +23,7 @@ from openedx.core.djangolib.markup import HTML
 
 <%block name="bodyclass">view-profile</%block>
 
-<%block name="headextra">
-<%static:css group='style-course'/>
-</%block>
+<script src="${ STATIC_URL}js/dashboard.js"></script>
 
 <style>
     .learner-profile .profile-img{
@@ -158,10 +162,10 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
                 <div class="row mb-4">
                     <!-- Courses Enrolled Card -->
                     <div class="col-sm-4">
-                        <div class="panel panel-default text-center">
-                            <div class="panel-body">
-                                <h6 class="panel-title text-uppercase text-center">Courses Enrolled</h6>
-                                    <p class="panel-text text-center my-3">${ len(course_enrollments) }</p>
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <p class="card-title text-uppercase">Courses Enrolled</p>
+                                <p class="card-text h3 text-center my-3">${ len(course_enrollments) }</p>
                             </div>
                         </div>
                     </div>
@@ -169,10 +173,10 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
 
                     <!-- Courses In Progress -->
                     <div class="col-sm-4">
-                        <div class="panel panel-default text-center">
-                            <div class="panel-body">
-                                <h6 class="panel-title text-uppercase text-center">Courses In Progress</h6>
-                                    <p class="panel-text text-center my-3">${ len(in_progress_courses) }</p>
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <p class="card-title text-uppercase">Courses In Progress</p>
+                                <p class="card-text h3 text-center my-3">${ len(in_progress_courses) }</p>
                             </div>
                         </div>
                     </div>
@@ -180,10 +184,10 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
 
                     <!-- Courses Completed -->
                     <div class="col-sm-4">
-                        <div class="panel panel-default text-center">
-                            <div class="panel-body">
-                                <h6 class="panel-title text-uppercase text-center">Courses Completed</h6>
-                                    <p class="panel-text text-center my-3">${ len(completed_courses) }</p>
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <p class="card-title text-uppercase">Courses Completed</p>
+                                <p class="card-text h3 text-center my-3">${ len(completed_courses) }</p>
                             </div>
                         </div>
                     </div>
@@ -191,7 +195,7 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
                 </div>
             <!-- </div> -->
 
-            <h5 class="mb-3">Enrolled Courses</h5>
+            <h5 class="mb-3 h5">Enrolled Courses</h5>
 
             % for dashboard_index, enrollment in enumerate(course_entitlements + course_enrollments):
                 <div class="panel panel-default mb-3 course-card" >
@@ -200,7 +204,8 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
                         <table class="table table-responsive table-borderless table-sm">
                             <tr>
                                 <td class="text-muted text-wrap">
-                                    <small class="text-muted text-wrap">${enrollment.course_id}</small>
+                                    ${enrollment.course_id}
+<!--                                    <small class="text-muted text-wrap"></small>-->
                                     <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> -->
                                 </td>
                                 <!-- <td></td> -->
@@ -216,7 +221,7 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
                             </tr>
                             <tr class="text-center align-middle">
                                 <td class="col-6">
-                                    <h6 class="card-title text-start">
+                                    <h6 class="h6 card-title text-left">
                                         <a class="text-secondary" href="">
                                             ${ enrollment.course_overview.display_name }
                                         </a>
@@ -257,6 +262,4 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
         }
     </script>
 </div>
-<%block name="js_extra">
 
-</%block>

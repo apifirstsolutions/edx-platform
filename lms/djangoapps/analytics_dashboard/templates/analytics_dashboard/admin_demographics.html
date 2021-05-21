@@ -5,6 +5,12 @@
 <%def name="online_help_token()"><% return "profile" %></%def>
 <%namespace name='static' file='/static_content.html'/>
 
+<!-- CSS only -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous">
+<link rel="stylesheet" href="${ STATIC_URL }css/dashboard.css">
+
 <%!
 import json
 from django.urls import reverse
@@ -13,73 +19,20 @@ from openedx.core.djangolib.js_utils import dump_js_escaped_json
 from openedx.core.djangolib.markup import HTML
 %>
 
-<%block name="pagetitle">${_("Learner Profile")}</%block>
+<%block name="pagetitle">${_("Dashboard | Demographics")}</%block>
 
 <%block name="bodyclass">view-profile</%block>
 
-<%block name="headextra">
-<%static:css group='style-course'/>
-</%block>
+
+<link rel="stylesheet" href="${ STATIC_URL }css/dashboard.css">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- CSS only -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x"
-      crossorigin="anonymous">
+<script src="${ STATIC_URL}js/dashboard.js"></script>
 
 <div class="container-fluid">
     <div class="row">
         <!-- Side Navigation Bar -->
-        ##{% include 'admin_dashboard_nav.html' %}
-
-                <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="">
-            <button class="navbar-toggler position-absolute d-md-none collapsed" type="button"data-bs-toggle="collapse"
-                data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="${ reverse('analytics_dashboard:admin_dashboard') }">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-home">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                            </svg>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a  class="nav-link" href="${ reverse('analytics_dashboard:admin_demographics') }">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="feather feather-users">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            Demographics
-                        </a>
-                    </li>
-                    ##<li class="nav-item">
-                    ##    <a  class="nav-link" href="${ reverse('analytics_dashboard:admin_revenue') }">
-                    ##        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    ##            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    ##            stroke-linejoin="round" class="feather feather-users">
-                    ##            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    ##            <circle cx="9" cy="7" r="4"></circle>
-                    ##            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    ##            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    ##        </svg>
-                    ##        Revenue
-                    ##    </a>
-                    ##</li>
-                </ul>
-            </div>
-        </nav>
+        <%include file="admin_dashboard_nav.html" />
 
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
@@ -100,9 +53,9 @@ from openedx.core.djangolib.markup import HTML
             </div>
 
             <!-- Cards  -->
-            <div class="fluid-container">
-                <div class="row mt-2">
-                    <h3>Gender</h3>
+            <div class="container-fluid">
+                <h3 class="h3">Gender</h3>
+                <div class="container-fluid mt-2">
                     <div class="col-sm-3"></div>
                     <div class="col-sm-6 justify-content-center">
                         <canvas id="myChart" width="500"></canvas>
@@ -166,9 +119,11 @@ from openedx.core.djangolib.markup import HTML
                         </%text>
                     </script>
                 </div>
+
                 <hr>
-                <div class="row mt-5">
-                    <h3>Education</h3>
+
+                <h3 class="h3">Education</h3>
+                <div class="container-fluid mt-5">
                     <div class="col-sm-1"></div>
                     <div class="col-sm-8" >
                         <canvas id="myChartByEducation" height="300" width="500"></canvas>
@@ -235,8 +190,8 @@ from openedx.core.djangolib.markup import HTML
 
                 <hr>
 
-                <div class="row mt-5">
-                    <h3>Age</h3>
+                <h3 class="h3">Age</h3>
+                <div class="container-fluid mt-5">
                     <div class="col-sm-1"></div>
                     <div class="col-sm-8" >
                         <canvas id="myChartByAge" height="300" width="500"></canvas>
@@ -252,14 +207,14 @@ from openedx.core.djangolib.markup import HTML
                         </ul>
                     </div>
 
-                    <div class="row my-5">
+                    <div class="container-fluid my-5">
                         <!-- Median Learner Age -->
                         <!-- <div class="col-sm-1"></div> -->
                         <div class="col-sm-3 col-md-3">
-                            <div class="panel panel-default text-center">
-                                <div class="panel-body">
-                                    <p class="panel-title text-uppercase text-center" style="font-size: small;">Median Learner Age</p>
-                                    <h1 class="panel-text fs-1 text-center">${ age_median }</h1>
+                            <div class="card  text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase text-center" style="font-size: small;">Median Learner Age</p>
+                                    <h1 class="card-text fs-1 text-center">${ age_median }</h1>
                                     <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
                                 </div>
                             </div>
@@ -268,10 +223,10 @@ from openedx.core.djangolib.markup import HTML
                         <!-- Learner 25 and Under -->
                         <!-- <div class="col-sm-1"></div> -->
                         <div class="col-sm-3 col-md-3">
-                            <div class="panel panel-default text-center">
-                                <div class="panel-body">
-                                    <p class="panel-title text-uppercase text-center" style="font-size: small;">Learner 25 and Under</p>
-                                    <h1 class="panel-text fs-1 text-center">${ age_dist['age_lte_25'] } %</h1>
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase text-center" style="font-size: small;">Learner 25 and Under</p>
+                                    <h1 class="card-text fs-1 text-center">${ age_dist['age_lte_25'] } %</h1>
                                     <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
                                 </div>
                             </div>
@@ -280,10 +235,10 @@ from openedx.core.djangolib.markup import HTML
                         <!-- Learner 26 to 40 -->
                         <!-- <div class="col-sm-1"></div> -->
                         <div class="col-sm-3 col-md-3">
-                            <div class="panel panel-default text-center">
-                                <div class="panel-body">
-                                    <p class="panel-title text-uppercase text-center" style="font-size: small;">Learner 26 to 40</p>
-                                    <h1 class="panel-text fs-1 text-center">${ age_dist['age_btw_26_and_40'] } %</h1>
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase text-center" style="font-size: small;">Learner 26 to 40</p>
+                                    <h1 class="card-text fs-1 text-center">${ age_dist['age_btw_26_and_40'] } %</h1>
                                     <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
                                 </div>
                             </div>
@@ -292,10 +247,10 @@ from openedx.core.djangolib.markup import HTML
                         <!-- Courses Completed -->
                         <!-- <div class="col-sm-1"></div> -->
                         <div class="col-sm-3 col-md-3">
-                            <div class="panel panel-default text-center">
-                                <div class="panel-body">
-                                    <p class="panel-title text-uppercase text-center" style="font-size: small;">Learner 41 and Over</p>
-                                    <h1 class="panel-text fs-1 text-center">${ age_dist['age_gt_40'] } %</h1>
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase text-center" style="font-size: small;">Learner 41 and Over</p>
+                                    <h1 class="card-text fs-1 text-center">${ age_dist['age_gt_40'] } %</h1>
                                     <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
                                 </div>
                             </div>

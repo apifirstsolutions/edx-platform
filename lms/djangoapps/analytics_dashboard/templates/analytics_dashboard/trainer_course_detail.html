@@ -5,6 +5,12 @@
 <%def name="online_help_token()"><% return "profile" %></%def>
 <%namespace name='static' file='/static_content.html'/>
 
+<!-- CSS only -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous">
+<link rel="stylesheet" href="${ STATIC_URL }css/dashboard.css">
+
 <%!
 import json
 from django.urls import reverse
@@ -13,14 +19,11 @@ from openedx.core.djangolib.js_utils import dump_js_escaped_json
 from openedx.core.djangolib.markup import HTML
 %>
 
-<%block name="pagetitle">${_("Trainer's dashboard")}</%block>
+<%block name="pagetitle">${_("Trainer Dashboard")}</%block>
 
 <%block name="bodyclass">view-profile</%block>
-
-<%block name="headextra">
-<%static:css group='style-course'/>
-</%block>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="${ STATIC_URL}js/dashboard.js"></script>
 
 <style>
     .bd-placeholder-img {
@@ -117,111 +120,106 @@ from openedx.core.djangolib.markup import HTML
     </symbol>
 </svg>
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Side Navigation Bar -->
+<div class="container py-0">
+    <main class="col-md-12 col-lg-12 px-md-4">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h2 class="h2">${ course.display_name } <span class="badge bg-secondary text-wrap align-middle" style="font-size: small;">${ course.id }</span></h2class>
+            <!-- <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                    <span data-feather="calendar"></span>
+                    This week
+                </button>
+            </div> -->
+        </div>
 
-        <main class="col-md-12 col-lg-12 px-md-4">
-            <div
-                class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h2>${ course.display_name } <span class="badge bg-secondary text-wrap align-middle" style="font-size: small;">${ course.id }</span></h2>
-                <!-- <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                        <span data-feather="calendar"></span>
-                        This week
-                    </button>
-                </div> -->
-            </div>
-
-            <!-- Cards  -->
-            <div class="row my-4">
-                <div class="row mb-4">
-                    <!-- Courses Enrolled  -->
-                    <div class="col-sm-4">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <h6 class="panel-title text-uppercase text-center">Start Date</h6>
-                                % if course.start:
-                                <h1 class="panel-text text-center">${ course.start.strftime('%d %b %Y')  }</h1>
-                                % else:
-                                <h1 class="panel-text text-center">-</h1>
-                                % endif:
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Courses In Progress -->
-                    <div class="col-sm-4">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <h6 class="panel-title text-uppercase text-center">Students Enrolled</h6>
-                                % if course_learners_count:
-                                <h1 class="panel-text text-center">${ course_learners_count }</h1>
-                                % else:
-                                <h1 class="panel-text text-center">-</h1>
-                                % endif:
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Courses Completed -->
-                    <div class="col-sm-4">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <h6 class="panel-title text-uppercase text-center">Course Completions</h6>
-                                <h1 class="panel-text text-center">${course_completions}</h1>
-                            </div>
-                        </div>
+        <!-- Cards  -->
+        <div class="container-fluid mb-4">
+            <!-- Courses Enrolled  -->
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="h6 card-title text-uppercase text-center">Start Date</p>
+                        % if course.start:
+                        <p class="h2 card-text text-center">${ course.start.strftime('%d %b %Y')  }</p>
+                        % else:
+                        <p class="h2 card-text text-center">-</p>
+                        % endif:
                     </div>
                 </div>
             </div>
 
-            <hr>
-            <div class="row my-4">
-                <h2>Students enrolled</h2>
-                <div class="table-responsive">
-                    <table class="table table-striped table-sm">
-                        <thead>
+            <!-- Courses In Progress -->
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="h6 card-title text-uppercase text-center">Students Enrolled</p>
+                        % if course_learners_count:
+                        <p class="h2 card-text text-center">${ course_learners_count }</p>
+                        % else:
+                        <p class="h2 card-text text-center">-</p>
+                        % endif:
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Completed -->
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="h6 card-title text-uppercase text-center">Course Completions</p>
+                        <p class="h2 card-text text-center">${course_completions}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+        <div class="container-fluid my-4">
+            <h2 class="h2">Students enrolled</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Enrolled Date</th>
+                            <th>Email</th>
+                            <!-- <th>Price (S$)</th> -->
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        % for enrollment in enrollments:
+                            ##% for e in enrollment:
                             <tr>
-                                <th>Username</th>
-                                <th>Name</th>
-                                <th>Enrolled Date</th>
-                                <th>Email</th>
-                                <!-- <th>Price (S$)</th> -->
-                                <th>Progress</th>
+                                <td>${ enrollment.user.username }</td>
+                                <td>
+                                    % if enrollment.user.first_name or enrollment.user.last_name:
+                                        ${ enrollment.user.first_name } ${ enrollment.user.last_name}
+                                    % else:
+                                        -
+                                    % endif
+                                </td>
+                                <td>${ enrollment.created.strftime('%d %b %Y') }</td>
+                                <td>${ enrollment.user.email }</td>
+                                <td>${enrollment.completed_units} / ${ enrollment.total_units }</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            % for enrollment in enrollments:
-                                ##% for e in enrollment:
-                                <tr>
-                                    <td>${ enrollment.user.username }</td>
-                                    <td>
-                                        % if enrollment.user.first_name or enrollment.user.last_name:
-                                            ${ enrollment.user.first_name } ${ enrollment.user.last_name}
-                                        % else:
-                                            -
-                                        % endif
-                                    </td>
-                                    <td>${ enrollment.created.strftime('%d %b %Y') }</td>
-                                    <td>${ enrollment.user.email }</td>
-                                    <td>${enrollment.completed_units} / ${ enrollment.total_units }</td>
-                                </tr>
-                                ##% endfor
-                            % endfor:
-                        </tbody>
-                    </table>
-                </div>
+                            ##% endfor
+                        % endfor:
+                    </tbody>
+                </table>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 </div>
 
 
-<%block name="js_extra">
-
-</%block>
+<%
+from django.db import close_old_connections
+close_old_connections()
+%>

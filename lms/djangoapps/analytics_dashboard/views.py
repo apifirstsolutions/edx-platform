@@ -11,6 +11,8 @@ from django.db.models.functions import TruncMonth, TruncYear
 from datetime import datetime
 from itertools import chain
 import json
+import requests
+from requests.exceptions import ConnectionError, Timeout
 
 
 from lms.djangoapps.analytics_dashboard.demographics import (
@@ -23,7 +25,12 @@ from lms.djangoapps.analytics_dashboard.demographics import (
 )
 from lms.djangoapps.analytics_dashboard.filters import CourseFilter
 # from lms.djangoapps.analytics_dashboard.filters import CourseFilter, OrderFilter
-from lms.djangoapps.analytics_dashboard.trainer_helper import spread_course_by_month, spread_course_by_year, spread_revenue_by_month
+from lms.djangoapps.analytics_dashboard.trainer_helper import (
+    spread_course_by_month,
+    spread_course_by_year,
+    spread_revenue_by_month,
+    spread_revenue_by_month2,
+)
 
 from django.contrib.auth.models import User
 from common.djangoapps.student.models import UserProfile, CourseEnrollmentManager
@@ -200,7 +207,9 @@ def admin_view(request, *args, **kwargs):
         'trainer_total_learner_count': trainer_total_learner_count,
         'trainer_course_learner_count': course_learner_count,
         'trainer_course_year': trainer_course_month,
-        'total_learners': total_learners
+        'total_learners': total_learners,
+        'next_url': next_url,
+        'prev_url': prev_url,
     }
 
     return render(request, 'analytics_dashboard/admin_dashboard.html', context)
@@ -262,42 +271,6 @@ def course_detail_view(request, course_id, *args, **kwargs):
     course = CourseOverview.objects.get(id=course_id)
 
     course_learners = CourseEnrollment.objects.filter(course_id=course_id)
-
-    def get_course_enrollment(request, user):
-        disable_course_limit = request and 'course_limit' in request.GET
-        course_limit = get_dashboard_course_limit() if not disable_course_limit else None
-
-        # Get the org whitelist or the org blacklist for the current site
-        site_org_whitelist, site_org_blacklist = get_org_black_and_whitelist_for_site()
-        course_enrollments = list(
-            get_course_enrollments(user, site_org_whitelist, site_org_blacklist, course_limit, request=request))
-
-        # Get the entitlements for the user and a mapping to all available sessions for that entitlement
-        # If an entitlement has no available sessions, pass through a mock course overview object
-        (course_entitlements,
-         course_entitlement_available_sessions,
-         unfulfilled_entitlement_pseudo_sessions) = get_filtered_course_entitlements(
-            user,
-            site_org_whitelist,
-            site_org_blacklist
-        )
-
-        # Sort the enrollment pairs by the enrollment date
-        course_enrollments.sort(key=lambda x: x.created, reverse=True)
-
-        # Filter out any course enrollment course cards that are associated with fulfilled entitlements
-        for entitlement in [e for e in course_entitlements if e.enrollment_course_run is not None]:
-            course_enrollments = [
-                enr for enr in course_enrollments if entitlement.enrollment_course_run.course_id != enr.course_id
-            ]
-
-        web_course_enrollments = []
-        for course in course_enrollments:
-            platform = course._course_overview.platform_visibility
-            if platform is None or platform == 'Web' or platform == 'Both':
-                web_course_enrollments.append(course)
-
-        return course_entitlements + web_course_enrollments
 
     course_completions = 0
     learner_enrollments = []
@@ -365,54 +338,134 @@ def course_detail_view(request, course_id, *args, **kwargs):
 
 @ensure_csrf_cookie
 @login_required
-def demographics_view(request):
-    # trainer = User.objects.filter(id=user_id, is_staff=1).get()
+def revenue_view(request, *args, **kwargs):
 
-    # trainer_course_ids = CourseAccessRole.objects.filter(user_id=user_id, role='instructor').values_list('course_id')
-    #
-    # print(f'\nTrainers students: \n{trainer_students.count()}')
+    user = request.user
+    if not user.is_superuser:
+        raise Exception("Not authenticated")
 
-    # course_enrolled_ids = [c['course_id'] for c in trainer_students]
-    # courses = CourseOverview.objects.filter(id__in=course_enrolled_ids).values('id', 'display_name')
-    # print(f'\nCourses: \n{courses}')
+    orders = get_orders_details()['result']
+    # print(f'\norder', orders['result'])
+    # print(f'\norder', type(orders))
 
-    # learners_by_trainer = User.objects.filter(id__in=[t['user_id'] for t in trainer_students]).values()
-    # print(f'\nStudents by trainer: ')
-    # for l in learners_by_trainer:
-    #     print(f'{l["username"]}')
+    orders_revenue_by_month = spread_revenue_by_month2(orders, 'order_date')
+    print(f'\nYearwise revenue: {orders_revenue_by_month}')
 
-    # trainer_students_by_course_count = CourseEnrollment.objects.filter(course_id__in=trainer_course_ids).values('course_id').annotate(total=Count('course_id')).order_by('-total')
-    # # for x in trainer_students_by_course_count
-    # # print(f'\nTrainers students by course: \n{x.}')
-    # print(f'\nTrainers students by course: \n{trainer_students_by_course_count}')
+    # orders_filter = OrderFilter(request.GET, queryset=orders)
+    # orders = orders_filter.qs
 
-    learners_all = User.objects.filter(is_active=1, is_staff=0, is_superuser=0).values()
-    print(f'\nTOTAL LEARNERS: {learners_all.count()}')
+    orders_sum  = sum(float(order['price']) for order in orders)
 
-    learners_gender_list = get_learners_gender_list([l["id"] for l in learners_all])
-    learners_edu = get_learners_edu([l["id"] for l in learners_all])
-    print(f'\nUser id count: {len([l["id"] for l in learners_all])}')
+    current_month_revenue = 1461.80
+    print(f'\nOrders by_month: {current_month_revenue}')
+    # print(f'\nrevenue_by_month: {revenue_by_month}')
+    print(f'\nOrders sum: {orders_sum}')
+    print(f'\nOrders count: {len(orders)}')
+    # for o in orders:
+    #     print(f'{o.user.username} - \t{o.user.first_name} {o.user.last_name}')
 
-    learners_yob = UserExtraInfo.objects.filter(user__in=[l["id"] for l in learners_all]).values()
+    paginator = Paginator(orders, 15)
+    page_number = request.GET.get('page', 1)
+    page = paginator.get_page(page_number)
 
-    learners_age = [calculate_age(l["date_of_birth"]) for l in learners_yob]
-    print(f'\nLearners age list count: {len(learners_age)}')
-    learners_age_list = spread_age_distribution(learners_age)
+    if page.has_next():
+        next_url = f'?page={page.next_page_number()}'
+    else:
+        next_url = ''
 
-    print(f'Age list: {learners_age}')
-    print(f'Median age: {median(learners_age)}')
-    print(f'\nAge dist: {age_dist(learners_age)}')
+    if page.has_previous():
+        prev_url = f'?page={page.previous_page_number()}'
+    else:
+        prev_url = ''
 
     context = {
-        'learners_all': learners_all,
-        'learners_gender': learners_gender_list,
-        'learners_edu': learners_edu,
-        'learners_age_list': learners_age_list,
-        'age_median': median(learners_age),
-        'age_dist': age_dist(learners_age)
-    }
+            'orders': page,
+            # 'orders_filter': orders_filter,
+            'orders_filter': orders,
+            'orders_sum': orders_sum,
+            'next_url': next_url,
+            'prev_url': prev_url,
+            'current_month_revenue': current_month_revenue,
+            'orders_revenue_by_month': orders_revenue_by_month
+        }
+    return render(request, 'analytics_dashboard/admin_revenue.html', context)
 
-    return render(request, 'analytics_dashboard/admin_demographics.html', context)
+def get_orders_details():
+    data = {'client_id': 'qRLaOgG6vKSbptr9qoGAdZWkCtSWikeTdM5vBPdX',
+            'username': 'staff',
+            'password': 'edx',
+            'grant_type': 'password',
+            'token_type': 'bearer'}
+
+    oauth_response = requests.post(
+        url='http://edx-dev.lhubsg.com' + '/oauth2/access_token', data=data)
+    json_response = json.loads(oauth_response.text)
+    print('\naccess token response', json_response)
+    if "access_token" in json_response.keys():
+        jwt_token = json_response['access_token']
+        headers = {'Authorization': 'BEARER ' + jwt_token}
+        user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Safari/537.36'
+        headers['User-Agent'] = user_agent
+        URL = 'http://edx-dev.lhubsg.com' + '/lhub_extended_api/orderlist'
+        response = requests.get(url=URL, headers=headers)
+    return response.json()
+
+# def revenue_view(request, *args, **kwargs):
+#     orders = OrderOrder.objects.select_related('user', ).filter().values().using('ecommerce')
+#
+#     orders_revenue_by_month = spread_revenue_by_month(orders, 'date_placed')
+#     print(f'\nYearwise revenue: {orders_revenue_by_month}')
+#
+#     orders_filter = OrderFilter(request.GET, queryset=orders)
+#     orders = orders_filter.qs
+#
+#     orders_sum = OrderOrder.objects.using('ecommerce') \
+#         .aggregate(Sum('total_incl_tax'))['total_incl_tax__sum']
+#
+#     raw_sql = "SELECT monthname(o.date_placed) AS MONTH, sum(total_incl_tax) FROM ecommerce.order_order o where " \
+#               "monthname(CURDATE()) = monthname(o.date_placed) group by monthname(o.date_placed) "
+#
+#     r1 = "SELECT * from ecommerce.order_order"
+#
+#     with connection.cursor() as cursor:
+#         cursor.execute(raw_sql)
+#         revenue_by_month = things = [{'month': row[0], 'revenue': row[1]} for row in cursor.fetchall()]
+#
+#     current_month_revenue = 1461.80
+#     print(f'\nOrders by_month: {current_month_revenue}')
+#     print(f'\nrevenue_by_month: {revenue_by_month}')
+#     print(f'\nOrders sum: {orders_sum}')
+#     print(f'\nOrders count: {orders.count()}')
+#     # for o in orders:
+#     #     print(f'{o.user.username} - \t{o.user.first_name} {o.user.last_name}')
+#
+#     paginator = Paginator(orders, 15)
+#     page_number = request.GET.get('page', 1)
+#     page = paginator.get_page(page_number)
+#
+#     if page.has_next():
+#         next_url = f'?page={page.next_page_number()}'
+#     else:
+#         next_url = ''
+#
+#     if page.has_previous():
+#         prev_url = f'?page={page.previous_page_number()}'
+#     else:
+#         prev_url = ''
+#
+#     context = {
+#         'orders': page,
+#         'orders_filter': orders_filter,
+#         'orders_sum': orders_sum,
+#         'next_url': next_url,
+#         'prev_url': prev_url,
+#         'current_month_revenue': current_month_revenue,
+#         'orders_revenue_by_month': orders_revenue_by_month
+#     }
+#
+#     return render(request, 'admin_revenue.html', context)
+
+
 #
 #
 # def demographics_by_course(request, user_id, course_id, *args, **kwargs):
@@ -476,59 +529,93 @@ def demographics_view(request):
 #         'learners_edu': learners_edu,
 #     }
 #     return render(request, 'trainer_dashboard_demographics.html', context)
-#
-#
-# def revenue_view(request, *args, **kwargs):
-#     orders = OrderOrder.objects.select_related('user', ).filter().values().using('ecommerce')
-#
-#     orders_revenue_by_month = spread_revenue_by_month(orders, 'date_placed')
-#     print(f'\nYearwise revenue: {orders_revenue_by_month}')
-#
-#     orders_filter = OrderFilter(request.GET, queryset=orders)
-#     orders = orders_filter.qs
-#
-#     orders_sum = OrderOrder.objects.using('ecommerce') \
-#         .aggregate(Sum('total_incl_tax'))['total_incl_tax__sum']
-#
-#     raw_sql = "SELECT monthname(o.date_placed) AS MONTH, sum(total_incl_tax) FROM ecommerce.order_order o where " \
-#               "monthname(CURDATE()) = monthname(o.date_placed) group by monthname(o.date_placed) "
-#
-#     r1 = "SELECT * from ecommerce.order_order"
-#
-#     with connection.cursor() as cursor:
-#         cursor.execute(raw_sql)
-#         revenue_by_month = things = [{'month': row[0], 'revenue': row[1]} for row in cursor.fetchall()]
-#
-#     current_month_revenue = 1461.80
-#     print(f'\nOrders by_month: {current_month_revenue}')
-#     print(f'\nrevenue_by_month: {revenue_by_month}')
-#     print(f'\nOrders sum: {orders_sum}')
-#     print(f'\nOrders count: {orders.count()}')
-#     # for o in orders:
-#     #     print(f'{o.user.username} - \t{o.user.first_name} {o.user.last_name}')
-#
-#     paginator = Paginator(orders, 15)
-#     page_number = request.GET.get('page', 1)
-#     page = paginator.get_page(page_number)
-#
-#     if page.has_next():
-#         next_url = f'?page={page.next_page_number()}'
-#     else:
-#         next_url = ''
-#
-#     if page.has_previous():
-#         prev_url = f'?page={page.previous_page_number()}'
-#     else:
-#         prev_url = ''
-#
-#     context = {
-#         'orders': page,
-#         'orders_filter': orders_filter,
-#         'orders_sum': orders_sum,
-#         'next_url': next_url,
-#         'prev_url': prev_url,
-#         'current_month_revenue': current_month_revenue,
-#         'orders_revenue_by_month': orders_revenue_by_month
-#     }
-#
-#     return render(request, 'admin_revenue.html', context)
+
+
+
+@ensure_csrf_cookie
+@login_required
+def demographics_view(request):
+    # trainer = User.objects.filter(id=user_id, is_staff=1).get()
+
+    # trainer_course_ids = CourseAccessRole.objects.filter(user_id=user_id, role='instructor').values_list('course_id')
+    #
+    # print(f'\nTrainers students: \n{trainer_students.count()}')
+
+    # course_enrolled_ids = [c['course_id'] for c in trainer_students]
+    # courses = CourseOverview.objects.filter(id__in=course_enrolled_ids).values('id', 'display_name')
+    # print(f'\nCourses: \n{courses}')
+
+    # learners_by_trainer = User.objects.filter(id__in=[t['user_id'] for t in trainer_students]).values()
+    # print(f'\nStudents by trainer: ')
+    # for l in learners_by_trainer:
+    #     print(f'{l["username"]}')
+
+    # trainer_students_by_course_count = CourseEnrollment.objects.filter(course_id__in=trainer_course_ids).values('course_id').annotate(total=Count('course_id')).order_by('-total')
+    # # for x in trainer_students_by_course_count
+    # # print(f'\nTrainers students by course: \n{x.}')
+    # print(f'\nTrainers students by course: \n{trainer_students_by_course_count}')
+
+    learners_all = User.objects.filter(is_active=1, is_staff=0, is_superuser=0).values()
+    print(f'\nTOTAL LEARNERS: {learners_all.count()}')
+
+    learners_gender_list = get_learners_gender_list([l["id"] for l in learners_all])
+    learners_edu = get_learners_edu([l["id"] for l in learners_all])
+    print(f'\nUser id count: {len([l["id"] for l in learners_all])}')
+
+    learners_yob = UserExtraInfo.objects.filter(user__in=[l["id"] for l in learners_all]).values()
+
+    learners_age = [calculate_age(l["date_of_birth"]) for l in learners_yob]
+    print(f'\nLearners age list count: {len(learners_age)}')
+    learners_age_list = spread_age_distribution(learners_age)
+
+    print(f'Age list: {learners_age}')
+    print(f'Median age: {median(learners_age)}')
+    print(f'\nAge dist: {age_dist(learners_age)}')
+
+    context = {
+        'learners_all': learners_all,
+        'learners_gender': learners_gender_list,
+        'learners_edu': learners_edu,
+        'learners_age_list': learners_age_list,
+        'age_median': median(learners_age),
+        'age_dist': age_dist(learners_age)
+    }
+
+    return render(request, 'analytics_dashboard/admin_demographics.html', context)
+
+
+def get_course_enrollment(request, user):
+    disable_course_limit = request and 'course_limit' in request.GET
+    course_limit = get_dashboard_course_limit() if not disable_course_limit else None
+
+    # Get the org whitelist or the org blacklist for the current site
+    site_org_whitelist, site_org_blacklist = get_org_black_and_whitelist_for_site()
+    course_enrollments = list(
+        get_course_enrollments(user, site_org_whitelist, site_org_blacklist, course_limit, request=request))
+
+    # Get the entitlements for the user and a mapping to all available sessions for that entitlement
+    # If an entitlement has no available sessions, pass through a mock course overview object
+    (course_entitlements,
+     course_entitlement_available_sessions,
+     unfulfilled_entitlement_pseudo_sessions) = get_filtered_course_entitlements(
+        user,
+        site_org_whitelist,
+        site_org_blacklist
+    )
+
+    # Sort the enrollment pairs by the enrollment date
+    course_enrollments.sort(key=lambda x: x.created, reverse=True)
+
+    # Filter out any course enrollment course cards that are associated with fulfilled entitlements
+    for entitlement in [e for e in course_entitlements if e.enrollment_course_run is not None]:
+        course_enrollments = [
+            enr for enr in course_enrollments if entitlement.enrollment_course_run.course_id != enr.course_id
+        ]
+
+    web_course_enrollments = []
+    for course in course_enrollments:
+        platform = course._course_overview.platform_visibility
+        if platform is None or platform == 'Web' or platform == 'Both':
+            web_course_enrollments.append(course)
+
+    return course_entitlements + web_course_enrollments
