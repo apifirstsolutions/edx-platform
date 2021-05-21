@@ -59,6 +59,11 @@ z-index: 999999;
         % if user.is_superuser:
         <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${reverse('analytics_dashboard:admin_dashboard')}" role="menuitem">${_("Admin Dashboard") }</a></div>
         % endif
+
+        % if user.is_staff:
+        <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${reverse('analytics_dashboard:trainer_dashboard')}" role="menuitem">${_("Trainer Dashboard") }</a></div>
+        % endif
+
         <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${reverse('analytics_dashboard:learner_profile')}" role="menuitem">${_("My Dashboard") }</a></div>
         <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${reverse('learner_profile', kwargs={'username': username})}" role="menuitem">${_("Profile")}</a></div>
         <div class="mobile-nav-item dropdown-item dropdown-nav-item"><a href="${reverse('account_settings')}" role="menuitem">${_("Account")}</a></div>
