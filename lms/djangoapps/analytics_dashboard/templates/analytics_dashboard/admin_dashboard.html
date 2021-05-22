@@ -18,6 +18,8 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from openedx.core.djangolib.js_utils import dump_js_escaped_json
 from openedx.core.djangolib.markup import HTML
+from common.djangoapps.student.models import CourseEnrollment
+from django.db.models import Count
 %>
 
 <%block name="pagetitle">${_("Dashboard | Home")}</%block>
@@ -290,10 +292,13 @@ from openedx.core.djangolib.markup import HTML
 
                 chart_label = [str(c['course_id']) for c in trainer_course_learner_count]
                 course_count_data = [c['total'] for c in trainer_course_learner_count]
+
+                chrt_lbl = list(category_count.keys())
                 %>
+                <p>${chrt_lbl}</p>
                 <script>
-                    var lb = ${json.dumps(chart_label) | n}
-                    var course_count_data = ${course_count_data}
+                    var lb = ${json.dumps(chrt_lbl) | n}
+                    var course_count_data = ${list(category_count.values())}
                     var ctx = document.getElementById('myChart')
                     // eslint-disable-next-line no-unused-vars
                     const DATA_COUNT = lb.length;
@@ -340,6 +345,7 @@ from openedx.core.djangolib.markup import HTML
                     <tr>
                         <th>#</th>
                         <th>Name</th>
+                        <th>Learners Enrolled</th>
                         <th>Start Date</th>
                         <th>Difficulty</th>
                         <th>Category</th>
@@ -350,9 +356,16 @@ from openedx.core.djangolib.markup import HTML
                     </thead>
                     <tbody>
                     % for course in trainer_courses:
+                    <%
+
+                    course_id = str(course['id'])
+                    student_count = CourseEnrollment.objects \
+                    .annotate(number_of_students=Count('course_id'))
+                    %>
                     <tr>
                         <td>${ course['id'] }</td>
                         <td>${ course['display_name'] }</td>
+                        <td>${ student_count[0].number_of_students }</td>
                         <td>${ course['start_date'].strftime('%d %b %Y') }</td>
                         <td>${ course['difficulty_level'] }</td>
                         <td>${ course['new_category__name'] }</td>

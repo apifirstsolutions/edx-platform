@@ -34,7 +34,7 @@ from lms.djangoapps.analytics_dashboard.trainer_helper import (
 
 from django.contrib.auth.models import User
 from common.djangoapps.student.models import UserProfile, CourseEnrollmentManager
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview, Category, SubCategory
 from common.djangoapps.student.models import CourseEnrollment, CourseAccessRole
 from custom_reg_form.models import UserExtraInfo
 
@@ -142,7 +142,6 @@ def learner_profile_view(request, *args, **kwargs):
     return render(request, 'analytics_dashboard/learner_profile.html', context)
 
 
-
 @ensure_csrf_cookie
 @login_required
 def admin_view(request, *args, **kwargs):
@@ -156,7 +155,6 @@ def admin_view(request, *args, **kwargs):
     total_learners = User.objects.filter(is_active=1, is_staff=0, is_superuser=0).count()
     print(f'Total Learners: {total_learners}')
 
-    all_courses = CourseOverview.objects.filter().values()
 
     trainer_courses = CourseOverview.objects.filter()\
         .values(
@@ -198,7 +196,27 @@ def admin_view(request, *args, **kwargs):
     #     if c:
     #         print(f'{c.new_category__name}')
 
+    all_courses = CourseOverview.objects.filter().values()
     trainer_course_month = spread_course_by_month(all_courses, 'created')
+
+    category_list = Category.objects.values_list('id', 'name')
+    print('category_list', list(category_list))
+
+    category_course_ids = {}
+    for i, category in category_list:
+        course = CourseOverview.objects.filter(new_category_id=i).values()
+        category_course_ids[category] = [str(c['id']) for c in course]
+
+    print('course_categories', category_course_ids)
+
+    category_count = {}
+    for k,v in category_course_ids.items():
+        print(f'\n{k}, {v}')
+        cnt = CourseEnrollment.objects.filter(course_id__in=v).count()
+        print('category count', cnt)
+        category_count[k] = cnt
+
+    print('category_cnt', category_count)
 
     context = {
         'trainer_courses': page,
@@ -208,6 +226,7 @@ def admin_view(request, *args, **kwargs):
         'trainer_course_learner_count': course_learner_count,
         'trainer_course_year': trainer_course_month,
         'total_learners': total_learners,
+        'category_count': category_count,
         'next_url': next_url,
         'prev_url': prev_url,
     }
@@ -223,11 +242,15 @@ def trainer_view(request, *args, **kwargs):
 
     trainer = User.objects.filter(id=user_id, is_staff=1).get()
     trainer_profile = UserProfile.objects.filter(user=trainer).values()
-    trainer_course_ids = CourseAccessRole.objects.filter(user_id=user_id, role='instructor').values_list(
-        'course_id')
+    trainer_course_ids = CourseAccessRole.objects \
+        .filter(user_id=user_id, role='instructor') \
+        .values_list('course_id')
 
-    trainer_course_learner_count = CourseEnrollment.objects.filter(course_id__in=trainer_course_ids).values(
-        'course_id').annotate(total=Count('course_id')).order_by('-total')
+    trainer_course_learner_count = CourseEnrollment.objects \
+        .filter(course_id__in=trainer_course_ids) \
+        .values('course_id') \
+        .annotate(total=Count('course_id')) \
+        .order_by('-total')
 
     trainer_total_learner_count = sum([x['total'] for x in trainer_course_learner_count])
     trainer_total_learner_label = [ c.get("course_id") for c in trainer_course_learner_count]
@@ -267,10 +290,12 @@ def trainer_view(request, *args, **kwargs):
 @ensure_csrf_cookie
 @login_required
 def course_detail_view(request, course_id, *args, **kwargs):
+    user = request.user
+
     print(f'\nCourse id: {course_id}')
     course = CourseOverview.objects.get(id=course_id)
 
-    course_learners = CourseEnrollment.objects.filter(course_id=course_id)
+    course_learners = CourseEnrollment.objects.filter(course_id=course_id).exclude(user_id=user.id)
 
     course_completions = 0
     learner_enrollments = []
