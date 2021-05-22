@@ -26,7 +26,7 @@ from openedx.core.djangoapps.enrollments.errors import (
 )
 from openedx.core.djangoapps.enrollments.forms import CourseEnrollmentsApiListForm
 from openedx.core.djangoapps.enrollments.paginators import CourseEnrollmentsApiListPagination
-from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer
+from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer,CourseProgressDataSerializer
 from openedx.core.djangoapps.user_api.accounts.permissions import CanRetireUser
 from openedx.core.djangoapps.user_api.models import UserRetirementStatus
 from openedx.core.djangoapps.user_api.preferences.api import update_email_opt_in
@@ -475,7 +475,68 @@ class LazyPageNumberPagination(NamespacedPageNumberPagination):
         return super(LazyPageNumberPagination, self).get_paginated_response(data)
 
 
+@can_disable_rate_limit
+class ProgressDataViewMobile(DeveloperErrorViewMixin, ListAPIView):
 
+
+    class ProgressDataViewMobilePagination(LazyPageNumberPagination):
+        max_page_size = 10
+
+    authentication_classes = (BearerAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (EnrollmentUserThrottle,)
+    serializer_class = CourseProgressDataSerializer
+    pagination_class = ProgressDataViewMobilePagination
+    # Since the course about page on the marketing site
+    # uses this API to auto-enroll users, we need to support
+    # cross-domain CSRF.
+    def get_queryset(self):
+        """Gets a list of all course enrollments for a user.
+
+        Returns a list for the currently logged in user, or for the user named by the 'user' GET
+        parameter. If the username does not match that of the currently logged in user, only
+        courses for which the currently logged in user has the Staff or Admin role are listed.
+        As a result, a course team member can find out which of his or her own courses a particular
+        learner is enrolled in.
+
+        Only the Staff or Admin role (granted on the Django administrative console as the staff
+        or instructor permission) in individual courses gives the requesting user access to
+        enrollment data. Permissions granted at the organizational level do not give a user
+        access to enrollment data for all of that organization's courses.
+ 
+        Users who have the global staff permission can access all enrollment data for all
+        courses.
+        """
+        username = self.request.GET.get('user', self.request.user.username)
+        platform_visibility = self.request.query_params.get('platform_visibility', None)
+        try:
+            enrollment_data = api.get_progressdata(username, platform_visibility=platform_visibility)
+        except CourseEnrollmentError:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    "message": (
+                        u"An error occurred while retrieving enrollments for user '{username}'"
+                    ).format(username=username)
+                }
+            )
+        if username == self.request.user.username or GlobalStaff().has_user(self.request.user) or \
+                self.has_api_key_permissions(self.request):
+            return LazySequence(
+        (c for c in enrollment_data),
+        est_len=enrollment_data.count()
+        )
+            #return enrollment_data
+        filtered_data = []
+        for enrollment in enrollment_data:
+            course_key = CourseKey.from_string(enrollment.course_details.course_id)
+            if user_has_role(self.request.user, CourseStaffRole(course_key)):
+                filtered_data.append(enrollment)
+        return LazySequence(
+        (c for c in filtered_data),
+        est_len=len(filtered_data)
+        )
+        #return filtered_data
 
 
 @can_disable_rate_limit

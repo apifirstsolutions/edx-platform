@@ -19,7 +19,82 @@ log = logging.getLogger(__name__)
 
 DEFAULT_DATA_API = 'openedx.core.djangoapps.enrollments.data'
 
+def get_progressdata(username,platform_visibility=None ,include_inactive=False):
+    """Retrieves all the courses a user is enrolled in.
 
+    Takes a user and retrieves all relative enrollments. Includes information regarding how the user is enrolled
+    in the the course.
+
+    Args:
+        username: The username of the user we want to retrieve course enrollment information for.
+        include_inactive (bool): Determines whether inactive enrollments will be included
+
+    Returns:
+        A list of enrollment information for the given user.
+
+    Examples:
+        >>> get_enrollments("Bob")
+        [
+            {
+                "created": "2014-10-20T20:18:00Z",
+                "mode": "honor",
+                "is_active": True,
+                "user": "Bob",
+                "course_details": {
+                    "course_id": "edX/DemoX/2014T2",
+                    "course_name": "edX Demonstration Course",
+                    "enrollment_end": "2014-12-20T20:18:00Z",
+                    "enrollment_start": "2014-10-15T20:18:00Z",
+                    "course_start": "2015-02-03T00:00:00Z",
+                    "course_end": "2015-05-06T00:00:00Z",
+                    "course_modes": [
+                        {
+                            "slug": "honor",
+                            "name": "Honor Code Certificate",
+                            "min_price": 0,
+                            "suggested_prices": "",
+                            "currency": "usd",
+                            "expiration_datetime": null,
+                            "description": null,
+                            "sku": null,
+                            "bulk_sku": null
+                        }
+                    ],
+                    "invite_only": False
+                }
+            },
+            {
+                "created": "2014-10-25T20:18:00Z",
+                "mode": "verified",
+                "is_active": True,
+                "user": "Bob",
+                "course_details": {
+                    "course_id": "edX/edX-Insider/2014T2",
+                    "course_name": "edX Insider Course",
+                    "enrollment_end": "2014-12-20T20:18:00Z",
+                    "enrollment_start": "2014-10-15T20:18:00Z",
+                    "course_start": "2015-02-03T00:00:00Z",
+                    "course_end": "2015-05-06T00:00:00Z",
+                    "course_modes": [
+                        {
+                            "slug": "honor",
+                            "name": "Honor Code Certificate",
+                            "min_price": 0,
+                            "suggested_prices": "",
+                            "currency": "usd",
+                            "expiration_datetime": null,
+                            "description": null,
+                            "sku": null,
+                            "bulk_sku": null
+                        }
+                    ],
+                    "invite_only": True
+                }
+            }
+        ]
+
+    """
+    return _data_api().get_progress_data(username, platform_visibility=platform_visibility, include_inactive=include_inactive)
 
 
 def mobile_get_enrollments(username,platform_visibility=None ,include_inactive=False):

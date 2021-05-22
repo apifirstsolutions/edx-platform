@@ -133,7 +133,102 @@ class MobileCourseSerializer(serializers.Serializer):  # pylint: disable=abstrac
             for mode in course_modes
         ]
 
+class ProgressDataSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    """
+    Serialize a course descriptor and related information.
+    """
+ 
+    course_id = serializers.CharField(source="id")
+    course_name = serializers.CharField(source="display_name_with_default")
+    #enrollment_start = serializers.DateTimeField(format=None)
+    #enrollment_end = serializers.DateTimeField(format=None)
+    #course_start = serializers.DateTimeField(source="start", format=None)
+    #course_end = serializers.DateTimeField(source="end", format=None)
+    #invite_only = serializers.BooleanField(source="invitation_only")
+    #course_modes = serializers.SerializerMethodField()
+    #media = _CourseApiMediaCollectionSerializer(source='*')
+    total_units = serializers.SerializerMethodField()
+    completed_units = serializers.SerializerMethodField()
+    completed_percentage = serializers.SerializerMethodField()
+    
+    
+    class Meta(object):
+        # For disambiguating within the drf-yasg swagger schema
+        ref_name = 'enrollment.Course'
 
+    def __init__(self, *args, **kwargs):
+        self.include_expired = kwargs.pop("include_expired", False)
+        super(ProgressDataSerializer, self).__init__(*args, **kwargs)
+
+    def get_completed_percentage(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        course_usage_key = modulestore().make_course_usage_key(instance.id)
+        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
+        total_units = len(response['blocks'])
+        # completed units
+        completed_units = 0
+        for key,block in response['blocks'].items():
+            
+            usage_key = UsageKey.from_string(block['id'])
+            usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
+            course_key = usage_key.course_key
+            course = instance
+            block, _ = get_module_by_usage_id(
+            request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
+            )
+            
+            completion_service = block.runtime.service(block, 'completion')
+            complete = completion_service.vertical_is_complete(block)
+            if complete:
+                completed_units+= 1
+        # calculate percentage
+        quotient = completed_units / total_units
+        completed_percentage = quotient * 100
+        return completed_percentage
+
+    def get_total_units(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        course_usage_key = modulestore().make_course_usage_key(instance.id)
+        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
+        total_units = len(response['blocks'])
+        return total_units
+
+    def get_completed_units(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        course_usage_key = modulestore().make_course_usage_key(instance.id)
+        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
+        completed_units = 0
+        for key,block in response['blocks'].items():
+            usage_key = UsageKey.from_string(block['id'])
+            usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
+            course_key = usage_key.course_key
+            course = instance
+            block, _ = get_module_by_usage_id(
+            request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
+            )
+            completion_service = block.runtime.service(block, 'completion')
+            complete = completion_service.vertical_is_complete(block)
+            if complete:
+                completed_units+= 1
+        return completed_units
+
+
+    def get_course_modes(self, obj):
+        """
+        Retrieve course modes associated with the course.
+        """
+        course_modes = CourseMode.modes_for_course(
+            obj.id,
+            include_expired=self.include_expired,
+            only_selectable=False
+        )
+        return [
+            ModeSerializer(mode).data
+            for mode in course_modes
+        ]
 
 
 
@@ -269,3 +364,22 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ('created', 'mode', 'is_active', 'course_details', 'user')
         lookup_field = 'username'
 
+class CourseProgressDataSerializer(serializers.ModelSerializer):
+    """Serializes CourseEnrollment models
+
+    Aggregates all data from the Course Enrollment table, and pulls in the serialization for
+    the Course Descriptor and course modes, to give a complete representation of course enrollment.
+
+    """
+    course_details = ProgressDataSerializer(source="course_overview")
+    user = serializers.SerializerMethodField('get_username')
+    #media = _CourseApiMediaCollectionSerializer(source='*')
+
+    def get_username(self, model):
+        """Retrieves the username from the associated model."""
+        return model.username
+
+    class Meta(object):
+        model = CourseEnrollment
+        fields = ('created', 'mode', 'is_active', 'course_details', 'user')
+        lookup_field = 'username'
