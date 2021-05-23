@@ -15,6 +15,9 @@ from lms.djangoapps.courseware.module_render import get_module, get_module_by_us
 from lms.djangoapps.courseware.courses import get_course_with_access
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from six import iteritems, text_type
+from completion.models import BlockCompletion
+from datetime import date,timedelta
+
 log = logging.getLogger(__name__)
 
 
@@ -132,9 +135,6 @@ class MobileCourseSerializer(serializers.Serializer):  # pylint: disable=abstrac
             ModeSerializer(mode).data
             for mode in course_modes
         ]
-
-
-
 
 
 class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
@@ -269,3 +269,55 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ('created', 'mode', 'is_active', 'course_details', 'user')
         lookup_field = 'username'
 
+class LearnerProgressSerializer(serializers.ModelSerializer):
+    completed_count = serializers.SerializerMethodField()
+    dates = serializers.SerializerMethodField()
+    today_completed = serializers.SerializerMethodField()
+    class Meta:
+        model = BlockCompletion
+        fields = ['user','completed_count','dates','today_completed']
+    
+    def get_completed_count(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        valid = []
+        todate = date.today()
+        today = date.today()
+        for i in range(10):
+            past_ten = today - timedelta(i) 
+
+            qset = BlockCompletion.objects.filter(
+                user=user,
+                modified__gte=past_ten,
+                modified__lte=todate,
+                
+            )
+            completed = qset.count()
+            valid.append(completed)
+            todate = past_ten
+        return valid
+
+    def get_dates(self, instance):
+        valid_dates = []
+        today = date.today()
+        todate = date.today()
+        for i in range(10):
+            todate = today - timedelta(i) 
+            valid_dates.append(todate)
+        return valid_dates
+    
+    def get_today_completed(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        valid = []
+        today = date.today()
+        
+        qset = BlockCompletion.objects.filter(
+                user=user,
+                modified__gte=today,
+                
+        )
+        today_completed = qset.count()
+        return today_completed
+
+    

@@ -67,7 +67,7 @@ def mobile_home_page(request, api_version):
 
         if not error_flag:
             response_obj['status_code'] =status.HTTP_200_OK
-            response_obj['status'] = True
+            response_obj['tatus'] = True
             response_obj['net_response_chunk'] = home_page_url if home_page_url else ""
             response_obj['message'] = ""
             return Response(response_obj)

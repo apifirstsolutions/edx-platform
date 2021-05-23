@@ -33,7 +33,6 @@ from common.djangoapps.student.roles import RoleCache
 
 log = logging.getLogger(__name__)
 
-
 def get_mobile_course_enrollments(username, platform_visibility=None,include_inactive=False):
     """Retrieve a list representing all aggregated data for a user's course enrollments.
 
