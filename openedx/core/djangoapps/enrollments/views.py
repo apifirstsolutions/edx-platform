@@ -26,7 +26,7 @@ from openedx.core.djangoapps.enrollments.errors import (
 )
 from openedx.core.djangoapps.enrollments.forms import CourseEnrollmentsApiListForm
 from openedx.core.djangoapps.enrollments.paginators import CourseEnrollmentsApiListPagination
-from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer,CourseProgressDataSerializer,LearnerProgressSerializer
+from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer,LearnerProgressSerializer
 from openedx.core.djangoapps.user_api.accounts.permissions import CanRetireUser
 from openedx.core.djangoapps.user_api.models import UserRetirementStatus
 from openedx.core.djangoapps.user_api.preferences.api import update_email_opt_in
