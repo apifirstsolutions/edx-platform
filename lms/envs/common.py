@@ -2780,7 +2780,7 @@ INSTALLED_APPS = [
     'lms.djangoapps.banner.apps.BannerConfig',
 
     # Analytics Dashboard
-    'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig'
+    'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig',
 ]
 
 ######################### CSRF #########################################
