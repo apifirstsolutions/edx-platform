@@ -1,0 +1,265 @@
+## mako
+
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%def name="online_help_token()"><% return "profile" %></%def>
+<%namespace name='static' file='/static_content.html'/>
+
+<!-- CSS only -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous">
+<link rel="stylesheet" href="${ STATIC_URL }css/dashboard.css">
+
+<%!
+import json
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.js_utils import dump_js_escaped_json
+from openedx.core.djangolib.markup import HTML
+%>
+
+<%block name="pagetitle">${_("Learner Profile")}</%block>
+
+<%block name="bodyclass">view-profile</%block>
+
+<script src="${ STATIC_URL}js/dashboard.js"></script>
+
+<style>
+    .learner-profile .profile-img{
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 10px;
+        border: 0
+    }
+    div.profile-details table{
+        margin: 10px 0 !important;
+        font-size: smaller;
+    }
+    .bg-ntuc{
+        background-color: #1a345c;
+    }
+    .course-card{
+        border-radius: 8px;
+        font-size: smaller;
+        font-weight: bold;
+        overflow: auto !important;
+    }
+</style>
+
+<%!
+import json
+
+from django.conf import settings
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+
+from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_urls_for_user
+%>
+
+<%
+## This template should not use the target student's details when masquerading, see TNL-4895
+self.real_user = getattr(user, 'real_user', user)
+username = self.real_user.username
+profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
+%>
+
+<div class="container learner-profile" >
+    <div class="row" style="border: 0;">
+        <div class="col-md-4 profile-details">
+                <img class="profile-img" src="${profile_image_url}" alt="profile image">
+            ## ${static_url('/img/profile_avatar_placeholder.png')}
+            <table class='table borderless table-responsive'>
+                <tr>
+                    <td>Username</td>
+                    <td>${ learner.username }</td>
+                </tr>
+                <tr>
+                    <td>Full Name</td>
+                    <td>
+                        % if learner.first_name:
+                            ${ learner.first_name }
+                        % else:
+                        -
+                        % endif %}
+
+                        % if learner.last_name:
+                            ${ learner.last_name }
+                        % else:
+                        -
+                        % endif:
+                    </td>
+                </tr>
+                <tr>
+                    <td>E-mail</td>
+                    <td>${ profile.user.email }</td>
+                </tr>
+                <tr>
+                    <td>Year of birth</td>
+                    <td>${ profile.year_of_birth }</td>
+                </tr>
+                <tr>
+                    <td>Gender</td>
+                    % if profile.gender == 'm':
+                    <td>Male</td>
+                    % elif profile.gender == 'f':
+                    <td>Female</td>
+                    % else:
+                    <td>Others / Prefer Not to say</td>
+                    % endif:
+                </tr>
+                <tr>
+                    <td>Level of Education</td>
+                    % if profile.level_of_education == 'p':
+                    <td>Doctorate</td>
+                    % elif profile.level_of_education == 'm':
+                    <td>Master’s or professional degree</td>
+                    % elif profile.level_of_education == 'b':
+                    <td>Bachelor’s degree</td>
+                    % elif profile.level_of_education == 'a':
+                    <td>Associate degree</td>
+                    % elif profile.level_of_education == 'hs':
+                    <td>Secondary/high school</td>
+                    % elif profile.level_of_education == 'jhs':
+                    <td>Junior secondary/junior high/middle school</td>
+                    % elif profile.level_of_education == 'el':
+                    <td>Elementary/primary school</td>
+                    % elif profile.level_of_education == None:
+                    <td>No Formal Education</td>
+                    % elif profile.level_of_education == '':
+                    <td>Not set by user</td>
+                    % endif:
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>
+                        % if learner.is_active:
+                            <span class="badge bg-success">Active</span>
+                        % else:
+                            <span class="badge bg-secondary">Inactive</span>
+                        % endif:
+                    </td>
+                </tr>
+                <tr>
+                    <td>Courses attended </td>
+                    <td>${len(course_enrollments)}</td>
+                </tr>
+                <tr>
+                    <td>Date joined</td>
+                    <td>${ learner.date_joined.strftime('%d %b %Y') }</td>
+                    ##<td>${ learner.date_joined|date:"j M Y" }</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="col-md-8 mt-3">
+            <!-- Cards  -->
+            <!-- <div class="container "> -->
+                <div class="row mb-4">
+                    <!-- Courses Enrolled Card -->
+                    <div class="col-sm-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <p class="card-title text-uppercase">Courses Enrolled</p>
+                                <p class="card-text h3 text-center my-3">${ len(course_enrollments) }</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="col-sm-1"></div> -->
+
+                    <!-- Courses In Progress -->
+                    <div class="col-sm-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <p class="card-title text-uppercase">Courses In Progress</p>
+                                <p class="card-text h3 text-center my-3">${ len(in_progress_courses) }</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="col-sm-1"></div> -->
+
+                    <!-- Courses Completed -->
+                    <div class="col-sm-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <p class="card-title text-uppercase">Courses Completed</p>
+                                <p class="card-text h3 text-center my-3">${ len(completed_courses) }</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-1"></div>
+                </div>
+            <!-- </div> -->
+
+            <h5 class="mb-3 h5">Enrolled Courses</h5>
+
+            % for dashboard_index, enrollment in enumerate(course_entitlements + course_enrollments):
+                <div class="panel panel-default mb-3 course-card" >
+                    <!-- <div class="card-header">Header</div> -->
+                    <div class="panel-body pb-0">
+                        <table class="table table-responsive table-borderless table-sm">
+                            <tr>
+                                <td class="text-muted text-wrap">
+                                    ${enrollment.course_id}
+<!--                                    <small class="text-muted text-wrap"></small>-->
+                                    <!-- <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> -->
+                                </td>
+                                <!-- <td></td> -->
+                                <td class="text-center">
+                                    Date Enrolled
+                                </td>
+                                <td class="text-center">
+                                    Course completed
+                                </td>
+                                <td class="text-center">
+                                    Overall progress
+                                </td>
+                            </tr>
+                            <tr class="text-center align-middle">
+                                <td class="col-6">
+                                    <h6 class="h6 card-title text-left">
+                                        <a class="text-secondary" href="">
+                                            ${ enrollment.course_overview.display_name }
+                                        </a>
+                                    </h6>
+                                </td>
+                                <td class="col-2">${enrollment.created.strftime('%d %b %Y') }</td>
+                                <td class="col-2">${enrollment.completed_units} / ${enrollment.total_units}</td>
+                                % if enrollment.total_units == 0 or enrollment.completed_units == 0:
+                                <td class="col-2" id="${enrollment.course_id}_col">0 %</td>
+                                % else:
+                                <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format( \
+                                enrollment.completed_units / enrollment.total_units * 100) }</td>
+                                % endif
+
+                                ## <td class="col-2" id="${enrollment.course_id}_col">${ '{:.2f} %'.format(40 / \
+                                    enrollment.total_units * 100) }</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="progress" style="border-radius: 0; height: 5px; margin:0">
+                        <div class="progress-bar bg-ntuc" id="${enrollment.course_id}" role="progressbar"
+                             aria-valuenow="%{'{:.2f}'.format(progress)}" aria-valuemin="0"
+                             aria-valuemax="100"></div>
+                    </div>
+                </div>
+            % endfor
+        </div>
+    </div>
+    <script>
+        var courses = [{% for c in courses %} '{{ c.id|safe }}', {% endfor %}]
+        var i = 0;
+
+        for(i = 0; i<courses.length; i++) {
+            const id_col = courses[i] + "_col"
+            const prog = Math.floor(Math.random() * 100)
+            document.getElementById(id_col).innerHTML= prog + "%";
+            document.getElementById(courses[i]).style.width =  prog + "%";
+        }
+    </script>
+</div>
+
