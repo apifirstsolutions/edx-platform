@@ -17,19 +17,19 @@ from lms.djangoapps.mobile_api.utils import API_V05, API_V1
 logger = getLogger(__name__)
 
 @api_view(['GET'])
-@authentication_classes((BearerAuthentication))
+@authentication_classes((BearerAuthentication, SessionAuthentication, JwtAuthentication))
 @permission_classes([IsAuthenticated])
 def mobile_home_page(request, api_version):
     home_page_url = {}
     base = request.get_host()
     bearer_token_from_request = request.META.get('HTTP_AUTHORIZATION')
-    logger.error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@HOME API @@@@@@@@@@@@@@@@@@@@@@@@@@@@%s", request.user)
+
     url_list  = dict()
     url_list["banner"] = '/api/banner/details/'
     url_list["category"] = '/api/courses/v2/courses/categories/?page=1&page_size=1000'
     url_list['recommended_courses'] = '/api/courses/v2/recommended/courses/?page=1&page_size=10'
     url_list["most_popular"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=enrollments_count'
-    url_list["top_rated_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=-ratings'
+    url_list["top_rated_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=enrollments_count'
     url_list["free_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&sale_type=free'
     headers = {
         'Authorization': bearer_token_from_request
@@ -45,7 +45,6 @@ def mobile_home_page(request, api_version):
                 data = actual_request.json()
                 home_page_url[key] = data
                 response_code_list.append(data['status_code'])
-		break
         except Exception as ex:
             #dont' expose the specify error internal to system to outside API, Put it in generic manner
             logger.error("Error while processing mobile home API - Exception as %s", ex)
