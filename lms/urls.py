@@ -1031,5 +1031,5 @@ urlpatterns += [
 # LHUB Developed
 urlpatterns += [
     url(r'^api/banner/', include('lms.djangoapps.banner.api.urls')),
-    url('analytics_dashboard/', include('lms.djangoapps.analytics_dashboard.urls'))
+    url(r'^analytics_dashboard/', include('lms.djangoapps.analytics_dashboard.urls')),
 ]
