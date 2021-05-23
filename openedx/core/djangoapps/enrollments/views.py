@@ -496,8 +496,12 @@ class ProgressDataViewMobile(DeveloperErrorViewMixin, ListAPIView):
         qset = BlockCompletion.objects.filter(
             user=self.request.user,
             
-            
         )
+        valid = []
+        for first in qset:
+            valid.append(first)
+            return valid
+
         return LazySequence(
                 (c for c in qset),
                 est_len=qset.count()
