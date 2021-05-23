@@ -30,68 +30,8 @@ from common.djangoapps.student.models import (
     NonExistentCourseError
 )
 from common.djangoapps.student.roles import RoleCache
-from completion.models import BlockCompletion
-from datetime import date,timedelta
 
 log = logging.getLogger(__name__)
-
-def get_progress_data(username, platform_visibility=None,include_inactive=False):
-    """Retrieve a list representing all aggregated data for a user's course enrollments.
-
-    Construct a representation of all course enrollment data for a specific user.
-
-    Args:
-        username: The name of the user to retrieve course enrollment information for.
-        include_inactive (bool): Determines whether inactive enrollments will be included
-
-
-    Returns:
-        A serializable list of dictionaries of all aggregated enrollment data for a user.
-
-    """
-    qset = CourseEnrollment.objects.filter(
-        user__username=username,
-    ).order_by('created')
-
-    if not include_inactive:
-        qset = qset.filter(is_active=True)
-
-    #enrollments = CourseEnrollmentSerializer(qset, many=True).data
-
-    # Find deleted courses and filter them out of the results
-    deleted = []
-    valid = []
-    today = date.today()
-    past_ten = today - timedelta(10)
-    requested_platform_visibility = ['both'] if not platform_visibility else [platform_visibility, 'both']
-    for enrollment in qset:
-        course = enrollment.course
-        user = enrollment.user
-        has_progress = BlockCompletion.objects.filter(
-            user=user,
-            context_key=course.id,
-            modified__gte=past_ten,
-            modified__lte=today,
-            
-        ).exists()
-        
-        logging.info(u'Progress data existence: %s', has_progress)
-        if has_progress and enrollment.course_overview is not None and enrollment.course_overview.platform_visibility.lower() in requested_platform_visibility:
-            valid.append(enrollment.id)
-        else:
-            deleted.append(enrollment)
-
-    if deleted:
-        log.warning(
-            (
-                u"Course enrollments for user %s reference "
-                u"courses that do not exist (this can occur if a course is deleted)."
-            ), username,
-        )
-    qset1 = CourseEnrollment.objects.filter(
-        user__username=username,pk__in=valid
-    ).order_by('created')
-    return  qset1
 
 def get_mobile_course_enrollments(username, platform_visibility=None,include_inactive=False):
     """Retrieve a list representing all aggregated data for a user's course enrollments.

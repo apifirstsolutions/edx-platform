@@ -15,6 +15,9 @@ from lms.djangoapps.courseware.module_render import get_module, get_module_by_us
 from lms.djangoapps.courseware.courses import get_course_with_access
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from six import iteritems, text_type
+from completion.models import BlockCompletion
+from datetime import date,timedelta
+
 log = logging.getLogger(__name__)
 
 
@@ -132,104 +135,6 @@ class MobileCourseSerializer(serializers.Serializer):  # pylint: disable=abstrac
             ModeSerializer(mode).data
             for mode in course_modes
         ]
-
-class ProgressDataSerializer(serializers.Serializer):  # pylint: disable=abstract-method
-    """
-    Serialize a course descriptor and related information.
-    """
- 
-    course_id = serializers.CharField(source="id")
-    course_name = serializers.CharField(source="display_name_with_default")
-    #enrollment_start = serializers.DateTimeField(format=None)
-    #enrollment_end = serializers.DateTimeField(format=None)
-    #course_start = serializers.DateTimeField(source="start", format=None)
-    #course_end = serializers.DateTimeField(source="end", format=None)
-    #invite_only = serializers.BooleanField(source="invitation_only")
-    #course_modes = serializers.SerializerMethodField()
-    #media = _CourseApiMediaCollectionSerializer(source='*')
-    total_units = serializers.SerializerMethodField()
-    completed_units = serializers.SerializerMethodField()
-    completed_percentage = serializers.SerializerMethodField()
-    
-    
-    class Meta(object):
-        # For disambiguating within the drf-yasg swagger schema
-        ref_name = 'enrollment.Course'
-
-    def __init__(self, *args, **kwargs):
-        self.include_expired = kwargs.pop("include_expired", False)
-        super(ProgressDataSerializer, self).__init__(*args, **kwargs)
-
-    def get_completed_percentage(self, instance):
-        request = self.context.get('request', None)
-        user =  request.user
-        course_usage_key = modulestore().make_course_usage_key(instance.id)
-        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
-        total_units = len(response['blocks'])
-        # completed units
-        completed_units = 0
-        for key,block in response['blocks'].items():
-            
-            usage_key = UsageKey.from_string(block['id'])
-            usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
-            course_key = usage_key.course_key
-            course = instance
-            block, _ = get_module_by_usage_id(
-            request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
-            )
-            
-            completion_service = block.runtime.service(block, 'completion')
-            complete = completion_service.vertical_is_complete(block)
-            if complete:
-                completed_units+= 1
-        # calculate percentage
-        quotient = completed_units / total_units
-        completed_percentage = quotient * 100
-        return completed_percentage
-
-    def get_total_units(self, instance):
-        request = self.context.get('request', None)
-        user =  request.user
-        course_usage_key = modulestore().make_course_usage_key(instance.id)
-        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
-        total_units = len(response['blocks'])
-        return total_units
-
-    def get_completed_units(self, instance):
-        request = self.context.get('request', None)
-        user =  request.user
-        course_usage_key = modulestore().make_course_usage_key(instance.id)
-        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
-        completed_units = 0
-        for key,block in response['blocks'].items():
-            usage_key = UsageKey.from_string(block['id'])
-            usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
-            course_key = usage_key.course_key
-            course = instance
-            block, _ = get_module_by_usage_id(
-            request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
-            )
-            completion_service = block.runtime.service(block, 'completion')
-            complete = completion_service.vertical_is_complete(block)
-            if complete:
-                completed_units+= 1
-        return completed_units
-
-
-    def get_course_modes(self, obj):
-        """
-        Retrieve course modes associated with the course.
-        """
-        course_modes = CourseMode.modes_for_course(
-            obj.id,
-            include_expired=self.include_expired,
-            only_selectable=False
-        )
-        return [
-            ModeSerializer(mode).data
-            for mode in course_modes
-        ]
-
 
 
 class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
@@ -364,22 +269,55 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ('created', 'mode', 'is_active', 'course_details', 'user')
         lookup_field = 'username'
 
-class CourseProgressDataSerializer(serializers.ModelSerializer):
-    """Serializes CourseEnrollment models
+class LearnerProgressSerializer(serializers.ModelSerializer):
+    completed_count = serializers.SerializerMethodField()
+    dates = serializers.SerializerMethodField()
+    today_completed = serializers.SerializerMethodField()
+    class Meta:
+        model = BlockCompletion
+        fields = ['user','completed_count','dates','today_completed']
+    
+    def get_completed_count(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        valid = []
+        todate = date.today()
+        today = date.today()
+        for i in range(10):
+            past_ten = today - timedelta(i) 
 
-    Aggregates all data from the Course Enrollment table, and pulls in the serialization for
-    the Course Descriptor and course modes, to give a complete representation of course enrollment.
+            qset = BlockCompletion.objects.filter(
+                user=user,
+                modified__gte=past_ten,
+                modified__lte=todate,
+                
+            )
+            completed = qset.count()
+            valid.append(completed)
+            todate = past_ten
+        return valid
 
-    """
-    course_details = ProgressDataSerializer(source="course_overview")
-    user = serializers.SerializerMethodField('get_username')
-    #media = _CourseApiMediaCollectionSerializer(source='*')
+    def get_dates(self, instance):
+        valid_dates = []
+        today = date.today()
+        todate = date.today()
+        for i in range(10):
+            todate = today - timedelta(i) 
+            valid_dates.append(todate)
+        return valid_dates
+    
+    def get_today_completed(self, instance):
+        request = self.context.get('request', None)
+        user =  request.user
+        valid = []
+        today = date.today()
+        
+        qset = BlockCompletion.objects.filter(
+                user=user,
+                modified__gte=today,
+                
+        )
+        today_completed = qset.count()
+        return today_completed
 
-    def get_username(self, model):
-        """Retrieves the username from the associated model."""
-        return model.username
-
-    class Meta(object):
-        model = CourseEnrollment
-        fields = ('created', 'mode', 'is_active', 'course_details', 'user')
-        lookup_field = 'username'
+    
