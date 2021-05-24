@@ -666,8 +666,7 @@ $(document).ready(function() {
 function show_most_popular_courses(target) {
 
 //    popular_next_url = "http://edx.devstack.lms:18000/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4";
-    $('#most_popular_ul').owlCarousel('destroy');
-    $("#most_popular_ul").html('');
+
     var form = new FormData();
     var settings = {
         "url": target,
@@ -682,6 +681,8 @@ function show_most_popular_courses(target) {
     $("#most_popular_loader").css("display", "");
 
     $.ajax(settings).done(function(response) {
+    $('#most_popular_ul').owlCarousel('destroy');
+    $("#most_popular_ul").html('');
         $("#most_popular_loader").css("display", "None");
         console.log(response);
         if (response['status_code'] == 200) {
@@ -826,8 +827,7 @@ function show_most_popular_courses(target) {
 
 
 function show_free_courses(target) {
-    $('#free_courses_ul').owlCarousel('destroy');
-    $("#free_courses_ul").html('');
+
     var form = new FormData();
     var settings = {
         "url": target,
@@ -842,6 +842,8 @@ function show_free_courses(target) {
 
     $("#free_courses_loader").css("display", "");
     $.ajax(settings).done(function(response) {
+    $('#free_courses_ul').owlCarousel('destroy');
+    $("#free_courses_ul").html('');
         $("#free_courses_loader").css("display", "None")
         console.log(response);
         if (response['status_code'] == 200) {
@@ -981,8 +983,7 @@ function show_free_courses(target) {
 }
 
 function show_top_rated_courses(top_rated) {
-    $('#top_rated_ul').owlCarousel('destroy');
-    $("#top_rated_ul").html('');
+
     var form = new FormData();
     var settings = {
         "url": top_rated,
@@ -997,6 +998,8 @@ function show_top_rated_courses(top_rated) {
 
     $("#top_rated_loader").css("display", "");
     $.ajax(settings).done(function(response) {
+    $('#top_rated_ul').owlCarousel('destroy');
+    $("#top_rated_ul").html('');
         $("#top_rated_loader").css("display", "None")
         console.log(response);
         if (response['status_code'] == 200) {
@@ -1141,9 +1144,7 @@ function show_top_rated_courses(top_rated) {
 }
 
 function show_recommended_courses(target) {
-    console.log("===Hey There===");
-    $('#recommended_courses_ul').owlCarousel('destroy');
-    $("#recommended_courses_ul ").html('');
+
         var recommended_settings = {
         "url": target,
         "method": "GET",
@@ -1157,6 +1158,8 @@ function show_recommended_courses(target) {
 
     $("#recommended_courses_loader").css("display", "");
     $.ajax(recommended_settings).done(function(response) {
+    $('#recommended_courses_ul').owlCarousel('destroy');
+    $("#recommended_courses_ul ").html('');
         $("#recommended_courses_loader").css("display", "None")
         console.log(response);
         if (response['status_code'] == 200) {
