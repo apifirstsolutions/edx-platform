@@ -32,7 +32,7 @@
                   <% } %>
                 </td>
                 <td>
-                  <a class="action action-primary" href="/dashboard"><%- gettext("Go to your Dashboard") %></a>
+                  <a class="action action-primary" href="/dashboard"><%- gettext("Go to My Courses") %></a>
                 </td>
               </tr>
             </tfoot>
