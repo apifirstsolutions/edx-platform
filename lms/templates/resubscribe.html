@@ -17,7 +17,7 @@ from django.conf import settings
 
     <p>
       ${Text(_("You have re-enabled forum notification emails from {platform_name}. "
-          "You may {dashboard_link_start}return to your dashboard{link_end}.")).format(
+          "You may {dashboard_link_start}return to My Courses{link_end}.")).format(
              platform_name=settings.PLATFORM_NAME,
              dashboard_link_start=HTML("<a href='{}'>").format(reverse('dashboard')),
              link_end=HTML("</a>"),)}

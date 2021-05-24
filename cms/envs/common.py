@@ -1527,7 +1527,7 @@ INSTALLED_APPS = [
     'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig',
 
     #Courese Tag related
-    'lms.djangoapps.course_tag.apps.CourseTagConfig'
+    'lms.djangoapps.course_tag.apps.CourseTagConfig',
 
     # Analytics Dashboard
     'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig',

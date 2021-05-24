@@ -27,7 +27,7 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
             <div class="dropdown">
                 <a data-hj-suppress class="dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${username}</a>
                 <ul role="menu" class="dropdown-menu dropdown-menu-right" id="${_("Usermenu")}" aria-labelledby="dropdownMenuLink" tabindex="-1">
-                    <li role="presentation"><a role="menuitem" class="dropdown-item" href="${reverse('dashboard')}">${_("Dashboard")}</a></li>
+                    <li role="presentation"><a role="menuitem" class="dropdown-item" href="${reverse('dashboard')}">${_("My Courses")}</a></li>
                     <li role="presentation"><a role="menuitem" class="dropdown-item" href="${reverse('account_settings')}">${_("Account")}</a></li>
                     <li role="presentation"><a role="menuitem" class="dropdown-item" href="${reverse('logout')}">${_("Sign Out")}</a></li>
                 </ul>
@@ -35,7 +35,7 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
         </div>
     </div>
     <ul role="menu" class="nav flex-column align-items-center">
-        <li role="presentation" class="nav-item nav-item-open-collapsed-only collapse"><a role="menuitem" href="${reverse('dashboard')}">${_("Dashboard")}</a></li>
+        <li role="presentation" class="nav-item nav-item-open-collapsed-only collapse"><a role="menuitem" href="${reverse('dashboard')}">${_("My Courses")}</a></li>
         <li role="presentation" class="nav-item nav-item-open-collapsed-only"><a role="menuitem" href="${reverse('account_settings')}">${_("Account")}</a></li>
         <li role="presentation" class="nav-item nav-item-open-collapsed-only"><a role="menuitem" href="${reverse('logout')}">${_("Sign Out")}</a></li>
     </ul>
@@ -43,7 +43,7 @@ profile_image_url = get_profile_image_urls_for_user(self.real_user)['medium']
     <ol class="user">
         <li class="primary">
             <a href="${reverse('dashboard')}" class="user-link">
-                <span class="sr">${_("Dashboard for:")}</span>
+                <span class="sr">${_("My Courses for:")}</span>
                 <img class="user-image-frame" src="${profile_image_url}" alt="">
                 <div data-hj-suppress class="label-username">${username}</div>
             </a>

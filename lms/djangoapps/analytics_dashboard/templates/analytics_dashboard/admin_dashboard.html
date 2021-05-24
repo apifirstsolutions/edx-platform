@@ -274,7 +274,7 @@ from django.db.models import Count
                                 },
                                 title: {
                                     display: true,
-                                    text: 'LXP Student enrollment by month/year'
+                                    text: 'LXP Student Enrollment by Month/Year'
                                 }
                             }
                         },
@@ -295,7 +295,6 @@ from django.db.models import Count
 
                 chrt_lbl = list(category_count.keys())
                 %>
-                <p>${chrt_lbl}</p>
                 <script>
                     var lb = ${json.dumps(chrt_lbl) | n}
                     var course_count_data = ${list(category_count.values())}
@@ -324,7 +323,7 @@ from django.db.models import Count
                             legend: {
                                 title: {
                                 display: true,
-                                text: 'Number of students enrolled in course',
+                                text: 'Number of Students Enrolled in Category',
                                 }
                             }
                         }
@@ -332,7 +331,7 @@ from django.db.models import Count
                     })
                 </script>
             </div>
-            <h2>Courses</h2>
+            <h2 class="h2">Courses</h2>
             <div class="table-responsive">
                 <form class="my-2" action="" method="">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">

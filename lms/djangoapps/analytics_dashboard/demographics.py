@@ -95,7 +95,6 @@ def get_learners_edu(user_ids):
 def spread_age_distribution(age_list):
     age_distribution = {'<20': 0, '21 - 30': 0, '31 - 40': 0, '41 - 50': 0, '51 - 60': 0,
                         '61 - 70': 0, '>70': 0}
-    log.info(f'******Age list count: {len(age_list)}******')
     for age in age_list:
         if age <= 20:
             age_distribution['<20'] += 1
@@ -118,19 +117,13 @@ def spread_age_distribution(age_list):
 
 
 def median(lst):
-    log.info(f'******input_age_list: {lst}******')
-
     learners_age_without_duplicates = []
     [learners_age_without_duplicates.append(x) for x in lst if x not in learners_age_without_duplicates]
     sorted_lst = sorted(learners_age_without_duplicates)
     lst_len = len(learners_age_without_duplicates)
     index = (lst_len - 1) // 2
 
-    log.info(f'******learners_age_without_duplicates: {learners_age_without_duplicates}******')
-    log.info(f'******learners_age_lst_len: {lst_len}******')
-    log.info(f'******index: {index}******')
-
-    if index:
+    if index == 0:
         return 0
 
     if lst_len % 2:

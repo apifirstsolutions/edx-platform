@@ -37,6 +37,8 @@ from common.djangoapps.student.models import UserProfile, CourseEnrollmentManage
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview, Category, SubCategory
 from common.djangoapps.student.models import CourseEnrollment, CourseAccessRole
 from custom_reg_form.models import UserExtraInfo
+from logging import getLogger
+log = getLogger(__name__)
 
 # from ecommerce.models import (
 #     OrderOrder
@@ -581,21 +583,14 @@ def demographics_view(request):
     # print(f'\nTrainers students by course: \n{trainer_students_by_course_count}')
 
     learners_all = User.objects.filter(is_active=1, is_staff=0, is_superuser=0).values()
-    print(f'\nTOTAL LEARNERS: {learners_all.count()}')
 
     learners_gender_list = get_learners_gender_list([l["id"] for l in learners_all])
     learners_edu = get_learners_edu([l["id"] for l in learners_all])
-    print(f'\nUser id count: {len([l["id"] for l in learners_all])}')
 
     learners_yob = UserExtraInfo.objects.filter(user__in=[l["id"] for l in learners_all]).values()
 
     learners_age = [calculate_age(l["date_of_birth"]) for l in learners_yob]
-    print(f'\nLearners age list count: {len(learners_age)}')
     learners_age_list = spread_age_distribution(learners_age)
-
-    print(f'Age list: {learners_age}')
-    print(f'Median age: {median(learners_age)}')
-    print(f'\nAge dist: {age_dist(learners_age)}')
 
     context = {
         'learners_all': learners_all,
