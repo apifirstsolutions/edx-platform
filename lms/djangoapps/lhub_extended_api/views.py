@@ -1,8 +1,12 @@
+from datetime import datetime
+from common.djangoapps.util.date_utils import strftime_localized
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from lms.djangoapps.commerce.utils import EcommerceService
+from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from openedx.core.djangoapps.user_api.accounts.settings_views import get_user_orders,get_orders_list
 from openedx.core.lib.api.authentication import BearerAuthentication
@@ -222,10 +226,18 @@ class LHUBOrderDetailView(APIView):
             "status": true,
             "status_code": 200,
             "result": {
-                "number": "EDX-100002",
-                "price": "149.00",
-                "order_date": "Apr 14, 2021",
-                "receipt_url": "http://localhost:18130/checkout/receipt/?order_number=EDX-100002",
+                "billing_address": {
+                    "first_name": "staff",
+                    "last_name": "real",
+                    "line1": "qwerty",
+                    "line2": "12",
+                    "postcode": "",
+                    "state": "",
+                    "country": "AG",
+                    "city": "krakow"
+                },
+                "currency": "USD",
+                "discount": "0",
                 "lines": [
                     {
                         "title": "Seat in edX Demonstration Course with verified certificate (and ID verification)",
@@ -257,12 +269,26 @@ class LHUBOrderDetailView(APIView):
                             "course_image_url": "/asset-v1:edX+DemoX+Demo_Course+type@asset+block@images_course_image.jpg"
                         }
                     }
-                ]
+                ],
+                "number": "EDX-100002",
+                "payment_processor": "cybersource",
+                "status": "Complete",
+                "user": {
+                    "email": "staff@example.com",
+                    "username": "staff"
+                },
+                "vouchers": [],
+                "payment_method": "1111 Visa",
+                "order_date": "Apr 14, 2021",
+                "receipt_url": "http://localhost:18130/checkout/receipt/?order_number=EDX-100002",
+                "items_total": "149.00",
+                "subtotal": "149.00",
+                "gst": "0.0"
             }
         }
         """
         try:
-            user_orders = get_user_orders(request.user)
+            user_order = get_user_order(request.user, order_number)
         except:
             return Response(
                 status=400,
@@ -274,17 +300,15 @@ class LHUBOrderDetailView(APIView):
                 }
             )
 
-        target_order = next((order for order in user_orders if order['number'] == order_number), {})
-
-        if target_order:
-            update_order_format(target_order)
+        if user_order:
+            update_order_format(user_order)
 
         return Response(
             data={
                 "message": "",
                 "status": True,
                 "status_code": 200,
-                "result": target_order
+                "result": user_order
             }
         )
 
@@ -303,3 +327,28 @@ def update_order_format(order):
             "course_id": course_id,
             "course_image_url": course.course_image_url if course else ''
         })
+
+
+def get_user_order(user, number):
+    """Given a user, get the detail of all the orders from the Ecommerce service.
+
+    Args:
+        user (User): The user to authenticate as when requesting ecommerce.
+        number (str): The number of specific order
+
+    Returns:
+        Dict, representing order returned by the Ecommerce service.
+    """
+    order = ecommerce_api_client(user).orders(number).get()
+
+    if order['status'].lower() == 'complete':
+        date_placed = datetime.strptime(order.pop('date_placed'), "%Y-%m-%dT%H:%M:%SZ")
+        order.update({
+            'order_date': strftime_localized(date_placed, 'SHORT_DATE'),
+            'receipt_url': EcommerceService().get_receipt_page_url(order['number']),
+            'items_total': order.pop('total_excl_tax'),
+            'subtotal': order.pop('total_incl_tax'),
+            'gst': str(order.pop('total_tax'))
+        })
+
+    return order
