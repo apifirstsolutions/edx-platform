@@ -182,7 +182,7 @@ font-weight: 800 !important;
 }
 
 </style>
-<article class="course" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
+<article class="course ${course.id}" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
   <a href="${reverse('about_course', args=[text_type(course.id)])}">
     <header class="course-image">
       <div class="cover-image">

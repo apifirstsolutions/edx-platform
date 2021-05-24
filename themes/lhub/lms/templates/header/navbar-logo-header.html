@@ -420,17 +420,19 @@ border-radius: 25px;
 
 <form class="search-foam">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
-  <input type="text" placeholder="Search.." name="search">
-  <button class="search-btn" type="">GO</button>
+  <input type="text" placeholder="Search..here" name="search" id="search">
+     <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
+  <button class="search-btn" type="button" id="go">GO</button>
 </form>
 %endif
+
 
 % if "/about" in request.path:
  % if request.user.is_anonymous:
 <form class="search-foam">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
   <input type="text" placeholder="Search.." name="search">
-  <button class="search-btn" type="">GO</button>
+  <button class="search-btn" type="button" >GO</button>
 </form>
  %endif
 %endif
@@ -445,3 +447,44 @@ border-radius: 25px;
     % endif
   </div>
 % endif
+
+<script >
+$(document).ready(function() {
+$('.course1').hide();
+      $('#search').keydown(function(e){
+            let keyWord = $('#search').val();
+                    if(keyWord && keyWord.length>=3 && e.which != 8){
+                       $.ajax({
+                        url: '/?search_='+keyWord,
+                        type:"GET",
+                        contentType: "application/json",
+                        success: function(data) {
+                            console.log('success',data['courses']);
+                            $("article").each(function() {
+                                $(this).parent('li').show();
+                            });
+                             $("article").each(function() {
+                                let targetClass = $(this).attr('class');
+                                targetClass=targetClass.split(" ");
+                                if (targetClass.length >1 && data['courses'].includes(targetClass[1])) {
+                                    $(this).show();
+                                }
+                                else{
+                                console.log($(this).parent('li').find('h3').val());
+                                    $(this).parent('li').hide();
+                                }
+                            });
+
+                        },
+                        error: function(data) {console.log("EEROR", data);
+                         },
+                        });
+                    }
+                    else{
+                        $("article").each(function() {
+                                $(this).parent('li').show();
+                            });
+                    }
+        });
+});
+</script>

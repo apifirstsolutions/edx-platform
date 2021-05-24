@@ -80,7 +80,10 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
 from commerce.api.v1.models import Course
 from elasticsearch.exceptions import ConnectionError
 from search.search_engine_base import SearchEngine
-
+from django.http import HttpResponseRedirect
+from elasticsearch.exceptions import ConnectionError
+from search.search_engine_base import SearchEngine
+from rest_framework.response import Response
 log = logging.getLogger("edx.student")
 
 AUDIT_LOG = logging.getLogger("audit")
@@ -165,9 +168,9 @@ def index(request, extra_context=None, user=AnonymousUser()):
         courses = sort_by_announcement(courses)
 
 
-    if request.GET.get('search'):
+    if request.GET.get('search_'):
         search_engine = SearchEngine.get_search_engine(index="home_search")
-        key_word = str(request.GET.get('search'))
+        key_word = str(request.GET.get('search_'))
         key_obj = []
         for crs in courses:
             if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
@@ -178,7 +181,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
                 search_result = search_engine.search(field_dictionary=doc_string)
                 log.info("fetched the following from Elastic Search Engine %s", str(search_result))
                 if search_result and int(search_result['total']):
-                    key_obj.append(crs)
+                    key_obj.append(str(crs.id))
                     # This block is used to clear index
                     # test = []
                     # for x in search_result['results']:
@@ -189,8 +192,10 @@ def index(request, extra_context=None, user=AnonymousUser()):
                 else:
                     search_engine.index("home", [doc_string])
                     log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj.append(crs)
-                courses = key_obj
+                    key_obj.append(str(crs.id))
+                courses_ = key_obj
+        context= {'courses': courses_}
+        return JsonResponse(context, status=200)
 
 
     context = {
@@ -232,6 +237,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     # Add marketable programs to the context.
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
+    print("REACHED ==================", context)
 
     return render_to_response('index.html', context)
 

@@ -188,18 +188,20 @@
                     % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
                         % if loop.index == 0 :
                          <ul class="courses-listing" style="margin: 0 0 3px 0;">
+                             <h3>${val[0]}</h3>
                              <li class="courses-listing-item" >
-                                 <h3>${val[0]}</h3>
+
                                  <%include file="../course.html" args="course=tag" />
                              </li>
                              <br>
                          </ul>
 
                         % else:
-                            <li class="courses-listing-item" >
-                                 %if len(key.items()) > 1:
+                              %if len(key.items()) > 1:
                                     <h3>&nbsp;</h3>
                                 % endif
+                            <li class="courses-listing-item" >
+
                                  <%include file="../course.html" args="course=tag" />
                              </li>
 
