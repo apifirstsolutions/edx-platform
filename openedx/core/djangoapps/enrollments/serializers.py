@@ -2,7 +2,6 @@
 Serializers for all Course Enrollment related return objects.
 """
 
-
 import logging
 
 from rest_framework import serializers
@@ -16,7 +15,7 @@ from lms.djangoapps.courseware.courses import get_course_with_access
 from opaque_keys.edx.keys import CourseKey, UsageKey
 from six import iteritems, text_type
 from completion.models import BlockCompletion
-from datetime import date,timedelta
+from datetime import date, timedelta
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +27,7 @@ class StringListField(serializers.CharField):
     [1,2,3]
 
     """
+
     def field_to_native(self, obj, field_name):  # pylint: disable=unused-argument
         """
         Serialize the object's class name.
@@ -37,8 +37,6 @@ class StringListField(serializers.CharField):
 
         items = obj.suggested_prices.split(',')
         return [int(item) for item in items]
-
-
 
 
 class _MediaSerializer(serializers.Serializer):  # pylint: disable=abstract-method
@@ -64,8 +62,6 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     Nested serializer to represent a collection of media objects
     """
     course_image = _MediaSerializer(source='*', uri_attribute='course_image_url')
-
-
 
 
 class MobileCourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
@@ -95,32 +91,33 @@ class MobileCourseSerializer(serializers.Serializer):  # pylint: disable=abstrac
 
     def get_total_units(self, instance):
         request = self.context.get('request', None)
-        user =  request.user
+        user = request.user
         course_usage_key = modulestore().make_course_usage_key(instance.id)
-        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
+        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'],
+                              block_types_filter='vertical')
         total_units = len(response['blocks'])
         return total_units
 
     def get_completed_units(self, instance):
         request = self.context.get('request', None)
-        user =  request.user
+        user = request.user
         course_usage_key = modulestore().make_course_usage_key(instance.id)
-        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'], block_types_filter='vertical')
+        response = get_blocks(request, course_usage_key, user, requested_fields=['completion'],
+                              block_types_filter='vertical')
         completed_units = 0
-        for key,block in response['blocks'].items():
+        for key, block in response['blocks'].items():
             usage_key = UsageKey.from_string(block['id'])
             usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
             course_key = usage_key.course_key
             course = instance
             block, _ = get_module_by_usage_id(
-            request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
+                request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
             )
             completion_service = block.runtime.service(block, 'completion')
             complete = completion_service.vertical_is_complete(block)
             if complete:
-                completed_units+= 1
+                completed_units += 1
         return completed_units
-
 
     def get_course_modes(self, obj):
         """
@@ -150,7 +147,7 @@ class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     course_end = serializers.DateTimeField(source="end", format=None)
     invite_only = serializers.BooleanField(source="invitation_only")
     course_modes = serializers.SerializerMethodField()
-    
+
     class Meta(object):
         # For disambiguating within the drf-yasg swagger schema
         ref_name = 'enrollment.Course'
@@ -206,7 +203,7 @@ class CourseEnrollmentsApiListSerializer(CourseEnrollmentSerializer):
         self.fields.pop('course_details')
 
     class Meta(CourseEnrollmentSerializer.Meta):
-        fields = CourseEnrollmentSerializer.Meta.fields + ('course_id', )
+        fields = CourseEnrollmentSerializer.Meta.fields + ('course_id',)
 
 
 class ModeSerializer(serializers.Serializer):  # pylint: disable=abstract-method
@@ -228,7 +225,6 @@ class ModeSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     bulk_sku = serializers.CharField()
 
 
-
 class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
     Collection of URLs pointing to images of various sizes.
@@ -239,7 +235,6 @@ class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
     raw = AbsoluteURLField()
     small = AbsoluteURLField()
     large = AbsoluteURLField()
-
 
 
 class _CourseApiMediaCollectionSerializer1(serializers.Serializer):  # pylint: disable=abstract-method
@@ -258,7 +253,8 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
     """
     course_details = MobileCourseSerializer(source="course_overview")
     user = serializers.SerializerMethodField('get_username')
-    #media = _CourseApiMediaCollectionSerializer(source='*')
+
+    # media = _CourseApiMediaCollectionSerializer(source='*')
 
     def get_username(self, model):
         """Retrieves the username from the associated model."""
@@ -269,55 +265,62 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
         fields = ('created', 'mode', 'is_active', 'course_details', 'user')
         lookup_field = 'username'
 
+
 class LearnerProgressSerializer(serializers.ModelSerializer):
     completed_count = serializers.SerializerMethodField()
-    dates = serializers.SerializerMethodField()
     today_completed = serializers.SerializerMethodField()
+    average_course_completion = serializers.SerializerMethodField()
+    course_completions = serializers.SerializerMethodField()
+
     class Meta:
         model = BlockCompletion
-        fields = ['user','completed_count','dates','today_completed']
-    
+
+    fields = ['user', 'completed_count', 'course_completions',
+              'today_completed', 'average_course_completion']
+
     def get_completed_count(self, instance):
         request = self.context.get('request', None)
-        user =  request.user
-        valid = []
+
+        user = request.user
+        valid = dict()
         todate = date.today()
         today = date.today()
         for i in range(10):
-            past_ten = today - timedelta(i) 
+            past_ten = today - timedelta(i)
 
-            qset = BlockCompletion.objects.filter(
-                user=user,
-                modified__gte=past_ten,
-                modified__lte=todate,
-                
-            )
-            completed = qset.count()
-            valid.append(completed)
-            todate = past_ten
+        qset = BlockCompletion.objects.filter(
+            user=user,
+            modified__gte=past_ten,
+            modified__lte=todate,
+
+        )
+        completed = qset.count()
+        dateStr = past_ten.strftime("%d-%m-%Y")
+        valid[dateStr] = (completed)
+        todate = past_ten
         return valid
 
-    def get_dates(self, instance):
-        valid_dates = []
-        today = date.today()
-        todate = date.today()
-        for i in range(10):
-            todate = today - timedelta(i) 
-            valid_dates.append(todate)
-        return valid_dates
-    
     def get_today_completed(self, instance):
         request = self.context.get('request', None)
-        user =  request.user
+
+        user = request.user
         valid = []
         today = date.today()
-        
+
         qset = BlockCompletion.objects.filter(
-                user=user,
-                modified__gte=today,
-                
+            user=user,
+            modified__gte=today,
+
         )
         today_completed = qset.count()
         return today_completed
 
-    
+    def get_average_course_completion(self, instance):
+        return '40%'
+
+    def get_course_completions(self, instance):
+        completions = dict()
+
+        completions["in_progress"] = 3
+        completions["completed"] = 4
+        return completions
