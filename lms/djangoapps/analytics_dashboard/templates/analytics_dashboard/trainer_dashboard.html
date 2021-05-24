@@ -131,12 +131,14 @@ from openedx.core.djangolib.markup import HTML
     <div class="row">
         <main class="col-md-10 col-lg-12 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">${ trainer.username } Dashboard</h1>
+                    <h1 class="h2">Trainer's Dashboard</h1>
             </div>
 
             <!-- Cards  -->
             <div class="row mb-4">
                 <!-- Courses Enrolled Card -->
+                <div class="col-sm-2"></div>
+
                 <div class="col-sm-1"></div>
                 <div class="col-sm-3">
                     <div class="card text-center">
@@ -158,16 +160,18 @@ from openedx.core.djangolib.markup import HTML
                     </div>
                 </div>
 
+                <div class="col-sm-2"></div>
+
                 <!-- Courses Completed -->
-                <div class="col-sm-1"></div>
-                <div class="col-sm-3">
-                    <div class="card card-default">
-                        <div class="card-body">
-                            <p class="card-title text-uppercase text-center">Overall Course Completion %</p>
-                            <p class="h2 card-text text-center">-</p>
-                        </div>
-                    </div>
-                </div>
+<!--                <div class="col-sm-1"></div>-->
+<!--                <div class="col-sm-3">-->
+<!--                    <div class="card card-default">-->
+<!--                        <div class="card-body">-->
+<!--                            <p class="card-title text-uppercase text-center">Overall Course Completion %</p>-->
+<!--                            <p class="h2 card-text text-center">-</p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
             </div>
 
             <div class="row">
@@ -330,9 +334,6 @@ from openedx.core.djangolib.markup import HTML
                             <th>Name</th>
                             <th>Start Date</th>
                             <th>Difficulty</th>
-                            <!-- <th>Platform</th> -->
-                            <th>Sale Type</th>
-                            <th>Price (S$)</th>
                             <th>Created Date</th>
                         </tr>
                     </thead>
@@ -345,14 +346,6 @@ from openedx.core.djangolib.markup import HTML
                             <td>${ course["display_name"] }</td>
                             <td>${ course["start_date"].strftime('%d %b %Y') }</td>
                             <td>${ course["difficulty_level"] }</td>
-                            <td>S$ ${ course["course_sale_type"] }</td>
-                            <td>
-                                %if course["course_sale_type"] == 'paid':
-                                    S$ ${ course["course_price"] }
-                                %else:
-                                    -
-                                %endif:
-                            </td>
                             <td>${ course["created"].strftime('%d %b %Y') }</td>
                         </tr>
                         %endfor:
