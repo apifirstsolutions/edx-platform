@@ -1,0 +1,190 @@
+## mako
+<%! from django.utils.translation import ugettext as _ %>
+<%namespace name='static' file='/static_content.html' />
+<%inherit file="/main.html" />
+<%block name="bodyclass">view-new_tab_type is-in-course course</%block>
+<%block name="pagetitle">${_("Note")}</%block>
+<%block name="headextra">
+    <%static:css group='style-course' />
+</%block>
+<%static:css group='style-vendor'/>
+<%static:css group='style-vendor-tinymce-content'/>
+<%static:css group='style-vendor-tinymce-skin'/>
+<%include file="/courseware/course_navigation.html" args="active_page='note_tab_type'" />
+<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+    .body {
+      border: 1px solid lightgray;
+      padding: 7px;
+    }
+    table {
+        align-content: center;
+    }
+    .check {
+            float: right;
+        }
+
+        .headNote {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .choose {
+            display: inline-block;
+            background-color: indigo;
+            color: white;
+            padding: 0.5rem;
+            margin-left: 110px;
+            font-family: sans-serif;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        table {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 90%;
+        }
+
+        td {
+            padding-top: 50px;
+        }
+
+        .custom-file {
+            margin-left: 10%;
+        }
+
+        .images {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            margin-left: 10px;
+        }
+
+        .images .img,
+        .images .pic {
+            flex-basis: 31%;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .images .img {
+            width: 350px;
+            height: 250px;
+            background-size: cover;
+            margin-left: 20px;
+            margin-right: 10px;
+            margin-top: 20px;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .images .img:nth-child(3n) {
+            margin-right: 0;
+        }
+
+        .images .img span {
+            display: none;
+            text-transform: capitalize;
+            z-index: 2;
+        }
+
+        .images .img::after {
+            content: '';
+            width: 100%;
+            height: 100%;
+            transition: opacity .1s ease-in;
+            border-radius: 4px;
+            opacity: 0;
+            position: absolute;
+        }
+
+        .images .img:hover::after {
+            display: block;
+            background-color: #000;
+            opacity: .5;
+        }
+
+        .images .img:hover span {
+            display: block;
+            color: #fff;
+        }
+
+        .images .pic {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F5F7FA;
+            align-self: center;
+            text-align: center;
+            padding: 40px 0;
+            text-transform: uppercase;
+            color: #848EA1;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .description_tag {
+            margin-left: 10px;
+        }
+	.btn-primary{
+        background-color: #1a345c;
+    }
+
+	 .btnown{
+    color: #d7d7d7;
+    background-color: #fff;
+    border-color: #fff;
+
+    }
+    .btnown:hover {
+    box-shadow: 0px 1px 20px #e2e2e2 !important;
+    border: none;
+    color: #1a345c;
+}
+</style>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+        <a class="navbar-brand" href="/courses/${course_id}/note/notes/">NOTE</a>
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+            <li class="nav-item active">
+                <a class="nav-link" href="/courses/${course_id}/note/notes/">${course.display_name}<span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+            <a href="/courses/${course_id}/note/notes/add/" class="btn btn-primary btn-sm">Add Note</a>
+        </form>
+    </div>
+</nav>
+<div class="body">
+<a href="/courses/${course_id}/note/notes/" class="btn btn-secondary btn-lg btnown" role="button" aria-disabled="true">Own Notes</a>
+<a href="/courses/${course_id}/note/notes/peer/" class="btn btn-primary btn-lg" role="button" aria-disabled="true">Peer Notes</a>
+            <form method="post">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
+                <br>
+                <div class="card-img-top">
+                    <p class="font-weight-bold" style="margin-left: 10px;">${note.title}</p>
+                </div>
+                <div class="card-body">
+                    <p class="font-weight-light description_tag">${note.description}</p>
+                    <div class="images img-card" >
+                        % for idx, image in enumerate(images):
+                        <div class="img" data-inx="${idx}" data-img-id="${image.id}" style="background-image: url('${image.image.url}'); margin-right: 10px;" rel="${image.image.url}"></div>
+                        % endfor  
+                    </div>
+                </div>
+                <button style="margin: 20px;" type="submit" class="btn btn-primary back_btn">Back</button>
+            </form>
+        </div>
+
+
+
+

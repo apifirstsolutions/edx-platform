@@ -36,6 +36,7 @@ setup(
             "textbooks = lms.djangoapps.courseware.tabs:TextbookTabs",
             "wiki = lms.djangoapps.course_wiki.tab:WikiTab",
             "reviews = lms.djangoapps.reviews.plugins:ReviewsTab",
+            "note = lms.djangoapps.note.tabs:NoteTab",
         ],
         "openedx.course_tool": [
             "calendar_sync_toggle = openedx.features.calendar_sync.plugins:CalendarSyncToggleTool",
@@ -93,6 +94,7 @@ setup(
             "program_enrollments = lms.djangoapps.program_enrollments.apps:ProgramEnrollmentsConfig",
             "courseware_api = openedx.core.djangoapps.courseware_api.apps:CoursewareAPIConfig",
             "reviews = lms.djangoapps.reviews.apps:ReviewsConfig",
+            "note = lms.djangoapps.note.apps:NoteApiConfig",
         ],
         "cms.djangoapp": [
             "announcements = openedx.features.announcements.apps:AnnouncementsConfig",

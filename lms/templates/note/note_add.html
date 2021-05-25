@@ -1,0 +1,226 @@
+## mako
+<%! from django.utils.translation import ugettext as _ %>
+<%namespace name='static' file='/static_content.html' />
+<%inherit file="/main.html" />
+<%block name="bodyclass">view-new_tab_type is-in-course course</%block>
+<%block name="pagetitle">${_("Note")}</%block>
+<%block name="headextra">
+    <%static:css group='style-course' />
+</%block>
+<%include file="/courseware/course_navigation.html" args="active_page='note_tab_type'" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<style>
+    .home {
+            padding: 5px;
+            border: 1px solid lightgrey;
+            margin: 5px;
+        }
+
+        .check {
+            float: right;
+        }
+
+        .headNote {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .choose {
+            display: inline-block;
+            background-color: indigo;
+            color: white;
+            padding: 0.5rem;
+            margin-left: 110px;
+            font-family: sans-serif;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        table {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 90%;
+        }
+
+        td {
+            padding-top: 50px;
+        }
+
+        .custom-file {
+            margin-left: 10%;
+        }
+
+        .images {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            margin-left: 10px;
+        }
+
+        .images .img,
+        .images .pic {
+            flex-basis: 31%;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .images .img {
+            width: 350px;
+            height: 250px;
+            background-size: cover;
+            margin-left: 20px;
+            margin-right: 10px;
+            margin-top: 20px;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .images .img:nth-child(3n) {
+            margin-right: 0;
+        }
+
+        .images .img span {
+            display: none;
+            text-transform: capitalize;
+            z-index: 2;
+        }
+
+        .images .img::after {
+            content: '';
+            width: 100%;
+            height: 100%;
+            transition: opacity .1s ease-in;
+            border-radius: 4px;
+            opacity: 0;
+            position: absolute;
+        }
+
+        .images .img:hover::after {
+            display: block;
+            background-color: #000;
+            opacity: .5;
+        }
+
+        .images .img:hover span {
+            display: block;
+            color: #fff;
+        }
+
+        .images .pic {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F5F7FA;
+            align-self: center;
+            text-align: center;
+            padding: 40px 0;
+            text-transform: uppercase;
+            color: #848EA1;
+            font-size: 12px;
+            cursor: pointer;
+        }
+	 .btn-primary{
+        background-color: #1a345c
+       }
+
+</style>
+<form id="test" class="" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
+    <div class="home p-5">
+        <label for="" class="headNote">Add New Note</label>
+        <div class="form-check check">
+            <input class="form-check-input mt-2" name="is_public" type="checkbox" value="1" id="flexCheckDefault">
+            <label class="form-check-label btn btn-outline-primary" for="flexCheckDefault">
+                Make Public
+            </label>
+        </div>
+        <br>
+        <hr>
+        <div class="form-group pt-2">
+            <label for="title" class="h5">Title</label>
+            <input type="text" name="title" id="formControlLg" placeholder="Enter Title" class="form-control form-control-lg" required/>
+        </div>
+        <div class="form-group pt-2">
+            <label for="title" class="h5">Your notes or ideas</label>
+            <textarea class="form-control" id="editor" name="description" placeholder="Enter Your Descriptions" rows="6" style="min-height: 110px;" required></textarea>
+        </div>
+        <input class="count" id="count" name="count" value="0" type="hidden"/>
+        <div class="images img-card" >
+            <div class="pic">
+                add
+            </div>   
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 130px; height: 50px; margin-left: 20px; margin-top: 20px;">Submit Note</button>
+        <a href="/courses/${course_id}/note/notes/"class="btn btn-primary" style="width: 130px; height: 50px; padding-top: 12px; margin-left: 20px; margin-top: 20px; text-decoration: none;">Cancel</a>
+    </div>
+    <input type="file" name="image0" id="image0" hidden />
+    <input type="file" name="image1" id="image1" hidden />
+    <input type="file" name="image2" id="image2" hidden />
+    <input type="file" name="image3" id="image3" hidden />
+    <input type="file" name="image4" id="image4" hidden />
+    <input type="file" name="image5" id="image5" hidden />
+</form>
+<script>
+
+    var button = $('.images .pic');
+    var uploader = $('<input type="file" accept="image/*"  hidden/>'), fileInput;
+    var images = $('.images');
+    var count = $('#count');
+    var inx = 0;
+    var img_status = [0, 0, 0, 0, 0, 0];
+
+    button.on('click', function () {
+        // if( inx < 6)
+        uploader.click();
+        // else
+        //   alert("Max allowed images is 6 images!");
+    });
+
+    // $(document).on('change', fileInput, function () {
+    uploader.on('change', function () {
+        inx = img_status.indexOf(0);
+        // fileInput = $(uploader).clone(true).attr("name", "image" + inx );
+        var reader = new FileReader()
+        reader.onload = function (event) {
+            images.prepend('<div class="img" data-inx="'+ inx +'" style="background-image: url(\'' + event.target.result + '\'); margin-right: 10px;" rel="' + event.target.result + '"><span>remove</span></div>');
+            // images.prepend(fileInput);
+
+            $("#image" + inx).prop("files", uploader.prop("files"));
+            // images.prepend(uploader.attr("name", "image" + inx).clone(true));
+            // images.prepend(uploader.attr("file", event.target.result).clone(true));
+            // var filename = $("#image" + inx).val();
+            // im.prepend(uploader.attr("file", filename).clone(true));
+            img_status[inx] = 1;
+            if( img_status.indexOf(0) === -1 ) {
+              button.attr("style", "display:none");
+            }
+            // inx++;
+            count.val(img_status.join(","));
+        }
+        reader.readAsDataURL(uploader[0].files[0])
+    });
+
+    images.on('click', '.img', function () {
+        let i = $(this).data("inx");
+        $("#image" + i).val('');
+        $(this).remove();
+        img_status[i] = 0;
+        button.attr("style", "display:block");
+        count.val(img_status.join(","));
+    });
+
+    function onSubmit( form ){
+
+      var data = JSON.stringify( $(form).serializeArray() ); //  <-----------
+    
+      console.log( data );
+      return false; //don't submit
+    }
+</script>
+

@@ -9,6 +9,7 @@ rather than importing Django models directly.
 import logging
 
 import six
+import urllib.parse
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
@@ -70,11 +71,15 @@ def format_certificate_for_user(username, cert):
             "is_passing": is_passing_status(cert.status),
             "is_pdf_certificate": bool(cert.download_url),
             "download_url": (
-                cert.download_url or get_certificate_url(cert.user.id, cert.course_id, uuid=cert.verify_uuid,
-                                                         user_certificate=cert)
+                get_certificate_url(cert.user.id, cert.course_id, uuid=cert.verify_uuid, user_certificate=cert)
                 if cert.status == CertificateStatuses.downloadable
                 else None
             ),
+            "download_pdf_url": (
+                urllib.parse.urljoin(settings.MEDIA_URL, cert.download_url)
+                if cert.status == CertificateStatuses.downloadable and cert.download_url
+                else ""
+            )
         }
     except CourseOverview.DoesNotExist:
         return None

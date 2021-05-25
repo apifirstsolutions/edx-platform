@@ -5,12 +5,51 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import pgettext
 from openedx.core.djangolib.markup import HTML, Text
 %>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#csv_upload").change(function(e){
+            var ext = $("input#csv_upload").val().split(".").pop().toLowerCase();
+
+            if($.inArray(ext, ["csv"]) == -1){
+                alert('Please upload CSV file');
+                return false;
+            }
+
+            if(e.target.files != undefined){
+                var reader = new FileReader();
+                reader.onload = function(e){
+                    var csv_val=e.target.result.split("\r\n");
+                    var csv_value=""+csv_val+"".split(",");
+                    var input_data="";
+                    for(var i=0;i<csv_value.length;i++){
+                        var temp=csv_value[i];
+                        var input_data=input_data+""+temp;
+                    }
+                    final_input_data = input_data.slice(0, -1);
+                    $("#student-ids").val(final_input_data);
+                };
+                reader.readAsText(e.target.files.item(0));
+            }
+            return false;
+        });
+        $('#enroll-btn').change(function(e){
+          // if(e.target.after){
+          //   $("#csv_upload").val("");
+          // }
+          $("#csv_upload").val("");
+        });
+    });
+    </script>
 <fieldset class="batch-enrollment membership-section">
     <legend id="heading-batch-enrollment" class="hd hd-3">${_("Batch Enrollment")}</legend>
     <label>
         ${_("Enter email addresses and/or usernames separated by new lines or commas.")}
         ${_("You will not get notification for emails that bounce, so please double-check spelling.")}
-        <textarea rows="6" name="student-ids" placeholder="${_("Email Addresses/Usernames")}" spellcheck="false"></textarea>
+	<div class="pull-right">
+            ${_("Upload CSV file:")}
+            <input type="file" name="csv_upload" id="csv_upload" value=""/>
+        </div>
+	<textarea rows="6" name="student-ids" id="student-ids" placeholder="${_("Email Addresses/Usernames")}" spellcheck="false"></textarea>
     </label>
 
     <div class="role">
@@ -61,7 +100,7 @@ from openedx.core.djangolib.markup import HTML, Text
         </label>
     </div>
     <div>
-        <input type="button" name="enrollment-button" class="enrollment-button" value="${pgettext('someone','Enroll')}" data-endpoint="${ section_data['enroll_button_url'] }" data-action="enroll" >
+        <input type="button" id="enroll-btn" name="enrollment-button" class="enrollment-button" value="${pgettext('someone','Enroll')}" data-endpoint="${ section_data['enroll_button_url'] }" data-action="enroll" >
         <input type="button" name="enrollment-button" class="enrollment-button" value="${_("Unenroll")}" data-endpoint="${ section_data['unenroll_button_url'] }" data-action="unenroll" >
     </div>
     <div class="request-response"></div>

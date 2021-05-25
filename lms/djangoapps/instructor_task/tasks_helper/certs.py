@@ -5,6 +5,7 @@ Instructor tasks related to certificates.
 
 from time import time
 
+from django.core.files.storage import default_storage
 from django.contrib.auth.models import User
 from django.db.models import Q
 
@@ -139,6 +140,8 @@ def invalidate_generated_certificates(course_id, enrolled_students, certificate_
         course_id=course_id,
         status__in=certificate_statuses,
     )
+
+    [default_storage.delete(certificate.download_url) for certificate in certificates if certificate.download_url]
 
     # Mark generated certificates as 'unavailable' and update download_url, download_uui, verify_uuid and
     # grade with empty string for each row
