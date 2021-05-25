@@ -136,6 +136,7 @@ class CourseListView(ListAPIView):
             course_list = filtered_courses if len(filtered_courses) > 0 else courses
             for course in course_list:
                 search_string = self.request.query_params.get('coursename').lower()
+                search_string = search_string.strip()
                 if course.name.lower().find(search_string) > -1: #and course.platform_visibility in ['mobile', 'both', 'Mobile', 'Both', None]:
                     filtered_courses_list.append(course)
 
