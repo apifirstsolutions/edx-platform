@@ -41,12 +41,14 @@ class SubscriptionPlan(models.Model):
     slug = models.SlugField(max_length=200, blank=True)
     
     bundle = models.ForeignKey(Bundle, on_delete=models.DO_NOTHING, null=True, blank=True)
-    description = models.CharField(max_length=500, default=None, null=True, blank=True)
+    image_url = models.URLField(blank=True, max_length=255)
+    description = models.TextField(default=None, null=True, blank=True)
     ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')  # FIXME
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     grace_period = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+    is_utap_supported = models.BooleanField(default=False)
     price_month = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
     price_onetime = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
     price_year = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
@@ -70,7 +72,7 @@ class Subscription(models.Model):
     subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
     billing_cycle = models.CharField(
       max_length=10,
-      choices=[(cycle, cycle.value) for cycle in BillingCycles],
+      choices=[(cycle.value, cycle.name) for cycle in BillingCycles],
       default=BillingCycles.MONTH
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -79,18 +81,18 @@ class Subscription(models.Model):
     end_at = models.DateTimeField(default=None, null=True, blank=True)
     status = models.CharField(
       max_length=10,
-      choices=[(status, status.value) for status in Statuses],
+      choices=[(status.value, status.name) for status in Statuses],
       default=Statuses.ACTIVE
     )
     license_count = models.IntegerField(default=1, null=False, blank=False)
-    biller_subscription_id = models.CharField(max_length=50, null=True, blank=True)
-    stripe_customer_id = models.CharField(max_length=50, null=False, blank=False)
-    stripe_price_id = models.CharField(max_length=50, null=False, blank=False)
+    stripe_subscription_id = models.CharField(default=None, max_length=50, null=True, blank=True)
+    stripe_customer_id = models.CharField(default=None, max_length=50, null=True, blank=True)
+    stripe_price_id = models.CharField(default=None, max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.email + '::' + self.subscription_plan.name
+        return self.subscription_plan.name + '(' + self.billing_cycle + ')'
 class License(models.Model):
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

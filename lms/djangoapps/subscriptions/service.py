@@ -7,69 +7,87 @@ from lms.envs.common import (
 
 stripe.api_key = STRIPE_API_KEY
 class SubscriptionService:
-  # TODO 
-  # After creating a Subscription plan in DB,
-  # (1) Create an equivalent ecommerce product with multiple price options.
-  # (2) Update Subscription Plan with Ecommerce ID
-  # (3) Create a Product and Price in Stripe.
-  # (4) Update Subscription Plan with Product and Price ID(s)
-  def create_plan(self, name, prices):
-
-    # TODO
-    # create stripe product and price
-    # use metadata fields to link sub plan to stripe product and priices
-
-    
-
-
-    # Create Stripe Product and Prices
+  
+  # Creates a Product and Prices in Stripe.
+  # Creates an Ecommerce Product with multiple prices options.
+  def create_product(self, name, prices):
     try:
-      # TODO - try to check if Stripe Product already exists with same plan_slug
-      product = stripe.Product.create(
-          name=name,
-          # metadata={'slug': slug},
-          # idempotency_key=       # https://stripe.com/docs/api/idempotent_requests
-      )
-
+      product = stripe.Product.create(name=name,)
       result = {}
-      result['product_id'] = product.id
+      result['stripe_product_id'] = product.id
 
+      # keys must be interval values in stripe https://stripe.com/docs/api/prices/object#price_object-recurring-interval
       for interval in prices.keys():
         if prices[interval] is not None:
           price = stripe.Price.create(
-            unit_amount_decimal= prices[interval] * 100,
+            unit_amount= prices[interval] * 100,
             currency=STRIPE_CURRENCY,
             recurring={ 'interval': interval },
             product=product.id,
           )
 
-          result['price_' + interval + '_id'] = price.id
+          result['stripe_price_' + interval + '_id'] = price.id
       
-      return result
+      # TODO - create Ecommerce Product and Prices
 
+      return result
     except Exception as e:
       print('Stripe ERROR:: ' + str(e))
 
-  # TODO - 
-  # (1) After first payment create a Stripe subscription with Price (from subscription plan)
-  # (2) create a Subscription in DB with ecommerce transaction ID
-  def createSubscriptionByEcommerce(self, stripe_customer_id=None, first_payment_transaction_id=None):
-    pass
+  
+  # Updates a Product and Prices in Stripe.
+  # Updates an Ecommerce Product with multiple prices options.
+  def update_product(self, new_product_name, new_prices, stripe_product_id):
+    try:
+      result = {}
+      
+      if new_product_name is not None:
+        stripe.Product.modify(stripe_product_id, name=new_product_name)
+
+      for interval in new_prices.keys():
+        if new_prices[interval] is not None:
+          price = stripe.Price.create(
+            unit_amount= int(new_prices[interval] * 100),
+            currency=STRIPE_CURRENCY,
+            recurring={ 'interval': interval },
+            product=stripe_product_id,
+          )
+
+          result['stripe_price_' + interval + '_id'] = price.id
+      
+      # TODO - update Ecommerce Product and Prices
+
+      return result
+    
+    except Exception as e:
+      print('Stripe ERROR:: ' + str(e))
 
 
-  # TODO - 
-  # (1) Create a Stripe subscription with Price (from subscription plan)
-  # (2) Creating a Subscription in DB,z
-  # (1) Update with ecommerce transactionId (optional) for first payment
-  def createSubscriptionByAdmin(self, use_biller=False, first_payment_transaction_id=None):
-    pass
+  # (1) If using Stripe, after first payment create a Stripe subscription with Price (from subscription plan)
+  # (2) Create Licenses and Transaction records.
+  def createSubscription(self, stripe_customer_id, stripe_price_id, use_stripe=False, first_payment_transaction_id=None):
+    if use_stripe:
+      try:
+        stripe.Subscription.create(
+          customer=stripe_customer_id,
+          items=[
+            { "price": stripe_price_id },
+          ],
+        )
+      except Exception as e:
+        print('Stripe ERROR:: ' + str(e))
 
+    else:
+      pass # TODO - create licenses and record transaction only. For one-time pay or enterprise use case.
+  
+  
+  
   # TODO - 
   # (1) After firstpayment is detected from webhook, update the current subscription and next billing date
   # (2) On expiration, update subscription status and subs. history
   # (3) On cancellation, update subscription status and subs. history
   # (2) Create a Stripe subscription with Price (from subscription plan)
-  def paySubscription(self, next_billing_date):
+  def renewSubscription(self, next_billing_date):
     pass
 
 

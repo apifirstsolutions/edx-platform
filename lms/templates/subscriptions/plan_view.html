@@ -31,20 +31,32 @@
         <div class="subscription-block">
             <%block name="pagecontent">${description}</%block>
         </div>
-        <div class="subscription-block">
-        
-          ${options}
-          <button href="#">Subscribe</button>
+        <div style="display: flex;"  class="subscription-block">
+
+          
+          <div style="width: 250px;">
+            % for option in options:
+              <div>
+                <input type="radio" id="${option[0]}" name="options" value="${option[3]}" checked>
+                <label for="${option[0]}">$${option[2]} SGD ${option[1]}</label>
+              </div>
+            % endfor
+          </div>
+          <div style="flex-grow: 1;">
+            <button href="#">Subscribe</button>
+          </div>
+
         </div>
 
         <div class="subscription-block">
+          <h2>Courses</h2>
           % for course in courses:
           <div class="subscription-course-block">
 
             <img width="200" src="${course.course_image_url}"/>
 
             <span>
-              ${course.display_name}
+              ${course.display_org_with_default}:${course.display_number_with_default} - ${course.display_name}
             </span>
             <span>
               <a style="float: right;" href="/courses/${course.id}/course">
