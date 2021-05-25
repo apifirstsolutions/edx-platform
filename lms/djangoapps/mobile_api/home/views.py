@@ -19,7 +19,6 @@ logger = getLogger(__name__)
 @api_view(['GET'])
 @authentication_classes((BearerAuthentication, SessionAuthentication, JwtAuthentication))
 @permission_classes([IsAuthenticated])
-@mobile_view()
 def mobile_home_page(request, api_version):
     home_page_url = {}
     base = request.get_host()

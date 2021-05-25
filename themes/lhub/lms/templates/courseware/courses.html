@@ -666,7 +666,7 @@ var top_next_url ;
 var top_prev_url;
 var recommended_next_url;
 var recommended_prev_url;
-var viewedSlider_top = $('#top_rated_ul');
+var viewedSlider_pop = $('#most_popular_ul');
 var viewedSlider_rec = $("#recommended_courses_ul");
 var viewedSlider_free = $("#free_courses_ul");
 var viewedSlider_top = $("#top_rated_ul");
@@ -828,8 +828,7 @@ $('#rec_id').click(function() {
 function show_most_popular_courses(target) {
 
 //    popular_next_url = "http://edx.devstack.lms:18000/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4";
-    $('#most_popular_ul').owlCarousel('destroy');
-    $("#most_popular_ul").html('');
+
     var form = new FormData();
     var settings = {
         "url": target,
@@ -844,6 +843,8 @@ function show_most_popular_courses(target) {
     $("#most_popular_loader").css("display", "");
 
     $.ajax(settings).done(function(response) {
+        $('#most_popular_ul').owlCarousel('destroy');
+        $("#most_popular_ul").html('');
         $("#most_popular_loader").css("display", "None");
         console.log(response);
         if (response['status_code'] == 200) {
@@ -879,11 +880,11 @@ function show_most_popular_courses(target) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
-                if (course_price == 0) {
-                    course_price = "Free"
+               /* if (course_price == 0) {
+                    course_price = "Free" ;
                 } else {
-                    course_price = "S$" + course_price
-                }
+                    course_price = "S$" + course_price ;
+                }*/
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
 
@@ -988,8 +989,7 @@ function show_most_popular_courses(target) {
 
 
 function show_free_courses(target) {
-    $('#free_courses_ul').owlCarousel('destroy');
-    $("#free_courses_ul").html('');
+
     var form = new FormData();
     var settings = {
         "url": target,
@@ -1004,6 +1004,8 @@ function show_free_courses(target) {
 
     $("#free_courses_loader").css("display", "");
     $.ajax(settings).done(function(response) {
+        $('#free_courses_ul').owlCarousel('destroy');
+        $("#free_courses_ul").html('');
         $("#free_courses_loader").css("display", "None")
         console.log(response);
         if (response['status_code'] == 200) {
@@ -1143,8 +1145,7 @@ function show_free_courses(target) {
 }
 
 function show_top_rated_courses(top_rated) {
-    $('#top_rated_ul').owlCarousel('destroy');
-    $("#top_rated_ul").html('');
+
     var form = new FormData();
     var settings = {
         "url": top_rated,
@@ -1159,6 +1160,8 @@ function show_top_rated_courses(top_rated) {
 
     $("#top_rated_loader").css("display", "");
     $.ajax(settings).done(function(response) {
+        $('#top_rated_ul').owlCarousel('destroy');
+        $("#top_rated_ul").html('');
         $("#top_rated_loader").css("display", "None")
         console.log(response);
         if (response['status_code'] == 200) {
@@ -1195,11 +1198,11 @@ function show_top_rated_courses(top_rated) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
-                if (course_price == 0) {
+                /*                if (course_price == 0) {
                     course_price = "Free"
                 } else {
                     course_price = "S$" + course_price
-                }
+                }*/
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
                 var course = `<li class="card-slider-card-items owl-item">
@@ -1302,8 +1305,7 @@ function show_top_rated_courses(top_rated) {
 }
 
 function show_recommended_courses(target) {
-    $('#recommended_courses_ul').owlCarousel('destroy');
-    $("#recommended_courses_ul ").html('');
+
         var form = new FormData();
         var recommended_settings = {
         "url": target,
@@ -1318,6 +1320,8 @@ function show_recommended_courses(target) {
 
     $("#recommended_courses_loader").css("display", "");
     $.ajax(recommended_settings).done(function(response) {
+        $('#recommended_courses_ul').owlCarousel('destroy');
+        $("#recommended_courses_ul ").html('');
         $("#recommended_courses_loader").css("display", "None")
         if (response['status_code'] == 200) {
             $('#heading_recommended_courses').css('display', '')
@@ -1355,11 +1359,11 @@ function show_recommended_courses(target) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
-                if (course_price == 0) {
+                /*                if (course_price == 0) {
                     course_price = "Free"
                 } else {
                     course_price = "S$" + course_price
-                }
+                }*/
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
                 available_vouchers = response['result']['results'][i]['available_vouchers'];

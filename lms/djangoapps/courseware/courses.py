@@ -726,6 +726,7 @@ def get_courses_with_extra_info(user, org=None, filter_=None):
         course.comments_count = course_extra_info.comments_count
         course.difficulty_level = course.difficulty_level.capitalize() if course.difficulty_level else "Unknown"
         course.discount_applicable = course_extra_info.discount_applicable
+        course.discount_percentage_string = course_extra_info.discount_percentage_string
         course.discount_percentage = course_extra_info.discount_percentage
         course.discounted_price = course_extra_info.discounted_price
         course.currency = course_extra_info.currency

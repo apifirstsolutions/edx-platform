@@ -1,0 +1,94 @@
+## mako
+<%! 
+from django.utils.translation import ugettext as _
+from django.urls import reverse 
+%>
+<%! from django.shortcuts import redirect %>
+<%namespace name='static' file='/static_content.html'/>
+<%inherit file="/main.html" />
+<%block name="bodyclass">view-new_tab_type is-in-course course</%block>
+<%block name="pagetitle">${_("Note")}</%block>
+<%block name="headextra">
+<%static:css group='style-course'/>
+</%block>
+<%include file="/courseware/course_navigation.html" args="active_page='note'" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<style>
+    .body {
+      border: 1px solid lightgray;
+      padding: 7px;
+    }
+    table {
+        align-content: center;
+    }
+     a.btn.btn-primary{
+        background-color: #1a345c;
+    }
+    .btnown{
+    color: #d7d7d7;
+    background-color: #fff;
+    border-color: #fff;
+
+    }
+    .btnown:hover {
+    box-shadow: 0px 1px 20px #e2e2e2 !important;
+    border: none;
+    color: #1a345c;
+}
+
+</style>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+        <a class="navbar-brand" href="/courses/${course_id}/note/notes/">NOTE</a>
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+            <li class="nav-item active">
+                <a class="nav-link" href="/courses/${course_id}/note/notes/">${course.display_name}<span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+            <a href="/courses/${course_id}/note/notes/add/" class="btn btn-primary btn-sm">Add Note</a>
+        </form>
+    </div>
+</nav>
+<div class="body">
+<a href="/courses/${course_id}/note/notes/" class="btn btn-secondary btn-lg btnown" role="button" aria-disabled="true">Own Notes</a>
+<a href="/courses/${course_id}/note/notes/peer/" class="btn btn-primary btn-lg" role="button" aria-disabled="true">Peer Notes</a>
+
+            <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
+            % if len(notes) > 0:
+                <table class="table table-bordered" width="100%">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th>Title</th>
+                            <th>Date Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
+                    <tbody class="container-fluid">
+                        % for note in notes:
+                            <tr>
+                                <td class="align-middle"><a href="#">${note.title}</a></td>
+                                <td class="align-middle">${note.get_date()}</td>
+                                <td>
+                                    <div class="mt-3">
+                                        <a href="/courses/${course_id}/note/notes/peer_detail/${note.id}" class="btn btn-primary btn-sm" role="button">Detail</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        % endfor
+                    </tbody>
+                </table>
+            % else:
+                <div class="container-fluid card">
+                    <img src="" style="height: 250px;" class="card-img-top" alt="">
+                    <div class="card-body">
+                        <p class="card-text">No notes in ${course.display_name} course</p>
+                    </div>
+                </div>
+            % endif
+</div>

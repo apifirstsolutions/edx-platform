@@ -126,6 +126,7 @@ FEATURES = {
     # .. toggle_warnings: None
     # .. toggle_tickets: https://github.com/edx/edx-platform/pull/3064
     'ENABLE_TEXTBOOK': True,
+    'IS_NOTE_TAB_ENABLED': True,
 
     # discussion home panel, which includes a subscription on/off setting for discussion digest emails.
     # this should remain off in production until digest notifications are online.
@@ -2780,7 +2781,10 @@ INSTALLED_APPS = [
     'lms.djangoapps.lhub_extended_api.apps.LhubExtendedApiConfig',
 
     #banner related
-    'lms.djangoapps.banner.apps.BannerConfig'
+    'lms.djangoapps.banner.apps.BannerConfig',
+
+    #course_block_user related
+    'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig'
 ]
 
 ######################### CSRF #########################################

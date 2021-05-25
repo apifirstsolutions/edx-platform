@@ -68,8 +68,11 @@ class Ecommerce_Offer(APIView):
             start_datetime_str = ecommerce_data['start_datetime']
             start_datetime = datetime.strptime(start_datetime_str[:19], '%Y-%m-%d %H:%M:%S')
 
-            end_datetime_str = ecommerce_data['end_datetime']
-            end_datetime = datetime.strptime(end_datetime_str[:19], '%Y-%m-%d %H:%M:%S')
+            if ecommerce_data['end_datetime'] != "None":
+                end_datetime_str = ecommerce_data['end_datetime']
+                end_datetime = datetime.strptime(end_datetime_str[:19], '%Y-%m-%d %H:%M:%S')
+            else:
+                end_datetime = None
 
             ecommerce_offer = Offer(
                 associated_ecommerce_offer_id = ecommerce_data['associated_ecommerce_offer_id'],
