@@ -394,8 +394,8 @@ section.find-courses {
 }
 .loader {
     position: absolute;
-    left: 50%;
-    top: 35%;
+    left: 55%;
+    top: 25%;
     z-index: 99999999;
     width: 80px;
     height: 80px;
@@ -430,6 +430,55 @@ section.find-courses {
     font-size: 12px;
     color: #ed9800;
     font-weight: 600;
+}
+.content-wrapper {
+    padding: 0 20px 10px;
+}
+section.card-slider-container {
+    min-height: 200px !important;
+}
+
+@media screen and (min-width: 769px) and (max-width: 1180px) {
+   .coupon_details {
+    position: absolute;
+    left: 14px;
+    bottom: 26px;
+    right: auto;
+}
+.card-slider-container .crd-sldr-course-info-label {
+    line-height: 1.9;
+}
+
+.crd-sldr-course-info-price.fl ul{
+    margin: 0px !important;
+}
+.crd-sldr-course-info-price.fl ul li {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+}
+
+@media screen and (max-width: 575px){
+
+    .loader {
+    width: 40px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    height: 40px;
+    top: 100px;
+    left: 75%;
+}
+.slider-heading a {
+    font-size: 13px;
+}
+
+.card-slider-title {
+    font-size: 16px !important;
+}
+}
+
+.owl-item {
+padding: 0px 3px !important;
 }
 
 </style>
@@ -971,14 +1020,12 @@ function show_most_popular_courses(target) {
         dots: false,
         items: 4,
         slideBy: 4,
-            // responsive:
-            // {
-            // 0:{items:1},
-            // 575:{items:2},
-            // 768:{items:3},
-            // 991:{items:4},
-            // 1199:{items:6}
-            // }
+        responsive:
+        {
+        0:{items:1},
+        768:{items:2},
+        991:{items:4}
+        }
         });
 
 
@@ -1129,14 +1176,12 @@ function show_free_courses(target) {
         dots: false,
         items: 4,
         slideBy: 4,
-            // responsive:
-            // {
-            // 0:{items:1},
-            // 575:{items:2},
-            // 768:{items:3},
-            // 991:{items:4},
-            // 1199:{items:6}
-            // }
+        responsive:
+        {
+        0:{items:1},
+        768:{items:2},
+        991:{items:4}
+        }
         });
 
         }
@@ -1288,15 +1333,12 @@ function show_top_rated_courses(top_rated) {
         dots: false,
         items: 4,
         slideBy: 4,
-
-            // responsive:
-            // {
-            // 0:{items:1},
-            // 575:{items:2},
-            // 768:{items:3},
-            // 991:{items:4},
-            // 1199:{items:6}
-            // }
+        responsive:
+        {
+        0:{items:1},
+        768:{items:2},
+        991:{items:4}
+        }
         });
 
         }
@@ -1451,14 +1493,12 @@ function show_recommended_courses(target) {
                 dots: false,
                 items: 4,
                 slideBy: 4,
-                    // responsive:
-                    // {
-                    // 0:{items:1},
-                    // 575:{items:2},
-                    // 768:{items:3},
-                    // 991:{items:4},
-                    // 1199:{items:6}
-                    // }
+                responsive:
+                {
+                0:{items:1},
+                768:{items:2},
+                991:{items:4}
+                }
         });
 
 
