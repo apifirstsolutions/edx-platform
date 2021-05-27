@@ -172,6 +172,23 @@ def index(request, extra_context=None, user=AnonymousUser()):
         search_engine = SearchEngine.get_search_engine(index="home_search")
         key_word = str(request.GET.get('search_'))
         key_obj = []
+        course_tag = CourseTag.objects.all()
+        for x in course_tag:
+            if key_word in str(x.display_name):
+                print("key_obj000000000000000000000000000------------------->>>>>>>", x.crs_ovr_view.id)
+                doc_string = {
+                    "course_id": str(x.crs_ovr_view.id),
+                    "course_tag": str(x.crs_ovr_view__display_name_with_default)
+                }
+                search_result = search_engine.search(field_dictionary=doc_string)
+                if search_result and int(search_result['total']):
+                    key_obj.append(str(x.crs_ovr_view.id)) if str(x.crs_ovr_view.id) not in key_obj else None
+                else:
+                    search_engine.index("home", [doc_string])
+                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                    key_obj.append(str(x.crs_ovr_view.id)) if str(x.crs_ovr_view.id) not in key_obj else None
+
+
         for crs in courses:
             if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
                 doc_string = {
@@ -181,7 +198,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
                 search_result = search_engine.search(field_dictionary=doc_string)
                 log.info("fetched the following from Elastic Search Engine %s", str(search_result))
                 if search_result and int(search_result['total']):
-                    key_obj.append(str(crs.id))
+                    key_obj.append(str(crs.id)) if str(crs.id) not in key_obj else None
                     # This block is used to clear index
                     # test = []
                     # for x in search_result['results']:
@@ -192,7 +209,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
                 else:
                     search_engine.index("home", [doc_string])
                     log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj.append(str(crs.id))
+                    key_obj.append(str(crs.id)) if str(crs.id) not in key_obj else None
                 courses_ = key_obj
         context= {'courses': courses_}
         return JsonResponse(context, status=200)
