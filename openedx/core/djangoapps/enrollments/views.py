@@ -26,7 +26,7 @@ from openedx.core.djangoapps.enrollments.errors import (
 )
 from openedx.core.djangoapps.enrollments.forms import CourseEnrollmentsApiListForm
 from openedx.core.djangoapps.enrollments.paginators import CourseEnrollmentsApiListPagination
-from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer
+from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer,LearnerProgressSerializer
 from openedx.core.djangoapps.user_api.accounts.permissions import CanRetireUser
 from openedx.core.djangoapps.user_api.models import UserRetirementStatus
 from openedx.core.djangoapps.user_api.preferences.api import update_email_opt_in
@@ -54,6 +54,9 @@ from openedx.core.lib.api.view_utils import LazySequence
 from edx_rest_framework_extensions.paginators import NamespacedPageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from openedx.core.lib.api.view_utils import  view_auth_classes
+from lms.djangoapps.lhub_notification.serializers import NotificationSerializer
+from completion.models import BlockCompletion
+
 log = logging.getLogger(__name__)
 REQUIRED_ATTRIBUTES = {
     "credit": ["credit:provider_id"],
@@ -475,8 +478,34 @@ class LazyPageNumberPagination(NamespacedPageNumberPagination):
         return super(LazyPageNumberPagination, self).get_paginated_response(data)
 
 
+@can_disable_rate_limit
+class ProgressDataViewMobile(DeveloperErrorViewMixin, ListAPIView):
 
+    authentication_classes = (BearerAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    #throttle_classes = (EnrollmentUserThrottle,)
+    serializer_class = LearnerProgressSerializer
+    #pagination_class = ProgressDataViewMobilePagination
+    # Since the course about page on the marketing site
+    # uses this API to auto-enroll users, we need to support
+    # cross-domain CSRF.
+   
+    def get_queryset(self):
+        username = self.request.GET.get('user', self.request.user.username)
+        #platform_visibility = self.request.query_params.get('platform_visibility', None)
+        qset = BlockCompletion.objects.filter(
+            user=self.request.user,
+            
+        )
+        valid = []
+        for first in qset:
+            valid.append(first)
+            return valid
 
+        return LazySequence(
+                (c for c in qset),
+                est_len=qset.count()
+            )
 
 @can_disable_rate_limit
 class EnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):

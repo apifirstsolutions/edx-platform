@@ -15,7 +15,7 @@ from xmodule.modulestore.django import modulestore
 
 from .models import UNDEFINED, Course
 from openedx.core.lib.api.fields import AbsoluteURLField
-
+from lms.djangoapps.course_tag.models import CourseTag
 class CourseModeSerializer(serializers.ModelSerializer):
     """ CourseMode serializer. """
     name = serializers.CharField(source='mode_slug')
@@ -134,6 +134,7 @@ class CourseSerializer(serializers.Serializer):
     discount_percentage = serializers.FloatField(required=False)
     discount_percentage_string = serializers.CharField(required=False)
     allow_review = serializers.BooleanField(required=False)
+    course_tag_name = serializers.SerializerMethodField('course_tag')
 
     class Meta(object):
         # For disambiguating within the drf-yasg swagger schema
@@ -198,6 +199,14 @@ class CourseSerializer(serializers.Serializer):
             CourseMode(**modes_dict)
             for modes_dict in modes_data
         ]
+    def course_tag(self, obj):
+        if obj:
+            course_tag = CourseTag.objects.filter(course_over_view=obj.id).values_list('course_tag_type__display_name', flat=True)
+            if course_tag:
+                return course_tag
+            return None
+
+
 
 class CourseDetailSerializer(serializers.Serializer):
     """ Course serializer. """

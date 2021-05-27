@@ -126,7 +126,6 @@ FEATURES = {
     # .. toggle_warnings: None
     # .. toggle_tickets: https://github.com/edx/edx-platform/pull/3064
     'ENABLE_TEXTBOOK': True,
-    'IS_NOTE_TAB_ENABLED': True,
 
     # discussion home panel, which includes a subscription on/off setting for discussion digest emails.
     # this should remain off in production until digest notifications are online.
@@ -653,7 +652,7 @@ FEATURES = {
     # .. toggle_name: ENABLE_LOGISTRATION_MICROFRONTEND
     # .. toggle_implementation: DjangoSetting
     # .. toggle_default: False
-    # .. toggle_description: Supports staged rollout of a new micro-frontend-based implementation of the logistration.
+    # .. toggle_description: Supports s?aged rollout of a new micro-frontend-based implementation of the logistration.
     # .. toggle_use_cases: temporary, open_edx
     # .. toggle_creation_date: 2020-09-08
     # .. toggle_target_removal_date: None
@@ -2784,7 +2783,10 @@ INSTALLED_APPS = [
     'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig',
 
     #Coures Tag related
-    'lms.djangoapps.course_tag.apps.CourseTagConfig'
+    'lms.djangoapps.course_tag.apps.CourseTagConfig',
+
+    # Analytics Dashboard
+    'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig',
 ]
 
 ######################### CSRF #########################################

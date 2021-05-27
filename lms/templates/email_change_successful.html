@@ -12,7 +12,7 @@ from django.urls import reverse
     <h1 class="valid">${_("E-mail change successful!")}</h1>
     <hr class="horizontal-divider">
 
-    <p>${Text(_('You should see your new email in your {link_start}dashboard{link_end}.')).format(
+    <p>${Text(_('You should see your new email in {link_start}My Courses{link_end}.')).format(
         link_start=HTML('<a href="{url}">').format(url=reverse('dashboard')),
         link_end=HTML('</a>'),
       )}</p>

@@ -177,7 +177,6 @@ FEATURES = {
     # in sync with the ones in lms/envs/common.py
     'ENABLE_DISCUSSION_SERVICE': True,
     'ENABLE_TEXTBOOK': True,
-    'IS_NOTE_TAB_ENABLED': True,
 
     # When True, all courses will be active, regardless of start date
     # DO NOT SET TO True IN THIS FILE
@@ -1528,7 +1527,10 @@ INSTALLED_APPS = [
     'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig',
 
     #Courese Tag related
-    'lms.djangoapps.course_tag.apps.CourseTagConfig'
+    'lms.djangoapps.course_tag.apps.CourseTagConfig',
+
+    # Analytics Dashboard
+    'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig',
 ]
 
 

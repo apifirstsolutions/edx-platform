@@ -144,7 +144,7 @@
             % if banner_list:
                 % for y in banner_list:
                         % if loop.index==1:
-                        <div class="item active" >
+                        <div class="item active" style="height:720px">
                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
                                 </a>
@@ -153,11 +153,11 @@
                         </div>
                         </div>
                         % else:
-                        <div class="item">
+                        <div class="item" style="height:720px">
                              <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
                              </a>
-                        <div class="carousel-caption">
+                        <div class="carousel-caption" >
                             <h3>${y.course_over_view.display_name_with_default}</h3>
                         </div>
                         </div>
@@ -180,7 +180,7 @@
 </div>
 
           <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
-             <ul class="courses-listing courses-list">
+
           ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
             % if course_tag:
                 %for key in course_tag:
@@ -193,9 +193,6 @@
 
                                  <%include file="../course.html" args="course=tag" />
                              </li>
-                             <br>
-                         </ul>
-
                         % else:
                               %if len(key.items()) > 1:
                                     <h3>&nbsp;</h3>
@@ -207,10 +204,11 @@
 
                         % endif
                     %endfor
+                              </ul>
                   %endfor
                 %endfor
             %endif
-             </ul>
+
           </div>
 
         <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">

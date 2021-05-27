@@ -14,7 +14,7 @@
     <div class="instructions">
         <p>
             % if status in ["pending", "approved"]:
-                ${_("You have already submitted your verification information. You will see a message on your dashboard when the verification process is complete (usually within 5-7 days).")}
+                ${_("You have already submitted your verification information. You will see a message on My Courses when the verification process is complete (usually within 5-7 days).")}
             % else:
                 ${_("You cannot verify your identity at this time.")}
             % endif
@@ -22,7 +22,7 @@
     </div>
 
     <div class="wrapper-actions">
-        <a class="action action-primary" href="${ reverse('dashboard') }">${_("Return to Your Dashboard")}</a>
+        <a class="action action-primary" href="${ reverse('dashboard') }">${_("Return to My Courses")}</a>
     </div>
 </div>
 

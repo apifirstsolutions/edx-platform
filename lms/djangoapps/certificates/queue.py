@@ -472,6 +472,7 @@ class XQueueCertInterface(object):
             cert.verify_uuid = uuid4().hex
 
         cert.save()
+        LOGGER.warning("------")
 
         cert_web_view_url = get_certificate_url(student.id, course.id, uuid=cert.verify_uuid, user_certificate=cert)
         full_url = urllib.parse.urljoin(settings.LMS_ROOT_URL, cert_web_view_url)
@@ -479,6 +480,7 @@ class XQueueCertInterface(object):
         path = default_storage.save(f'certificates_pdf/{cert.verify_uuid}.pdf', ContentFile(pdf_data))
         cert.download_url = path
         cert.save()
+        LOGGER.warning(f"path-------{path}")
 
         logging.info(u'certificate generated for user: %s with generate_pdf status: %s',
                      student.username, generate_pdf)
