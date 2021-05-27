@@ -326,8 +326,7 @@ class Course(object):
         if len(self.modes) > 0:
             if Offer.objects.filter(course__pk=course_id).exists():
                 offer = Offer.objects.filter(course__pk=course_id).order_by('-priority', 'id').first()
-                self.modes[0].discount_percentage = offer.incentive_value
-                return self.modes[0].discount_percentage
+                return offer.incentive_value
         return 0.0
 
     @property
@@ -336,8 +335,7 @@ class Course(object):
         if len(self.modes) > 0:
             if Offer.objects.filter(course__pk=course_id).exists():
                 offer = Offer.objects.filter(course__pk=course_id).order_by('-priority', 'id').first()
-                self.modes[0].discount_percentage = offer.incentive_value
-                return str("%.2f" % self.modes[0].discount_percentage)
+                return str("%.2f" % offer.incentive_value)
         return "%.2f" % 0.0
 
 
