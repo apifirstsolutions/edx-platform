@@ -31,6 +31,7 @@ from rest_framework.response import Response
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from django.apps import apps
 from common.djangoapps.feedback.models import CourseReview
+from rest_framework import status
 
 CourseEnrollment = apps.get_model('student', 'CourseEnrollment')
 
@@ -415,6 +416,30 @@ def update_discount(request, sku):
         return Response({"result": "success"})
 
 
+@api_view(['POST'])
+@authentication_classes((BearerAuthentication,SessionAuthentication,))
+@permission_classes([IsAuthenticated])
+def add_voucher_to_basket(request):
+
+    """
+    API: /commerce/v2/add_voucher/
+    This API add a voucher in the basket of the user.
+    """
+    if request.method == 'POST':
+        user = request.user
+        api = ecommerce_api_client(user)
+
+        try:
+            logging.info(request.data)
+            response = api.apply_voucher_mobile.post(request.data)
+
+            if 'status_code' in response and response['status_code'] == 400:
+                return HttpResponseBadRequest(response['message'])
+            else:
+                return Response(response["data"], status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return HttpResponseBadRequest(str(e))
 
 
 
