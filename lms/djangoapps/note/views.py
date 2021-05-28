@@ -181,7 +181,7 @@ class MyNoteUpdateView(APIView):
             elif is_public == "true" or is_public == "True":
                 is_public = True
 
-            image1 = image2 = image3 = image4 = image5 = image6 = ""
+            image1 = image2 = image3 = image4 = image5 = image6 = None
             if request.data.__contains__('image1'):
                 image1 = request.data['image1']
                 #image1 = resize_image(image1)
@@ -313,7 +313,7 @@ class NoteCreateView(CreateAPIView):
         elif is_public == "true" or is_public == "True":
             is_public = True
         
-        image1 = image2 = image3 = image4 = image5 = image6 = ""
+        image1 = image2 = image3 = image4 = image5 = image6 = None
         if request.data.__contains__('image1'):
             image1 = request.data['image1']
             #image1 = resize_image(image1)
