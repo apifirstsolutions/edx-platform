@@ -16,6 +16,7 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
 from six import iteritems, text_type
 from completion.models import BlockCompletion
 from datetime import date, timedelta
+import itertools
 
 from common.djangoapps.student.views.dashboard import (
     get_org_black_and_whitelist_for_site,
@@ -274,14 +275,14 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
 
 
 class LearnerProgressSerializer(serializers.ModelSerializer):
-    ten_days_progress_data = serializers.SerializerMethodField()
     course_details = serializers.SerializerMethodField()
-    today_completed = serializers.SerializerMethodField()
     user_details = serializers.SerializerMethodField()
+    ten_days_progress_data = serializers.SerializerMethodField()
+    sub_units_completed_today = serializers.SerializerMethodField()
 
     class Meta:
         model = BlockCompletion
-        fields = ['user_details', 'ten_days_progress_data', 'course_details', 'today_completed']
+        fields = ['user_details', 'course_details', 'ten_days_progress_data', 'sub_units_completed_today']
 
     def get_user_details(self, instance):
         request = self.context.get('request', None)
@@ -305,30 +306,28 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
         units_completed = 0
         units_total = 0
 
-        block_completions = BlockCompletion.objects.filter(
-            user=user
-        ).values('context_key').distinct()
+        course_enrollments = get_course_enrollment(request, user)
+        courses = {}
+        for i, course in enumerate(course_enrollments):
+            units_completed += course.completed_units
+            units_total += course.total_units
 
-        for block in block_completions:
-            print('user', user)
-            course_enrollments = get_course_enrollment(request, user)
-            for i, course in enumerate(course_enrollments):
-                blk = get_units_and_block_ids(request, course)
-                print('blk', blk)
-
-                units_completed += course.completed_units
-                units_total += course.total_units
-
-                if course.completed_units == course.total_units:
-                    courses_completed.append(course)
-                else:
-                    in_progress_courses.append(course)
+            if course.completed_units == course.total_units:
+                courses_completed.append(course)
+            else:
+                in_progress_courses.append(course)
+                # if course.total_units != 0:
+                #     courses[str(course.course_id)] = round(float(course.completed_units) / float(course.total_units) * 100, 2)
+                # else:
+                #     courses[str(course.course_id)] = 0
 
         num_of_in_progress_courses = len(in_progress_courses)
         num_of_courses_completed = len(courses_completed)
         avg_course_completion = 0
-        if not units_total == 0:
-            avg_course_completion = float(units_completed) / float(units_total) * 100
+        if not num_of_courses_completed == 0:
+            avg_course_completion = float(num_of_in_progress_courses) / float(num_of_courses_completed) * 100
+
+        # sliced_ten_course_progress = dict(itertools.islice(courses.items(), 10))
 
         content = {
             'course_in_progress': num_of_in_progress_courses,
@@ -336,6 +335,7 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
             'average_course_completion': round(avg_course_completion, 2),
             'units_completed': units_completed,
             'units_total': units_total,
+            # 'course_progress_rate': sliced_ten_course_progress,
         }
 
         return content
@@ -348,52 +348,40 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
         today = date.today()
         for i in range(10):
             past_ten = today - timedelta(i)
-            todate = past_ten + timedelta(1)
+            to_date = past_ten + timedelta(1)
 
             qset = BlockCompletion.objects.filter(
                 user=user,
                 modified__gte=past_ten,
-                modified__lt=todate,
+                modified__lt=to_date,
             )
-
-            # block_ids = {}
-            # for b in qset.values():
-            #     course_id = str(b['context_key'])
-            #     if course_id in block_ids:
-            #         block_ids[course_id].append(str(b['block_key']))
-            #     else:
-            #         block_ids[course_id] = [str(b['block_key'])]
-            # print('block_ids', block_ids)
-            #
-            # for k, v in block_ids.items():
-            #     blk = get_units_and_block_ids(request, k)
-            #     print('blk', blk)
 
             completed = qset.count()
             dateStr = past_ten.strftime("%d-%m-%Y")
             valid[dateStr] = (completed)
+
         return valid
 
-    def get_today_completed(self, instance):
+    def get_sub_units_completed_today(self, instance):
         request = self.context.get('request', None)
         user = request.user
 
         today = date.today()
         block_completions = BlockCompletion.objects.filter(
             user=user,
-            modified__gte=today - timedelta(1),
+            modified__gte=today,
         )
         today_completed = block_completions.count()
         return today_completed
 
 
-def get_units_and_block_ids(request, instance):
+def get_units_and_block_ids(request, instance, date):
     user = request.user
-    course_usage_key = modulestore().make_course_usage_key(instance.course_id)
-    print('course_usage_key', course_usage_key)
+    course_usage_key = modulestore().make_course_usage_key(instance)
     response = get_blocks(request, course_usage_key, user, requested_fields=['completion'],
                           block_types_filter='vertical')
     blk = {}
+    completed_units = 0
 
     for key, block in response['blocks'].items():
         usage_key = UsageKey.from_string(block['id'])
@@ -407,9 +395,11 @@ def get_units_and_block_ids(request, instance):
         completion_service = block.runtime.service(block, 'completion')
         complete = completion_service.vertical_is_complete(block)
         if complete:
-            blk[str(usage_key)] = [str(b) for b in block.children]
+            # blk[str(usage_key)] = [str(b) for b in block.children]
+            print('block',block)
+            completed_units += 1
 
-    return blk
+    return completed_units
 
 
 def get_course_enrollment(request, user):
