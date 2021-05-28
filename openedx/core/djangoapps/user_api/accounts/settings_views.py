@@ -178,6 +178,40 @@ def account_settings_context(request):
 
     return context
 
+def get_orders_list(user):
+    """Given a user, get the detail of all the orders from the Ecommerce service.
+
+    Args:
+        user (User): The user to authenticate as when requesting ecommerce.
+
+    Returns:
+        list of dict, representing orders returned by the Ecommerce service.
+    """
+    user_orders = []
+    commerce_configuration = CommerceConfiguration.current()
+    user_query = {'username': user.username,'ordertype':'all'}
+
+    use_cache = commerce_configuration.is_cache_enabled
+    cache_key = commerce_configuration.CACHE_KEY + '.' + str(user.id) if use_cache else None
+    api = ecommerce_api_client(user)
+    commerce_user_orders = get_edx_api_data(
+        commerce_configuration, 'orders', api=api, querystring=user_query, cache_key=cache_key
+    )
+
+    for order in commerce_user_orders:
+        if order['status'].lower() == 'complete':
+            date_placed = datetime.strptime(order['date_placed'], "%Y-%m-%dT%H:%M:%SZ")
+            order_data = {
+                'number': order['number'],
+                'price': order['total_excl_tax'],
+                'order_date': strftime_localized(date_placed, 'SHORT_DATE'),
+                'receipt_url': EcommerceService().get_receipt_page_url(order['number']),
+                'lines': order['lines'],
+                'user': order['user'],
+            }
+            user_orders.append(order_data)
+
+    return user_orders
 
 def get_user_orders(user):
     """Given a user, get the detail of all the orders from the Ecommerce service.

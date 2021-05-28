@@ -143,8 +143,9 @@ from ..entrance_exams import user_can_skip_entrance_exam
 from ..module_render import get_module, get_module_by_usage_id, get_module_for_descriptor
 from commerce.api.v1.models import Course
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
-from lms.djangoapps.banner.models import Banner
 from lms.djangoapps.course_block_user.models import CourseBlockUser
+from lms.djangoapps.banner.models import Banner
+from common.djangoapps.student.views import create_course_tag
 
 log = logging.getLogger("edx.courseware")
 
@@ -282,6 +283,7 @@ def courses(request):
     category = sub_category = difficulty_level = None
     show_categorized_view = True
     courses_list = []
+    course_list_initial = []
     filter_ = None
     course_discovery_meanings = getattr(settings, 'COURSE_DISCOVERY_MEANINGS', {})
     if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
@@ -297,7 +299,7 @@ def courses(request):
         else:
             filter_ = {'organization': None}
         courses_list = get_courses_with_extra_info(request.user,filter_=filter_)
-
+        course_list_initial = courses_list
         if sort == 'latest':
             courses_list = sort_by_start_date(courses_list)
         elif sort == 'rating':
@@ -356,8 +358,8 @@ def courses(request):
         selected_category_name = category.name
     elif sub_category:
         selected_category_name = '{} - {}'.format(sub_category.category.name, sub_category.name)
-
     banner_list = Banner.objects.filter(platform__in = ['WEB', 'BOTH'], enabled=True)
+    course_tag = create_course_tag(course_list_initial)
 
     if len(request.GET.keys()) ==  0:
 
@@ -390,8 +392,8 @@ def courses(request):
             'banner_list': banner_list,
             'show_categorized_view': show_categorized_view,
             'user_industry': user_category,
-        },
-
+            'course_tag' : course_tag
+        }
     )
 
 
@@ -1839,7 +1841,6 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
                 }
 
         missed_deadlines, missed_gated_content = dates_banner_should_display(course_key, request.user)
-
         path_ = request.get_full_path()
         next_qry = None
         previous_qry = None

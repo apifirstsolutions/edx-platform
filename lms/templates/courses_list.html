@@ -460,8 +460,37 @@ padding: 0px 3px !important;
 
     % if settings.FEATURES.get('COURSES_ARE_BROWSABLE'):
       <section class="courses">
-        <ul class="courses-listing">
+
           ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
+            % if course_tag:
+                %for key in course_tag:
+                  %for val  in key.items():
+                    % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
+                        % if loop.index == 0 :
+                         <ul class="courses-listing">
+                             <li class="courses-listing-item" >
+                                 <h3>${val[0]}</h3>
+                                 <%include file="course.html" args="course=tag" />
+                             </li>
+
+                        % else:
+                            <li class="courses-listing-item" >
+                                %if len(key.items()) > 1:
+                                    <h3>&nbsp;</h3>
+                                % endif
+                                 <%include file="course.html" args="course=tag" />
+                             </li>
+                        % endif
+                    %endfor
+                         </ul>
+                  %endfor
+                %endfor
+            %endif
+
+      </section>
+      <section  class="courses">
+
+      <ul class="courses-listing">
           %for course in courses[:homepage_course_max]:
           <!-- <li class="courses-listing-item">
               <%include file="course.html" args="course=course" />

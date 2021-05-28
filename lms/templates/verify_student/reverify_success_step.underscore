@@ -6,6 +6,6 @@
     </div>
 
     <div class="wrapper-actions">
-        <a class="action action-primary" href="/dashboard"><%- gettext( "Return to Your Dashboard" ) %></a>
+        <a class="action action-primary" href="/dashboard"><%- gettext( "Return to My Courses" ) %></a>
     </div>
 </div>

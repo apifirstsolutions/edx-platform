@@ -531,7 +531,29 @@ padding: 0px 3px !important;
 <main id="main" aria-label="Content" tabindex="-1">
     <section class="find-courses">
       <section class="courses-container">
-      	<div class="carousel">
+        % if course_discovery_enabled:
+        <div id="discovery-form" role="search" aria-label="course" class="wrapper-search-context">
+          <div id="discovery-message" class="search-status-label"></div>
+          <form class="wrapper-search-input">
+            <label for="discovery-input" class="sr">${_('Search for a course')}</label>
+            <input id="discovery-input" class="discovery-input" placeholder="${_('Search for a course')}" type="text"/>
+            <button type="submit" class="button postfix discovery-submit" title="${_('Search')}">
+              <span class="icon fa fa-search" aria-hidden="true"></span>
+              <div aria-live="polite" aria-relevant="all">
+                <div id="loading-indicator" class="loading-spinner hidden">
+                  <span class="icon fa fa-spinner fa-spin" aria-hidden="true"></span>
+                  <span class="sr">${_('Loading')}</span>
+                </div>
+              </div>
+            </button>
+          </form>
+        </div>
+
+        <div id="filter-bar" class="filters hide-phone is-collapsed">
+        </div>
+        % endif
+
+<div class="carousel">
    <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <!-- Indicators -->
             <ul class="carousel-indicators">
@@ -550,7 +572,7 @@ padding: 0px 3px !important;
             % if banner_list:
                 % for y in banner_list:
                         % if loop.index==1:
-                        <div class="item active" >
+                        <div class="item active" style="height:720px">
                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
                                 </a>
@@ -559,11 +581,11 @@ padding: 0px 3px !important;
                         </div>
                         </div>
                         % else:
-                        <div class="item">
+                        <div class="item" style="height:720px">
                              <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
                              </a>
-                        <div class="carousel-caption">
+                        <div class="carousel-caption" >
                             <h3>${y.course_over_view.display_name_with_default}</h3>
                         </div>
                         </div>
@@ -606,13 +628,43 @@ padding: 0px 3px !important;
         </div>
         % endif
         %if show_categorized_view == False:
-            <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
+        <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
+
+            ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
+              % if course_tag:
+                  %for key in course_tag:
+                    %for val  in key.items():
+                      % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
+                          % if loop.index == 0 :
+                           <ul class="courses-listing" style="margin: 0 0 3px 0;">
+                               <li class="courses-listing-item" >
+                                   <h3>${val[0]}</h3>
+                                   <%include file="../course.html" args="course=tag" />
+                               </li>
+                          % else:
+                              <li class="courses-listing-item" >
+                                   %if len(key.items()) > 1:
+                                      <h3>&nbsp;</h3>
+                                  % endif
+                                   <%include file="../course.html" args="course=tag" />
+                               </li>
+  
+                          % endif
+                      %endfor
+                                </ul>
+                    %endfor
+                  %endfor
+              %endif
+  
+            </div>
+  
+          <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
             <ul class="courses-listing courses-list">
-                %for course in courses:
-                <li class="courses-listing-item">
-                <%include file="../course.html" args="course=course"/>
-                </li>
-                %endfor
+              %for course in courses:
+              <li class="courses-listing-item">
+                <%include file="../course.html" args="course=course" />
+              </li>
+              %endfor
             </ul>
         %else:
               <!--   from here -->

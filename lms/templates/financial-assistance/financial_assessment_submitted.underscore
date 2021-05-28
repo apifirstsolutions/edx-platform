@@ -4,5 +4,5 @@
     ) %>
 </p>
 <div class="cta-wrapper clearfix">
-	<a href="<%- dashboard_url %>" class="btn btn-blue btn-dashboard"><%- gettext('Go to Dashboard') %></a>
+	<a href="<%- dashboard_url %>" class="btn btn-blue btn-dashboard"><%- gettext('Go to My Courses') %></a>
 </div>

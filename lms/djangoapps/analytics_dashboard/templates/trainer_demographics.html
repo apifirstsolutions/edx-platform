@@ -1,0 +1,274 @@
+{% load static %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <main class="col-md-12 col-lg-12 px-md-4">
+            <div
+                class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Demographics</h1>
+                <!-- <div class="btn-toolbar mb-2 mb-md-0 dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="dropdownMenuButtonCourse" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span data-feather="calendar"></span>
+                        Filter by Course
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonCourse">
+                        {% for c in courses %}
+                            <li><a class="dropdown-item" href="#">{{ c.display_name }}</a></li>
+                        {% endfor %}
+                      </ul>
+                </div> -->
+            </div>
+
+            <!-- Cards  -->
+            <div class="">
+                <div class="row ">
+                    <!-- <div class="col-sm-3"></div> -->
+                    <div class="col-lg-12 col-xl-4 mt-2">
+                        <h3 class="text-center">Gender</h3>
+                        <div class="row">
+
+                            <div class="col-sm-6 col-md-6 col-lg-8 col-xl-8 justify-content-center">
+                                <canvas id="myChart" width="500"></canvas>
+                            </div>
+                            <div class="col-sm-6 col-md-6 col-lg-4 col-xl-4">
+                                <ul class="list-group list-group-flush mt-5">
+                                    {% for c in learners_gender %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" style="font-size: smaller;">
+                                        {{ c.gender}}
+                                        <span class="badge badge" style="font-size:small;background-color:#1a345c;">{{ c.total }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12 col-xl-8 mt-2">
+                        <h3 class="text-center">Education</h3>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 col-lg-6 col-xl-8 justify-content-center">
+                                <canvas id="myChartByEducation" height="300" width="500"></canvas>
+                            </div>
+                            <div class="col-sm-12 col-md-12 col-lg-6 col-xl-4">
+                                <ul class="list-group list-group-flush mt-5">
+                                    {% for c in learners_edu %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" style="font-size: smaller;" >
+                                        {{ c.level_of_education}}
+                                        <span class="badge badge text-wrap" style="font-size:small; background-color:#1a345c;">{{ c.total }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        
+                        var lb = [{% for c in learners_gender %} '{{ c.gender|escapejs }}', {% endfor %}]
+                        var gender_data = [{% for c in learners_gender %} '{{ c.total|escapejs }}', {% endfor %}]
+
+                        var ctx = document.getElementById('myChart').getContext('2d')
+                        const data = {
+                        labels: lb,
+                        datasets: [
+                            {
+                            label: 'Demographics by age',
+                            data: gender_data,
+                            // borderColor: '#1a345c',
+                            // backgroundColor: '#1a345c',
+                            backgroundColor: [
+                                'rgba(49, 107, 196, 0.9)',
+                                'rgba(49, 107, 196, 0.7)',
+                                'rgba(49, 107, 196, 0.5)',
+                                'rgba(49, 107, 196, 0.3)'
+                            ],
+                            }
+                        ]
+                        };
+
+                        var myChart = new Chart(ctx, {
+                            type: 'pie',
+                            data: data,
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Demographics by age'
+                                    }
+                                }
+                            },
+                        })
+                    </script>
+                </div>
+                <!-- <hr> -->
+                <!-- <div class="row mt-5">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-8" >
+                    </div> -->
+                  
+                    <script>
+                        var edu_level_lb = [{% for c in learners_edu %} '{{ c.level_of_education|escapejs }}', {% endfor %}]
+                        var edu_level_data = [{% for c in learners_edu %} {{ c.total|escapejs }}, {% endfor %}]
+
+                        var ctx = document.getElementById('myChartByEducation').getContext('2d')
+                        // eslint-disable-next-line no-unused-vars
+                        const edu_data = {
+                        labels: edu_level_lb,
+                        datasets: [
+                            {
+                            label: '# of learners',
+                            data: edu_level_data,
+                            // borderColor: '#1a345c',
+                            backgroundColor: '#1a345c',
+                            // backgroundColor: [
+                            //     'rgba(49, 107, 196, 0.9)',
+                            //     'rgba(49, 107, 196, 0.7)',
+                            //     'rgba(49, 107, 196, 0.5)',
+                            //     'rgba(49, 107, 196, 0.3)'
+                            // ],
+                            }
+                        ]
+                        };
+
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: edu_data,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Demographics by Level of Education'
+                                    }
+                                }
+                            },
+                        })
+                    </script>
+                <!-- </div> -->
+
+                <hr>
+
+                <div class="row mt-5">
+                    <h3 class="text-center">Age</h3>
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-8" >
+                        <canvas id="myChartByAge" height="300" width="500"></canvas>
+                    </div>
+                    <div class="col-sm-3">
+                        <ul class="list-group list-group-flush mt-5">
+                            {% for k, v in learners_age_list.items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center" style="font-size: smaller;">
+                                {{ k }}
+                                <span class="badge badge" style="font-size:small; background-color:#1a345c;">{{ v }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="row my-5">
+                        <!-- Median Learner Age -->
+                        <!-- <div class="col-sm-1"></div> -->
+                        <div class="col-sm-3 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase" style="font-size: small;">Median Learner Age</p>
+                                    <p class="card-text fs-1">{{ age_median }}</p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                            </div>
+                        </div>
+        
+                        <!-- Learner 25 and Under -->
+                        <!-- <div class="col-sm-1"></div> -->
+                        <div class="col-sm-3 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase" style="font-size: small;">Learner 25 and Under</p>
+                                    <p class="card-text fs-1">{{ age_dist.age_lte_25 }} %</p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                            </div>
+                        </div>
+        
+                        <!-- Learner 26 to 40 -->
+                        <!-- <div class="col-sm-1"></div> -->
+                        <div class="col-sm-3 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase" style="font-size: small;">Learner 26 to 40</p>
+                                    <p class="card-text fs-1">{{ age_dist.age_btw_26_and_40 }} %</p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Courses Completed -->
+                        <!-- <div class="col-sm-1"></div> -->
+                        <div class="col-sm-3 col-md-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <p class="card-title text-uppercase" style="font-size: small;">Learner 41 and Over</p>
+                                    <p class="card-text fs-1">{{ age_dist.age_gt_40 }} %</p>
+                                    <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        var age_lb = ['<20', '21 - 30', '31 - 40', '41 - 50', '51 - 60', '61 - 70', '>70']
+                        // var age_lb = [{% for k in learners_age_list %} '{{ k|escapejs }}', {% endfor %}]
+                        // var age_data = {{learners_age_list | escapejs}}
+                        var age_data = [{% for k,v in learners_age_list.items %} '{{ v }}', {% endfor %}]
+                        var ctx = document.getElementById('myChartByAge').getContext('2d')
+
+                        const ageData = {
+                            labels: age_lb,
+                            datasets: [
+                                {
+                                label: '# of learners',
+                                data: age_data,
+                                // borderColor: '#1a345c',
+                                backgroundColor: '#1a345c',
+                                // backgroundColor: [
+                                //     'rgba(49, 107, 196, 0.9)',
+                                //     'rgba(49, 107, 196, 0.7)',
+                                //     'rgba(49, 107, 196, 0.5)',
+                                //     'rgba(49, 107, 196, 0.3)'
+                                // ],
+                                }
+                            ]
+                        };
+
+                        var myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: ageData,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Demographics by Age'
+                                    }
+                                }
+                            },
+                        })
+                    </script>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
