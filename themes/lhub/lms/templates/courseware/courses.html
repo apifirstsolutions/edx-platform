@@ -936,6 +936,7 @@ function show_most_popular_courses(target) {
                 }*/
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
+                course_discount_type = response['result']['results'][i]['discount_type'];
 
                 var course = `<li class="card-slider-card-items owl-item">
                <article class="card-slider-course">
@@ -960,8 +961,14 @@ function show_most_popular_courses(target) {
                               <ul>`
                                 if (course_discount_applicable == true)
                                 {
-                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>
-                                 <li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
+                                    if (course_discount_type == 'Percentage'){
+                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
+                                 }
+                                 else {
+                                    course +=`<li>Discount: <span class="main_price-percentage">S$`+course_discount_percentage+`</span></li>`
+                                 }
+
+                                 course +=`<li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
                                  <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
                                 }
                                 else if (course_discount_applicable == false && course_price > 0 )
@@ -1088,6 +1095,7 @@ function show_free_courses(target) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
+                course_discount_type = response['result']['results'][i]['discount_type'];
 
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
@@ -1115,8 +1123,14 @@ function show_free_courses(target) {
                               <ul>`
                                 if (course_discount_applicable == true)
                                 {
-                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>
-                                 <li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
+                                    if (course_discount_type == 'Percentage'){
+                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
+                                 }
+                                 else {
+                                    course +=`<li>Discount: <span class="main_price-percentage">S$`+course_discount_percentage+`</span></li>`
+                                 }
+
+                                 course +=`<li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
                                  <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
                                 }
                                 else if (course_discount_applicable == false && course_price > 0 )
@@ -1243,6 +1257,7 @@ function show_top_rated_courses(top_rated) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
+                course_discount_type = response['result']['results'][i]['discount_type'];
                 /*                if (course_price == 0) {
                     course_price = "Free"
                 } else {
@@ -1273,8 +1288,14 @@ function show_top_rated_courses(top_rated) {
                               <ul>`
                                 if (course_discount_applicable == true)
                                 {
-                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>
-                                 <li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
+                                    if (course_discount_type == 'Percentage'){
+                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
+                                 }
+                                 else {
+                                    course +=`<li>Discount: <span class="main_price-percentage">S$`+course_discount_percentage+`</span></li>`
+                                 }
+
+                                 course +=`<li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
                                  <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
                                 }
                                 else if (course_discount_applicable == false && course_price > 0 )
@@ -1409,7 +1430,8 @@ function show_recommended_courses(target) {
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
                 available_vouchers = response['result']['results'][i]['available_vouchers'];
-
+                course_discount_type = response['result']['results'][i]['discount_type'];
+                
                 var course = `<li class="card-slider-card-items owl-item">
                <article class="card-slider-course">
                   <a href="/courses/`+course_code+`/about">
@@ -1433,8 +1455,14 @@ function show_recommended_courses(target) {
                               <ul>`
                                 if (course_discount_applicable == true)
                                 {
-                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>
-                                 <li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
+                                    if (course_discount_type == 'Percentage'){
+                                 course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
+                                 }
+                                 else {
+                                    course +=`<li>Discount: <span class="main_price-percentage">S$`+course_discount_percentage+`</span></li>`
+                                 }
+
+                                 course +=`<li>Price: <span class="crd-sldr-course-info-main-price main_price_cut">  ` + course_price + ` </span></li>
                                  <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
                                 }
                                 else if (course_discount_applicable == false && course_price > 0 )
