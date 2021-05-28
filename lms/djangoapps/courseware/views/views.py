@@ -327,8 +327,7 @@ def courses(request):
     def filter_courses(course):
         if course.platform_visibility not in ["Web", "Both", None]:
             return False
-        print('===========123123')
-        print(course.new_category_id)
+
         if category and course.new_category_id != category.id:
             return False
 

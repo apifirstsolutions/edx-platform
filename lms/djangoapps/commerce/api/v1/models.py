@@ -580,7 +580,6 @@ class WebCourse(Course):
                 start_date = courseoverview.advertised_start.strftime("%b") + " " + str(courseoverview.advertised_start.day) +", " + str(courseoverview.advertised_start.year)
             else:
                 start_date = courseoverview.start.strftime("%b") + " " + str(courseoverview.start.day) + ", " + str(courseoverview.start.year)
-            logging.info(type(start_date))
             return start_date
 
 

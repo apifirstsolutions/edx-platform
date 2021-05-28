@@ -446,7 +446,6 @@ def add_voucher_to_basket(request):
         api = ecommerce_api_client(user)
 
         try:
-            logging.info(request.data)
             response = api.apply_voucher_mobile.post(request.data)
 
             if 'status_code' in response and response['status_code'] == 400:

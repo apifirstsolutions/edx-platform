@@ -130,6 +130,4 @@ def user_verification_status(request):
 def basket_detail(request):
     api = ecommerce_api_client(request.user)
     response = api.basket_details.get()
-    logging.info('============== response ===========')
-    logging.info(response)
     return render_to_response("commerce/basket-detail.html", response)
