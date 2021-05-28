@@ -325,14 +325,14 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
         num_of_courses_completed = len(courses_completed)
         avg_course_completion = 0
         if not num_of_courses_completed == 0:
-            avg_course_completion = float(num_of_in_progress_courses) / float(num_of_courses_completed) * 100
+            avg_course_completion = round(float(num_of_in_progress_courses) / float(num_of_courses_completed) * 100, 2)
 
         # sliced_ten_course_progress = dict(itertools.islice(courses.items(), 10))
 
         content = {
             'course_in_progress': num_of_in_progress_courses,
             'course_completed': num_of_courses_completed,
-            'average_course_completion': round(avg_course_completion, 2),
+            'average_course_completion': str(avg_course_completion),
             'units_completed': units_completed,
             'units_total': units_total,
             # 'course_progress_rate': sliced_ten_course_progress,
