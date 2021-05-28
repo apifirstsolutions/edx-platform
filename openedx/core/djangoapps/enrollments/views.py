@@ -489,14 +489,18 @@ class ProgressDataViewMobile(DeveloperErrorViewMixin, ListAPIView):
     # Since the course about page on the marketing site
     # uses this API to auto-enroll users, we need to support
     # cross-domain CSRF.
-   
+
     def get_queryset(self):
         username = self.request.GET.get('user', self.request.user.username)
         #platform_visibility = self.request.query_params.get('platform_visibility', None)
         qset = BlockCompletion.objects.filter(
             user=self.request.user,
-            
+
         )
+
+        # log.info(f"***username: {username}***")
+        # log.info(f"***qset: {qset}***")
+
         valid = []
         for first in qset:
             valid.append(first)
