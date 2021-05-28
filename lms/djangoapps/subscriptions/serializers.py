@@ -27,7 +27,7 @@ class SubscriptionSerializer(ModelSerializer):
     # status = EnumField(enum=Statuses) # TODO - add status 
     # billing_cycle = EnumField(enum=BillingCycles) # TODO - add billing_cycle 
     fields = (
-      'id', 'subscription_plan', 'billing_cycle', 'user_id', 'enterprise_id','start_at', 'end_at', 
+      'id', 'subscription_plan', 'billing_cycle', 'user_id', 'enterprise_id','start_at', 
       'stripe_subscription_id', 'stripe_customer_id', 'stripe_price_id', 'license_count', 'created_at', 'updated_at',
     )
 

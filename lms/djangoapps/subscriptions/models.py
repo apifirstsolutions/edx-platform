@@ -19,8 +19,9 @@ class BillingCycles(Enum):
 
 class SubscriptionTransaction(Enum):
     CREATE = 'CREATED'
-    RENEWAL = 'RENEWAL'
+    RENEW= 'RENEWAL'
     CANCEL = 'CANCELLED'
+    EXPIRE = 'EXPIRED'
 class Bundle(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
@@ -78,7 +79,6 @@ class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.CASCADE, null=True, blank=True)
     start_at = models.DateTimeField(default=None, null=True, blank=True)
-    end_at = models.DateTimeField(default=None, null=True, blank=True)
     status = models.CharField(
       max_length=10,
       choices=[(status.value, status.name) for status in Statuses],
@@ -95,36 +95,34 @@ class Subscription(models.Model):
         return self.subscription_plan.name + '(' + self.billing_cycle + ')'
 class License(models.Model):
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    status = models.CharField(
-      max_length=10,
-      choices=[(status, status.value) for status in Statuses],
-      default=Statuses.ACTIVE
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.email + '::' + subscription.billing_cycle + subscription.subscription_plan.name
+        if self.user is not None:
+          return self.user.username + '::' + self.subscription.subscription_plan.name + '(' + self.subscription.billing_cycle + ')'
+        else:
+          return self.subscription.enterprise.name + '::' + self.subscription.subscription_plan.name + '(' + self.subscription.billing_cycle + ')'
 
 class Transactions(models.Model):
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE)
     status = models.CharField(
       max_length=10,
-      choices=[(status, status.value) for status in Statuses],
+      choices=[(status.value, status.name) for status in Statuses],
       default=Statuses.ACTIVE
     )
     description = models.CharField(
       max_length=10,
-      choices=[(trans, trans.value) for trans in SubscriptionTransaction],
+      choices=[(trans.value, trans.name) for trans in SubscriptionTransaction],
       default=None,
       null=True,
       blank=True,
     )
     license_count = models.IntegerField()
-    biller_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
+    stripe_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
     ecommerce_trans_id = models.IntegerField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '#' + self.id + ' - (' + subscription.billing_cycle + ')' + subscription.subscription_plan.name
+        return '#' + self.id + ' - (' + self.subscription.billing_cycle + ')' + self.subscription.subscription_plan.name

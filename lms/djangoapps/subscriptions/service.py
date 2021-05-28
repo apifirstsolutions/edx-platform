@@ -1,4 +1,7 @@
 import stripe
+from itertools import islice
+
+from .models import License, Transactions
 
 from lms.envs.common import (
   STRIPE_API_KEY,
@@ -15,6 +18,10 @@ class SubscriptionService:
       product = stripe.Product.create(name=name,)
       result = {}
       result['stripe_product_id'] = product.id
+
+      print("DEBUGGGGG:")
+      print(prices)
+      print(prices.keys())
 
       # keys must be interval values in stripe https://stripe.com/docs/api/prices/object#price_object-recurring-interval
       for interval in prices.keys():
@@ -35,7 +42,7 @@ class SubscriptionService:
       print('Stripe ERROR:: ' + str(e))
 
   
-  # Updates a Product and Prices in Stripe.
+  # Updates a Produc name and Prices in Stripe.
   # Updates an Ecommerce Product with multiple prices options.
   def update_product(self, new_product_name, new_prices, stripe_product_id):
     try:
@@ -63,24 +70,54 @@ class SubscriptionService:
       print('Stripe ERROR:: ' + str(e))
 
 
-  # (1) If using Stripe, after first payment create a Stripe subscription with Price (from subscription plan)
-  # (2) Create Licenses and Transaction records.
-  def createSubscription(self, stripe_customer_id, stripe_price_id, use_stripe=False, first_payment_transaction_id=None):
-    if use_stripe:
+  # If using Stripe - after first payment, create a Stripe subscription with Price (from subscription plan)
+  def create_subscription(self, user, price_id, billing_cycle_anchor, one_time_pay=False, first_payment_transaction_id=None):
+    result = {
+      'stripe_customer_id': None,
+      'stripe_subscription_id': None,
+      'stripe_invoice_id': None,
+    }
+    
+    if not one_time_pay:
       try:
-        stripe.Subscription.create(
-          customer=stripe_customer_id,
+        customer_id = 'cus_JYiGFvd6zlyJHr'  # FIXME must be taken from ecommerce records. if does not exists, where to store when creating?
+        sub = stripe.Subscription.create(
+          customer=customer_id,
+          billing_cycle_anchor=billing_cycle_anchor,
+          proration_behavior='none',
           items=[
-            { "price": stripe_price_id },
+            { "price": price_id },
           ],
         )
+
+        result['stripe_customer_id'] = customer_id
+        result['stripe_subscription_id'] = sub.id
+        result['stripe_invoice_id'] = sub.latest_invoice
+        
       except Exception as e:
         print('Stripe ERROR:: ' + str(e))
 
-    else:
-      pass # TODO - create licenses and record transaction only. For one-time pay or enterprise use case.
+    return result
   
   
+  def create_single_license(self, subscription):
+    License.objects.create(user=subscription.user, subscription=subscription)
+    
+
+  def create_enterprise_licenses(self, subscription):
+    BATCH_SIZE = 1000
+    
+    # https://docs.djangoproject.com/en/3.0/ref/models/querysets/#bulk-create
+    licenses = ( License(subscription=subscription) for i in range(subscription.license_count) )
+
+    while True:
+      batch = list(islice(licenses, BATCH_SIZE))
+      if not batch:
+        break
+
+      print("DEBUG license")
+      print(batch)
+      License.objects.bulk_create(batch, BATCH_SIZE)
   
   # TODO - 
   # (1) After firstpayment is detected from webhook, update the current subscription and next billing date
@@ -110,9 +147,16 @@ class SubscriptionService:
 
 
   # record transations when subscription status changes
-  def recordTransaction(self, subscription_id, status, license_count, ecommerce_trans_id=None, biller_invoice_id=None):
-    pass
-
+  def record_transaction(self, subscription, action, stripe_invoice_id=None, ecommerce_trans_id=None):
+    Transactions.objects.create(
+      subscription=subscription, 
+      status=subscription.status, 
+      description=action, 
+      license_count=subscription.license_count,
+      stripe_invoice_id=stripe_invoice_id,
+      ecommerce_trans_id=ecommerce_trans_id,
+    )
+    
 
 
   

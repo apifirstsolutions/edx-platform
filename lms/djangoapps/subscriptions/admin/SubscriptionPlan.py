@@ -11,14 +11,16 @@ class SubscriptionPlanForm(forms.ModelForm):
 
   class Meta:
     model = SubscriptionPlan
-    fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'bundle', 'is_active', 'is_featured', 'valid_until', 
+    fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
+      'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
       'price_month', 'stripe_price_month_id', 'price_year', 'stripe_price_year_id', 'price_onetime', 
       'grace_period', 'enterprise',
     ]
 
 class SubscriptionPlanAdmin(admin.ModelAdmin):
   form = SubscriptionPlanForm
-  fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'bundle', 'is_active', 'is_featured', 'valid_until', 
+  fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
+    'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
     'price_month', 'stripe_price_month_id', 'price_year', 'stripe_price_year_id', 'price_onetime', 
     'grace_period', 'enterprise',
   ]
@@ -38,9 +40,11 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
       product = subscription_svc.create_product(obj.name, prices)
       if product is not None:
         obj.stripe_prod_id = product['stripe_product_id']
-        obj.stripe_price_month_id = product['stripe_price_month_id']
-        obj.stripe_price_year_id = product['stripe_price_year_id']
-
+        if 'stripe_price_month_id' in product:
+          obj.stripe_price_month_id = product['stripe_price_month_id']
+        if 'stripe_price_year_id' in product:
+          obj.stripe_price_year_id = product['stripe_price_year_id']
+        
     else:
       # On update
 
@@ -64,9 +68,9 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
       updated_product = subscription_svc.update_product(new_product_name, new_prices, obj.stripe_prod_id)
       
       if updated_product is not None:
-        if updated_product['stripe_price_month_id'] is not None:
+        if 'stripe_price_month_id' in updated_product:
           obj.stripe_price_month_id = updated_product['stripe_price_month_id']
-        if updated_product['stripe_price_year_id'] is not None:
+        if 'stripe_price_year_id' in updated_product:
           obj.stripe_price_year_id = updated_product['stripe_price_year_id']
 
     super().save_model(request, obj, form, change)
