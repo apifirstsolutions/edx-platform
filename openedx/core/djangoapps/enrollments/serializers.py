@@ -275,6 +275,7 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
 
 
 class LearnerProgressSerializer(serializers.ModelSerializer):
+<<<<<<< HEAD
     course_details = serializers.SerializerMethodField()
     user_details = serializers.SerializerMethodField()
     ten_days_progress_data = serializers.SerializerMethodField()
