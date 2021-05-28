@@ -291,7 +291,7 @@ $(document).ready(function() {
     var currency = 'S$'
     var two_decimal_price = append_decimal_point(cart_total)
     var total = currency.concat(two_decimal_price)
-    var tax = two_decimal_price * tax_percent/100
+    var tax = two_decimal_price * (tax_percent/100)
     var tax = tax.toFixed(2)
     var updated_cart_total = ((+two_decimal_price) + (+tax)).toFixed(2)
     var updated_cart_total = currency.concat(updated_cart_total)
