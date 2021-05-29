@@ -119,13 +119,14 @@ class SubscriptionService:
   # Cancels a subscriptions
   # Deletes a Stripe subscription and record in Transactions
   def cancel_subscription(self, subscription):
-    result = { 'success': False }
+    result = { 'success': False, 'message': None }
     try:
       stripe.Subscription.delete(subscription.stripe_subscription_id)
       self.record_transaction(subscription, SubscriptionTransaction.CANCEL.value)
       result['success'] = True
     except Exception as e:
       print('Stripe ERROR:: ' + str(e))
+      result['message'] = str(e)
 
     return result
 

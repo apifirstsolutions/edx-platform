@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from rest_framework.mixins import (
     CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
@@ -5,6 +6,8 @@ from rest_framework.mixins import (
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView
 from rest_framework.serializers import ListSerializer
+from ..models import Statuses, Subscription
+from ..service import SubscriptionService
 
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from ..models import Bundle, SubscriptionPlan, Subscription, License
@@ -62,3 +65,22 @@ class SubscriptionViewSet(
 
   serializer_class = SubscriptionSerializer
   queryset = Subscription.objects.all()
+
+  def partial_update(self, request, pk=None):
+    subscription = Subscription.objects.get(id=pk)
+    new_status = request.data['status']
+    
+    if subscription.user is not None and \
+      subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
+      new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+
+      svc = SubscriptionService()
+      result = svc.cancel_subscription(subscription)
+      
+      if not result['success']:
+        return JsonResponse(result)
+      else:
+        subscription.status = new_status
+        subscription.save()
+        return JsonResponse(result)
+
