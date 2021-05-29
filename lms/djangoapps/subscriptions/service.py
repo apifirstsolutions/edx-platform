@@ -1,7 +1,7 @@
 import stripe
 from itertools import islice
 
-from .models import License, Transactions
+from .models import License, Transactions, SubscriptionTransaction
 
 from lms.envs.common import (
   STRIPE_API_KEY,
@@ -18,11 +18,7 @@ class SubscriptionService:
       product = stripe.Product.create(name=name,)
       result = {}
       result['stripe_product_id'] = product.id
-
-      print("DEBUGGGGG:")
-      print(prices)
-      print(prices.keys())
-
+      
       # keys must be interval values in stripe https://stripe.com/docs/api/prices/object#price_object-recurring-interval
       for interval in prices.keys():
         if prices[interval] is not None:
@@ -100,8 +96,10 @@ class SubscriptionService:
     return result
   
   
-  def create_single_license(self, subscription):
+  def create_single_license(self, subscription, stripe_invoice_id=None):
     License.objects.create(user=subscription.user, subscription=subscription)
+    # FIXME - handle update case. Add ecommerce trans id
+    self.record_transaction(subscription, SubscriptionTransaction.CREATE.value, stripe_invoice_id=stripe_invoice_id)
     
 
   def create_enterprise_licenses(self, subscription):
@@ -114,11 +112,23 @@ class SubscriptionService:
       batch = list(islice(licenses, BATCH_SIZE))
       if not batch:
         break
-
-      print("DEBUG license")
-      print(batch)
       License.objects.bulk_create(batch, BATCH_SIZE)
+      self.record_transaction(subscription, SubscriptionTransaction.CREATE.value)
+    
   
+  # Cancels a subscriptions
+  # Deletes a Stripe subscription and record in Transactions
+  def cancel_subscription(self, subscription):
+    result = { 'success': False }
+    try:
+      stripe.Subscription.delete(subscription.stripe_subscription_id)
+      self.record_transaction(subscription, SubscriptionTransaction.CANCEL.value)
+      result['success'] = True
+    except Exception as e:
+      print('Stripe ERROR:: ' + str(e))
+
+    return result
+
   # TODO - 
   # (1) After firstpayment is detected from webhook, update the current subscription and next billing date
   # (2) On expiration, update subscription status and subs. history
@@ -128,21 +138,13 @@ class SubscriptionService:
     pass
 
 
-  # Cancel a subscriptions
-  # set status of subscription to cancelled, and record in subscription history
-  def cancelSubscription(self, subscriptio_id):
-    pass
-
-
-  # Expire a subscriptions
-  # set status of subscription to expired, , and record in subscription history
-  def expireSubscription(self, subscription_id):
-    pass
+  
 
 
   # Check Stripe Subscriptions status for payments and transaction information (like invoices)
   # make necessary subscription status updates
   def checkSubscription(self, subscription_id):
+   
     pass
 
 

@@ -2,7 +2,7 @@ import logging
 import datetime
 from django import forms
 from django.contrib import admin
-from ..models import Subscription, License, BillingCycles, SubscriptionTransaction
+from ..models import Subscription, BillingCycles, SubscriptionTransaction, Statuses
 from ..service import SubscriptionService
 
 logger = logging.getLogger(__name__)
@@ -27,10 +27,10 @@ class SubscriptionAdmin(admin.ModelAdmin):
   
     stripe_invoice_id = None
 
-    if not change and obj.status == 'active':   # TODO - throw error when status is not ACTIVE durinng creation
+    if not change and obj.status == Statuses.ACTIVE.value:   # TODO - throw error when status is not ACTIVE durinng creation
       
       # determine strip_price_id based from billing_cycle selection
-      if obj.billing_cycle == 'month' or obj.billing_cycle == 'year':
+      if obj.billing_cycle == BillingCycles.MONTH.value or obj.billing_cycle == BillingCycles.YEAR.value:
         obj.stripe_price_id = getattr(obj.subscription_plan, 'stripe_price_'+obj.billing_cycle+'_id')
 
       # If start_at is not set, set to first day of the next month, exept current day is already first day of the month
@@ -45,7 +45,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
       else:
         billing_cycle_anchor = int(obj.start_at.timestamp()) + 20   # add 20sec to ensure future time for billing_cycle_anchor else Stripe will thrown an error
         
-      if obj.billing_cycle is not 'one-time' and obj.user is not None:
+      if obj.billing_cycle is not BillingCycles.ONE_TIME.value and obj.user is not None:
         sub = subscription_svc.create_subscription(obj.user, obj.stripe_price_id, billing_cycle_anchor)
 
         if sub is not None:
@@ -59,19 +59,21 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
     # updating case
     else:
-      pass
+      if 'status' in form.changed_data and obj.status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value]:
+        subscription_svc.cancel_subscription(obj)
 
     
     super().save_model(request, obj, form, change)
-    
-    if (obj.user is not None):
-      subscription_svc.create_single_license(obj)
-    if (obj.enterprise is not None):
-      subscription_svc.create_enterprise_licenses(obj)
 
-    # FIXME - handle update case. Add ecommerce trans id
-    subscription_svc.record_transaction(obj, 'CREATED', stripe_invoice_id=stripe_invoice_id, ecommerce_trans_id=None)
+    if not change: 
+      if (obj.user is not None):
+        subscription_svc.create_single_license(obj, stripe_invoice_id=stripe_invoice_id)
+      if (obj.enterprise is not None):
+        subscription_svc.create_enterprise_licenses(obj)
 
+    else:
+      # TODO handle increase of License Count
+      pass
 
 
 admin.site.register(Subscription, SubscriptionAdmin)
