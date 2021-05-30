@@ -432,7 +432,7 @@ def get_course_enrollment(request, user):
     web_course_enrollments = []
     for course in course_enrollments:
         platform = course._course_overview.platform_visibility
-        if platform is [None, 'Mobile', 'Both']:
+        if platform in [None, 'Mobile', 'Both']:
             web_course_enrollments.append(course)
 
     return course_entitlements + web_course_enrollments
