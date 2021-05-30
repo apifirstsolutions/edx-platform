@@ -396,7 +396,6 @@ def get_units_and_block_ids(request, instance, date):
         complete = completion_service.vertical_is_complete(block)
         if complete:
             # blk[str(usage_key)] = [str(b) for b in block.children]
-            print('block',block)
             completed_units += 1
 
     return completed_units
@@ -433,7 +432,7 @@ def get_course_enrollment(request, user):
     web_course_enrollments = []
     for course in course_enrollments:
         platform = course._course_overview.platform_visibility
-        if platform is None or platform == 'Web' or platform == 'Both':
+        if platform is [None, 'Mobile', 'Both']:
             web_course_enrollments.append(course)
 
     return course_entitlements + web_course_enrollments
