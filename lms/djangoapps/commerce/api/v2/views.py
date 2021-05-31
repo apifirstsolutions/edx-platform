@@ -225,7 +225,7 @@ class WebCourseListView(CourseListView):
                 if platform == None or platform in request_filters['platform_visibility']:
                     platform_only_courses.append(course)
             else:
-                if platform == None or platform == "both":
+                if platform in [None, "both"]:
                     platform_only_courses.append(course)
         courses = platform_only_courses
 
