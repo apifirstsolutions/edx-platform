@@ -194,12 +194,10 @@ class WebCourseListView(CourseListView):
     class CourseListPageNumberPagination(LazyPageNumberPagination):
         max_page_size = 100
     authentication_classes = (JwtAuthentication,BearerAuthentication,SessionAuthentication)
-    permission_classes = ((AllowAny,))
+    permission_classes = (AllowAny,)
     serializer_class = WebCourseSerializer
     pagination_class = CourseListPageNumberPagination
-    # filter_class = CourseListFilter
-    # filterset_class = CourseListFilter
-    # filter_backends = [DjangoFilterBackend]
+
 
     def get_queryset(self):
         filtered_courses = []
