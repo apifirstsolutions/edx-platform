@@ -180,24 +180,31 @@ class MyNoteUpdateView(APIView):
                 is_public = False
             elif is_public == "true" or is_public == "True":
                 is_public = True
-            image1 = request.data['image1']
-           # image1 = resize_image(image1)
+
+            image1 = image2 = image3 = image4 = image5 = image6 = None
+            if request.data.__contains__('image1'):
+                image1 = request.data['image1']
+                #image1 = resize_image(image1)
             
-            image2 = request.data['image2']
-           # image2 =resize_image(image2)
+            if request.data.__contains__('image2'):
+                image2 = request.data['image2']
+                #image2 =resize_image(image2)
             
-            image3 = request.data['image3']
-            #image3 = resize_image(image3)
+            if request.data.__contains__('image3'):
+                image3 = request.data['image3']
+                #image3 = resize_image(image3)
 
-            image4 = request.data['image4']
-            #image4 = resize_image(image4)
+            if request.data.__contains__('image4'):
+                image4 = request.data['image4']
+                #image4 = resize_image(image4)
 
-            image5 = request.data['image5']
-            #image5 = resize_image(image5)
+            if request.data.__contains__('image5'):
+                image5 = request.data['image5']
+                #image5 = resize_image(image5)
 
-            image6 = request.data['image6']
-            #image6 = resize_image(image6)
-
+            if request.data.__contains__('image6'):
+                image6 = request.data['image6']
+                #image6 = resize_image(image6)
             data = [
                 {
                     "student_id": student_id,
@@ -209,7 +216,7 @@ class MyNoteUpdateView(APIView):
             ]
             note_id = note.id
             if NoteImages.objects.filter(note_id=note_id).count() < 7:
-                if image1 != "":
+                if image1:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image1,
@@ -219,7 +226,7 @@ class MyNoteUpdateView(APIView):
                 return Response({'error': "Note images should less than 6 photos, can't update images and delete some image.", 'status_code': status.HTTP_400_BAD_REQUEST, 'status': False}, status=status.HTTP_400_BAD_REQUEST)
 
             if NoteImages.objects.filter(note_id=note_id).count() < 7:
-                if image2 != "":
+                if image2:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image2,
@@ -229,7 +236,7 @@ class MyNoteUpdateView(APIView):
                 return Response({'error': "Note images should less than 6 photos, can't update images and delete some image.", 'status_code': status.HTTP_400_BAD_REQUEST, 'status': False}, status=status.HTTP_400_BAD_REQUEST)
 
             if NoteImages.objects.filter(note_id=note_id).count() < 7:
-                if image3 != "":
+                if image3:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image3,
@@ -239,7 +246,7 @@ class MyNoteUpdateView(APIView):
                 return Response({'error': "Note images should less than 6 photos, can't update images and delete some image.", 'status_code': status.HTTP_400_BAD_REQUEST, 'status': False}, status=status.HTTP_400_BAD_REQUEST)
 
             if NoteImages.objects.filter(note_id=note_id).count() < 7:
-                if image4 != "":
+                if image4:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image4,
@@ -249,7 +256,7 @@ class MyNoteUpdateView(APIView):
                 return Response({'error': "Note images should less than 6 photos, can't update images and delete some image.", 'status_code': status.HTTP_400_BAD_REQUEST, 'status': False}, status=status.HTTP_400_BAD_REQUEST)
 
             if NoteImages.objects.filter(note_id=note_id).count() < 7:
-                if image5 != "":
+                if image5:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image5,
@@ -259,7 +266,7 @@ class MyNoteUpdateView(APIView):
                 return Response({'error': "Note images should less than 6 photos, can't update images and delete some image.", 'status_code': status.HTTP_400_BAD_REQUEST, 'status': False}, status=status.HTTP_400_BAD_REQUEST)
 
             if NoteImages.objects.filter(note_id=note_id).count() < 7:
-                if image6 != "":
+                if image6:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image6,
@@ -305,24 +312,31 @@ class NoteCreateView(CreateAPIView):
             is_public = False
         elif is_public == "true" or is_public == "True":
             is_public = True
-            
-        image1 = request.data['image1']
-        image1 = resize_image(image1)
         
-        image2 = request.data['image2']
-        image2 =resize_image(image2)
+        image1 = image2 = image3 = image4 = image5 = image6 = None
+        if request.data.__contains__('image1'):
+            image1 = request.data['image1']
+            #image1 = resize_image(image1)
         
-        image3 = request.data['image3']
-        image3 = resize_image(image3)
+        if request.data.__contains__('image2'):
+            image2 = request.data['image2']
+            #image2 =resize_image(image2)
+        
+        if request.data.__contains__('image3'):
+            image3 = request.data['image3']
+            #image3 = resize_image(image3)
 
-        image4 = request.data['image4']
-        image4 = resize_image(image4)
+        if request.data.__contains__('image4'):
+            image4 = request.data['image4']
+            #image4 = resize_image(image4)
 
-        image5 = request.data['image5']
-        image5 = resize_image(image5)
+        if request.data.__contains__('image5'):
+            image5 = request.data['image5']
+            #image5 = resize_image(image5)
 
-        image6 = request.data['image6']
-        image6 = resize_image(image6)
+        if request.data.__contains__('image6'):
+            image6 = request.data['image6']
+            #image6 = resize_image(image6)
 
         data = [
             {
@@ -348,42 +362,42 @@ class NoteCreateView(CreateAPIView):
                     note = Note.objects.get(student_id=user, course_id=course, title=title, description=description, is_public=is_public)
                 except:
                     return Response({'error': "Your Note is already exists.", 'status_code': status.HTTP_400_BAD_REQUEST, 'status': False}, status=status.HTTP_400_BAD_REQUEST)
-                if image1 != "":
+                if image1:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image1,
                         created = timezone.now(),
                     )
 
-                if image2 != "":
+                if image2:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image2,
                         created = timezone.now(),
                     )
 
-                if image3 != "":
+                if image3:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image3,
                         created = timezone.now(),
                     )
                 
-                if image4 != "":
+                if image4:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image4,
                         created = timezone.now(),
                     )
                 
-                if image5 != "":
+                if image5:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image5,
                         created = timezone.now(),
                     )
 
-                if image6 != "":
+                if image6:
                     NoteImages.objects.create(
                         note_id = note,
                         image = image6,
@@ -479,13 +493,7 @@ def note_add(request, course_id):
         if arr[5] == '1':
             image6 = request.FILES['image5']
             #image6 = resize_image(image6)
-            
-        # log.error(image1)
-        # log.error(image2)  
-        # log.error(image3)
-        # log.error(image4)
-        # log.error(image5)  
-        # log.error(image6)
+       
         try:
             Note.objects.create(
                 student_id=user,
@@ -582,13 +590,7 @@ def note_edit(request, course_id, pk):
         count = request.POST['count']
         del_ids = request.POST['del_ids']
         log.error(del_ids)
-        # del_id_list = del_ids.split(',')
-        # log.error(del_id_list)
         
-        # str_val = ''
-        # for i in count:
-        #     str_val = i
-        # log.error(str_val)
         arr = count.split(',')
         log.error(arr)
             
