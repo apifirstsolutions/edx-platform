@@ -299,7 +299,6 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
         units_total = 0
 
         course_enrollments = get_course_enrollment(request, user)
-        courses = {}
         for i, course in enumerate(course_enrollments):
             units_completed += course.completed_units
             units_total += course.total_units
@@ -308,10 +307,6 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
                 courses_completed.append(course)
             else:
                 in_progress_courses.append(course)
-                # if course.total_units != 0:
-                #     courses[str(course.course_id)] = round(float(course.completed_units) / float(course.total_units) * 100, 2)
-                # else:
-                #     courses[str(course.course_id)] = 0
 
         num_of_in_progress_courses = len(in_progress_courses)
         num_of_courses_completed = len(courses_completed)
@@ -320,15 +315,12 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
         if not num_of_courses_completed == 0:
             avg_course_completion = round(float(num_of_courses_completed) / float(total_courses) * 100, 2)
 
-        # sliced_ten_course_progress = dict(itertools.islice(courses.items(), 10))
-
         content = {
             'course_in_progress': num_of_in_progress_courses,
             'course_completed': num_of_courses_completed,
             'average_course_completion': str(avg_course_completion),
             'units_completed': units_completed,
             'units_total': units_total,
-            # 'course_progress_rate': sliced_ten_course_progress,
         }
 
         return content
@@ -343,16 +335,15 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
             past_ten = today - timedelta(i)
             to_date = past_ten + timedelta(1)
 
-            qset = BlockCompletion.objects.filter(
+            block_completion_queryset = BlockCompletion.objects.filter(
                 user=user,
                 modified__gte=past_ten,
                 modified__lt=to_date,
             )
 
-            completed = qset.count()
-            dateStr = past_ten.strftime("%d-%m-%Y")
-            valid.append({'date': dateStr, 'count': completed})
-            # valid[dateStr] = (completed)
+            completed = block_completion_queryset.count()
+            date_str = past_ten.strftime("%d-%m-%Y")
+            valid.append({'date': date_str, 'count': completed})
 
         return valid
 
@@ -374,7 +365,6 @@ def get_units_and_block_ids(request, instance, date):
     course_usage_key = modulestore().make_course_usage_key(instance)
     response = get_blocks(request, course_usage_key, user, requested_fields=['completion'],
                           block_types_filter='vertical')
-    blk = {}
     completed_units = 0
 
     for key, block in response['blocks'].items():
@@ -389,7 +379,6 @@ def get_units_and_block_ids(request, instance, date):
         completion_service = block.runtime.service(block, 'completion')
         complete = completion_service.vertical_is_complete(block)
         if complete:
-            # blk[str(usage_key)] = [str(b) for b in block.children]
             completed_units += 1
 
     return completed_units

@@ -479,30 +479,13 @@ class LazyPageNumberPagination(NamespacedPageNumberPagination):
 class ProgressDataViewMobile(DeveloperErrorViewMixin, RetrieveAPIView):
     authentication_classes = (BearerAuthentication,)
     permission_classes = (IsAuthenticated,)
-    # throttle_classes = (EnrollmentUserThrottle,)
     serializer_class = LearnerProgressSerializer
 
-    # pagination_class = ProgressDataViewMobilePagination
-    # Since the course about page on the marketing site
-    # uses this API to auto-enroll users, we need to support
-    # cross-domain CSRF.
-
     def get_object(self):
-        username = self.request.GET.get('user', self.request.user.username)
-        # platform_visibility = self.request.query_params.get('platform_visibility', None)
-        qset = BlockCompletion.objects.filter(user=self.request.user)
+        user = self.request.GET.get('user', self.request.user)
+        qset = BlockCompletion.objects.filter(user=user)
 
         return qset
-        # valid = []
-        # for first in qset:
-        #     valid.append(first)
-        #     # return first
-        #     return valid
-
-        # return LazySequence(
-        #         (c for c in qset),
-        #         est_len=qset.count()
-        #     )
 
 
 @can_disable_rate_limit
