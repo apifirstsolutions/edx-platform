@@ -275,27 +275,19 @@ class MobileCourseEnrollmentSerializer(serializers.ModelSerializer):
 
 
 class LearnerProgressSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
     course_details = serializers.SerializerMethodField()
-    user_details = serializers.SerializerMethodField()
     ten_days_progress_data = serializers.SerializerMethodField()
     sub_units_completed_today = serializers.SerializerMethodField()
 
     class Meta:
         model = BlockCompletion
-        fields = ['user_details', 'course_details', 'ten_days_progress_data', 'sub_units_completed_today']
+        fields = ['user', 'course_details', 'ten_days_progress_data', 'sub_units_completed_today']
 
-    def get_user_details(self, instance):
+    def get_user(self, instance):
         request = self.context.get('request', None)
         user = request.user
-
-        user_details = {
-            'user_id': user.id,
-            'username': user.username,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        }
-
-        return user_details
+        return user.id
 
     def get_course_details(self, instance):
         request = self.context.get('request', None)
@@ -323,9 +315,10 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
 
         num_of_in_progress_courses = len(in_progress_courses)
         num_of_courses_completed = len(courses_completed)
+        total_courses = num_of_in_progress_courses + num_of_courses_completed
         avg_course_completion = 0
         if not num_of_courses_completed == 0:
-            avg_course_completion = round(float(num_of_in_progress_courses) / float(num_of_courses_completed) * 100, 2)
+            avg_course_completion = round(float(num_of_courses_completed) / float(total_courses) * 100, 2)
 
         # sliced_ten_course_progress = dict(itertools.islice(courses.items(), 10))
 
@@ -344,7 +337,7 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
         request = self.context.get('request', None)
         user = request.user
 
-        valid = dict()
+        valid = []
         today = date.today()
         for i in range(10):
             past_ten = today - timedelta(i)
@@ -358,7 +351,8 @@ class LearnerProgressSerializer(serializers.ModelSerializer):
 
             completed = qset.count()
             dateStr = past_ten.strftime("%d-%m-%Y")
-            valid[dateStr] = (completed)
+            valid.append({'date': dateStr, 'count': completed})
+            # valid[dateStr] = (completed)
 
         return valid
 
