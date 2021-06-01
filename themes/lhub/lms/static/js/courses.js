@@ -683,7 +683,6 @@ $(document).ready(function() {
 
     // Most Popular Courses Slider Button
     // From here
-
     if ($('#popular_prev_btn').length) {
         var prev = $('#popular_prev_btn');
         prev.on('click', function() {
@@ -702,9 +701,9 @@ $(document).ready(function() {
     }
     // till here
 
+
     // Free Courses Slider Button
     // From here
-
     if ($('#free_prev_btn').length) {
     var prev = $('#free_prev_btn');
     prev.on('click', function() {
@@ -721,12 +720,11 @@ $(document).ready(function() {
             $('#free_next_btn').show();
         });
     }
-
     // till here
+
 
     // Top Rated Courses Slider Button
     // From here
-
     if ($('#top_prev_btn').length) {
         var prev = $('#top_prev_btn');
         prev.on('click', function() {
@@ -746,11 +744,16 @@ $(document).ready(function() {
     }
     // till here
 
-    // Till here
-    show_most_popular_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4");
-    show_free_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&sale_type=free&page=1&page_size=4");
-    show_top_rated_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-ratings&page=1&page_size=4");
-    show_recommended_courses(window.location.protocol + "//" + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&category=" + $("#user_industry").val() + "&page=1&page_size=4");
+
+    if ($('#show_categorized_view').val()){
+        show_most_popular_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4");
+        show_free_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&sale_type=free&page=1&page_size=4");
+        show_top_rated_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-ratings&page=1&page_size=4");
+        if ($('#is_authenticated').val()){
+            show_recommended_courses(window.location.protocol + "//" + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&category=" + $("#user_industry").val() + "&page=1&page_size=4");
+        };
+    };
+
 
 });
 
