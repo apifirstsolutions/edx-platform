@@ -28,10 +28,9 @@ function show_most_popular_courses(target) {
     $("#most_popular_loader").css("display", "");
 
     $.ajax(settings).done(function(response) {
-    $('#most_popular_ul').owlCarousel('destroy');
-    $("#most_popular_ul").html('');
+        $('#most_popular_ul').owlCarousel('destroy');
+        $("#most_popular_ul").html('');
         $("#most_popular_loader").css("display", "None");
-        console.log(response);
         if (response['status_code'] == 200) {
             $('#heading_recommended_courses').css('display', '')
             $('.courses-listing').empty()
@@ -65,9 +64,9 @@ function show_most_popular_courses(target) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
-                course_discount_type = response['result']['results'][i]['discount_type'];
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
+                course_discount_type = response['result']['results'][i]['discount_type'];
 
                 var course = `<li class="card-slider-card-items owl-item">
                <article class="card-slider-course">
@@ -90,7 +89,7 @@ function show_most_popular_courses(target) {
 
                            <div class="crd-sldr-course-info-price fl">
                               <ul>`
-                                 if (course_discount_applicable == true)
+                                if (course_discount_applicable == true)
                                 {
                                     if (course_discount_type == 'Percentage'){
                                  course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
@@ -189,10 +188,9 @@ function show_free_courses(target) {
 
     $("#free_courses_loader").css("display", "");
     $.ajax(settings).done(function(response) {
-    $('#free_courses_ul').owlCarousel('destroy');
-    $("#free_courses_ul").html('');
+        $('#free_courses_ul').owlCarousel('destroy');
+        $("#free_courses_ul").html('');
         $("#free_courses_loader").css("display", "None")
-        console.log(response);
         if (response['status_code'] == 200) {
             $('#heading_recommended_courses').css('display', '');
             $('.courses-listing').empty();
@@ -222,11 +220,11 @@ function show_free_courses(target) {
                 course_ratings = response['result']['results'][i]['ratings'];
                 course_ratings = course_ratings !== null ? course_ratings : "None";
                 course_comments_count = response['result']['results'][i]['comments_count'];
-                course_discount_type = response['result']['results'][i]['discount_type'];
 
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
+                course_discount_type = response['result']['results'][i]['discount_type'];
 
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
@@ -252,7 +250,7 @@ function show_free_courses(target) {
 
                            <div class="crd-sldr-course-info-price fl">
                               <ul>`
-                                  if (course_discount_applicable == true)
+                                if (course_discount_applicable == true)
                                 {
                                     if (course_discount_type == 'Percentage'){
                                  course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
@@ -328,6 +326,7 @@ function show_free_courses(target) {
         991:{items:4}
         }
         });
+
         }
     });
 
@@ -349,10 +348,9 @@ function show_top_rated_courses(top_rated) {
 
     $("#top_rated_loader").css("display", "");
     $.ajax(settings).done(function(response) {
-    $('#top_rated_ul').owlCarousel('destroy');
-    $("#top_rated_ul").html('');
+        $('#top_rated_ul').owlCarousel('destroy');
+        $("#top_rated_ul").html('');
         $("#top_rated_loader").css("display", "None")
-        console.log(response);
         if (response['status_code'] == 200) {
             $('.courses-listing').empty();
         pagination_top_url = response['result']['pagination']["next"];
@@ -374,7 +372,7 @@ function show_top_rated_courses(top_rated) {
             for (var i = 0; i < response['result']['results'].length; i++) {
                 course_id = response['result']['results'][i]['course_number'];
                 course_org = response['result']['results'][i]['organization'];
-                course_code = response['result']['results'][i]["id"];
+                course_code = response['result']['results'][i]['id'];
                 course_name = response['result']['results'][i]['name'];
                 course_image = response['result']['results'][i]["media"]['image']["raw"];
                 course_difficulty_level = response['result']['results'][i]['difficulty_level'];
@@ -389,7 +387,6 @@ function show_top_rated_courses(top_rated) {
                 course_discount_type = response['result']['results'][i]['discount_type'];
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
-
                 var course = `<li class="card-slider-card-items owl-item">
                <article class="card-slider-course">
                   <a href="/courses/`+course_code+`/about">
@@ -411,7 +408,7 @@ function show_top_rated_courses(top_rated) {
 
                            <div class="crd-sldr-course-info-price fl">
                               <ul>`
-                                  if (course_discount_applicable == true)
+                                if (course_discount_applicable == true)
                                 {
                                     if (course_discount_type == 'Percentage'){
                                  course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
@@ -480,11 +477,11 @@ function show_top_rated_courses(top_rated) {
         items: 4,
         slideBy: 4,
         responsive:
-            {
-            0:{items:1},
-            768:{items:2},
-            991:{items:4}
-            }
+        {
+        0:{items:1},
+        768:{items:2},
+        991:{items:4}
+        }
         });
 
         }
@@ -494,6 +491,7 @@ function show_top_rated_courses(top_rated) {
 
 function show_recommended_courses(target) {
 
+        var form = new FormData();
         var recommended_settings = {
         "url": target,
         "method": "GET",
@@ -507,11 +505,11 @@ function show_recommended_courses(target) {
 
     $("#recommended_courses_loader").css("display", "");
     $.ajax(recommended_settings).done(function(response) {
-    $('#recommended_courses_ul').owlCarousel('destroy');
-    $("#recommended_courses_ul ").html('');
+        $('#recommended_courses_ul').owlCarousel('destroy');
+        $("#recommended_courses_ul ").html('');
         $("#recommended_courses_loader").css("display", "None")
-        console.log(response);
         if (response['status_code'] == 200) {
+            $('#heading_recommended_courses').css('display', '')
             $('.courses-listing').empty()
             pagination_next_url = response['result']['pagination']["next"];
 
@@ -525,6 +523,9 @@ function show_recommended_courses(target) {
             if (response['result']['pagination']['previous'] != null){
                 $("#recommended_prev_btn").css("display","");
                 recommended_prev_url = response['result']['pagination']['previous'];
+            }
+            else {
+            $("#recommended_prev_btn").css("display","None");
             }
 
 
@@ -543,10 +544,11 @@ function show_recommended_courses(target) {
                 course_start = response['result']['results'][i]['start_date'];
                 course_discount_applicable = response['result']['results'][i]['discount_applicable'];
                 course_price = response['result']['results'][i]['modes'][0]['price'];
-                course_discount_type = response['result']['results'][i]['discount_type'];
                 course_discounted_price = response['result']['results'][i]['discounted_price'];
                 course_discount_percentage = response['result']['results'][i]['discount_percentage'];
-
+                available_vouchers = response['result']['results'][i]['available_vouchers'];
+                course_discount_type = response['result']['results'][i]['discount_type'];
+                
                 var course = `<li class="card-slider-card-items owl-item">
                <article class="card-slider-course">
                   <a href="/courses/`+course_code+`/about">
@@ -568,7 +570,7 @@ function show_recommended_courses(target) {
 
                            <div class="crd-sldr-course-info-price fl">
                               <ul>`
-                                  if (course_discount_applicable == true)
+                                if (course_discount_applicable == true)
                                 {
                                     if (course_discount_type == 'Percentage'){
                                  course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>`
@@ -593,7 +595,7 @@ function show_recommended_courses(target) {
                                 course +=`
 
                               </ul>
-                           </div>`
+                          </div>`
 
                            available_vouchers = response['result']['results'][i]['available_vouchers'];
                            if (available_vouchers.length > 0)
@@ -629,7 +631,7 @@ function show_recommended_courses(target) {
             var viewedSlider_rec = $('#recommended_courses_ul');
 
             viewedSlider_rec.owlCarousel({
-                loop: true,
+                loop: false,
                 margin: 20,
                 autoplay: false,
                 autoplayTimeout: 6000,
@@ -643,12 +645,21 @@ function show_recommended_courses(target) {
                 991:{items:4}
                 }
         });
+
+
         }
     });
 
 }
 
 $(document).ready(function() {
+    
+    $('#rec_id').click(function() {
+        window.location.href = window.location.protocol + "//" + window.location.host + "/courses?category=" + $("#user_industry").val();
+        return false;
+    });
+
+
     // Recommended Courses Slider Button
     // From here
     if ($('#recommended_prev_btn').length) {
@@ -668,8 +679,8 @@ $(document).ready(function() {
         });
     }
     // till here
-    
-    
+
+
     // Most Popular Courses Slider Button
     // From here
     if ($('#popular_prev_btn').length) {
@@ -689,7 +700,8 @@ $(document).ready(function() {
         });
     }
     // till here
-    
+
+
     // Free Courses Slider Button
     // From here
     if ($('#free_prev_btn').length) {
@@ -708,9 +720,9 @@ $(document).ready(function() {
             $('#free_next_btn').show();
         });
     }
-    
     // till here
-    
+
+
     // Top Rated Courses Slider Button
     // From here
     if ($('#top_prev_btn').length) {
@@ -729,13 +741,19 @@ $(document).ready(function() {
             viewedSlider_top.trigger('next.owl.carousel');
             $('#top_next_btn').show();
         });
-    } 
-       
-    // Till here
-    
-    show_most_popular_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4");
-    show_free_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&sale_type=free&page=1&page_size=4");
-    show_top_rated_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-ratings&page=1&page_size=4");
-    
-    });
-    
+    }
+    // till here
+
+
+    if ($('#show_categorized_view').val()){
+        show_most_popular_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4");
+        show_free_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&sale_type=free&page=1&page_size=4");
+        show_top_rated_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-ratings&page=1&page_size=4");
+        if ($('#is_authenticated').val()){
+            show_recommended_courses(window.location.protocol + "//" + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&category=" + $("#user_industry").val() + "&page=1&page_size=4");
+        };
+    };
+
+
+});
+

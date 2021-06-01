@@ -181,13 +181,11 @@ class Course(object):
         current_datetime = utc.localize(datetime.strptime(current_datetime, '%Y-%m-%d %H:%M:%S'))
         if len(self.modes) > 0:
             if Coupon.objects.filter(course__pk=course_id).exists():
-                coupon = Coupon.objects.filter(course__pk=course_id).first()
-                start_date = coupon.start_datetime
-                end_date = coupon.end_datetime
-                if current_datetime >= start_date and current_datetime < end_date:
-                    return True
-                else:
-                    return False
+                for coupon in Coupon.objects.filter(course__pk=course_id):
+                    start_date = coupon.start_datetime
+                    end_date = coupon.end_datetime
+                    if current_datetime >= start_date and current_datetime < end_date:
+                        return True
         return False
 
 
@@ -252,7 +250,7 @@ class Course(object):
                         incentive_value = float(offer.incentive_value)
 
                         if incentive_type == 'Percentage':
-                            discounted_price = price - (price * (incentive_value/100))
+                            discounted_price = price - (round(price * (incentive_value/100), 2))
                         elif incentive_type == 'Absolute':
                             discounted_price = price - incentive_value
 
@@ -294,7 +292,7 @@ class Course(object):
                         incentive_value = float(offer.incentive_value)
 
                         if incentive_type == 'Percentage':
-                            discounted_price = price - (price * (incentive_value/100))
+                            discounted_price = price - (round(price * (incentive_value/100), 2))
                         elif incentive_type == 'Absolute':
                             discounted_price = price - incentive_value
 
