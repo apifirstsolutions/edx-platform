@@ -252,7 +252,7 @@ class Course(object):
                         incentive_value = float(offer.incentive_value)
 
                         if incentive_type == 'Percentage':
-                            discounted_price = price - (price * (incentive_value/100))
+                            discounted_price = price - (round(price * (incentive_value/100), 2))
                         elif incentive_type == 'Absolute':
                             discounted_price = price - incentive_value
 
@@ -294,7 +294,7 @@ class Course(object):
                         incentive_value = float(offer.incentive_value)
 
                         if incentive_type == 'Percentage':
-                            discounted_price = price - (price * (incentive_value/100))
+                            discounted_price = price - (round(price * (incentive_value/100), 2))
                         elif incentive_type == 'Absolute':
                             discounted_price = price - incentive_value
 
