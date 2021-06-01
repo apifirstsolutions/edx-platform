@@ -276,6 +276,7 @@ def courses(request):
     if difficulty_level_id == "":
         difficulty_level_id = None
     mode = request.GET.get('mode', '')
+    search_input = request.GET.get('search', '')
     # if request.GET.keys()
 
     if mode == "":
@@ -344,6 +345,9 @@ def courses(request):
         elif mode == 'discounted' and not course.discount_applicable:
             return False
 
+        if search_input and search_input.lower() not in course.display_name_with_default.lower():
+            return False
+
         return True
 
     courses_list = filter(filter_courses, courses_list)
@@ -365,7 +369,7 @@ def courses(request):
         show_categorized_view = True
 
     elif len(request.GET.keys()) > 0:
-        if (difficulty_level_id==None) and (sort==None) and (mode==None) and (category_id==None) and (subcategory_id == None):
+        if not (difficulty_level_id or sort or mode or category_id or subcategory_id or search_input):
             show_categorized_view = True
         else:
             show_categorized_view = False
@@ -378,7 +382,6 @@ def courses(request):
     return render_to_response(
         "courseware/courses.html",
         {
-
             'courses': courses_list,
             'course_discovery_meanings': course_discovery_meanings,
             'programs_list': programs_list,
@@ -391,7 +394,7 @@ def courses(request):
             'banner_list': banner_list,
             'show_categorized_view': show_categorized_view,
             'user_industry': user_category,
-            'course_tag' : course_tag
+            'course_tag': course_tag
         }
     )
 

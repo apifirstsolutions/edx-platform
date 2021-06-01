@@ -11,6 +11,12 @@ $(document).ready(function() {
         loadFilter('subcategory', value, ['category']);
     });
 
+    $('.search-btn').on('click', function (ev) {
+      ev.stopPropagation();
+      var value = $('.js-search-input').val();
+      loadFilter('search', value, []);
+    });
+
     $('.js-reset-category').on('click', function(ev) {
         ev.stopPropagation();
         loadFilter('', '', ['category', 'subcategory']);
