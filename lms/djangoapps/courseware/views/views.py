@@ -7,7 +7,7 @@ import json
 import logging
 from collections import OrderedDict, namedtuple
 from datetime import datetime
-
+from custom_reg_form.models import UserExtraInfo
 import bleach
 import requests
 import six
@@ -73,6 +73,7 @@ from lms.djangoapps.courseware.courses import (
     get_studio_url,
     sort_by_announcement,
     sort_by_start_date,
+    sort_by_enrollments,
     sort_by_rating,
     sort_by_price,
 
@@ -266,11 +267,22 @@ def courses(request):
     """
     sort = request.GET.get('sort', '')
     category_id = request.GET.get('category')
+    if category_id == "":
+        category_id = None
     subcategory_id = request.GET.get('subcategory')
+    if subcategory_id == "":
+        subcategory_id = None
     difficulty_level_id = request.GET.get('difficulty_level')
+    if difficulty_level_id == "":
+        difficulty_level_id = None
     mode = request.GET.get('mode', '')
-    category = sub_category = difficulty_level = None
+    search_input = request.GET.get('search', '')
+    # if request.GET.keys()
 
+    if mode == "":
+        mode = None
+    category = sub_category = difficulty_level = None
+    show_categorized_view = True
     courses_list = []
     course_list_initial = []
     filter_ = None
@@ -295,8 +307,12 @@ def courses(request):
             courses_list = sort_by_rating(courses_list)
         elif sort == 'price':
             courses_list = sort_by_price(courses_list)
+        elif sort == "enrollments":
+            courses_list = sort_by_enrollments(courses_list)
+        # else:
+        #     courses_list = sort_by_announcement(courses_list)
         else:
-            courses_list = sort_by_announcement(courses_list)
+            sort = None
 
     programs_list = get_programs_with_type(request.site, include_hidden=False)
 
@@ -329,6 +345,9 @@ def courses(request):
         elif mode == 'discounted' and not course.discount_applicable:
             return False
 
+        if search_input and search_input.lower() not in course.display_name_with_default.lower():
+            return False
+
         return True
 
     courses_list = filter(filter_courses, courses_list)
@@ -344,6 +363,22 @@ def courses(request):
         selected_category_name = '{} - {}'.format(sub_category.category.name, sub_category.name)
     banner_list = Banner.objects.filter(platform__in = ['WEB', 'BOTH'], enabled=True)
     course_tag = create_course_tag(course_list_initial)
+
+    if len(request.GET.keys()) ==  0:
+
+        show_categorized_view = True
+
+    elif len(request.GET.keys()) > 0:
+        if not (difficulty_level_id or sort or mode or category_id or subcategory_id or search_input):
+            show_categorized_view = True
+        else:
+            show_categorized_view = False
+    else:
+        show_categorized_view = False
+    user_category = None
+    user_extra_info = UserExtraInfo.objects.filter(user_id=request.user.id).first()
+    if hasattr(user_extra_info, 'industry_id'):
+        user_category = Category.objects.filter(id=user_extra_info.industry_id).first().id
     return render_to_response(
         "courseware/courses.html",
         {
@@ -357,7 +392,9 @@ def courses(request):
             'selected_mode': mode,
             'sort': sort,
             'banner_list': banner_list,
-            'course_tag' : course_tag
+            'show_categorized_view': show_categorized_view,
+            'user_industry': user_category,
+            'course_tag': course_tag
         }
     )
 

@@ -1,0 +1,475 @@
+html, body, a, h1, h2, h3, h4, h5, h6, li, button, input, textarea, p, span, div, option, select, label, input, form, ul, ol, strong
+{
+	font-family : 'Poppins', sans-serif;
+}
+
+.selects-wrapper-all {
+	display: flex;
+	flex-wrap: wrap;
+	margin-bottom: 5px;
+	padding: 0 20px;
+}
+
+.select-wrapper {
+	margin: 0 20px 15px 0;
+}
+
+.select-wrapper select {
+	border: 2px solid #5678a9;
+	border-radius: 8px;
+	min-width: 200px;
+}
+
+.slider-heading {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.selects-wrapper-all .select-name {
+	display: block;
+	margin-bottom: 5px;
+	font-size: 14px;
+}
+
+/*Coure Card slider CSS*/
+.card-slider-container .price-off {
+	color: #9b9b9b !important;
+}
+
+.card-slider-container .price-off span {
+	margin-right: 2%;
+}
+
+.main_price {
+	font-size: 16px;
+	color: #249a56;
+	font-weight: 600;
+}
+
+.card-slider-container article .card-slider-card-course-info {
+	padding: 0px 15px;
+	height: 305px;
+	position: relative;
+}
+
+span.main_price_cut {
+	background: #f8400f;
+	border-radius: 5px;
+	font-size: 11px;
+	padding: 2px 4px;
+	text-decoration: line-through;
+	color: #ffffff;
+}
+
+.card-slider-container .label-course {
+	font-size: 12px;
+}
+
+.card-slider-container .crd-sldr-course-info-title {
+	height: 25px;
+	margin-bottom: 8px;
+	color: #000000;
+	font-weight: 600;
+	font-size: 18px;
+	overflow: hidden;
+	width: 100%;
+	display: -webkit-box !important;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
+}
+
+.card-slider-container .crd-sldr-course-info-label span {
+	color: #1A345C;
+	font-weight: 500;
+}
+
+.card-slider-container .crd-sldr-course-info-label {
+	font-size: 12px;
+	line-height: 25px;
+	margin: 0px 20px 0px 0px;
+	display: inline-block;
+	font-weight: 500;
+	color: #7f7f7f;
+}
+
+.card-slider-container .card-slider-card-course-info .crd-sldr-course-info-date {
+	padding: 4px 0px 0px 0px;
+	margin-top: 12px;
+	color: #7f7f7f;
+	font-size: 13px;
+}
+
+.card-slider-container span.crd-sldr-course-info-title,
+.card-slider-container span.crd-sldr-course-info-code,
+.card-slider-container span.crd-sldr-course-info-org {
+	padding-left: 0px !important;
+}
+
+.card-slider-container .crd-sldr-course-info-label span {
+	margin-left: 7px;
+}
+
+.card-slider-container .card-slider-card-container .card-slider-card-items {
+	max-height: 100% !important;
+	margin-bottom: 20px;
+	width: 100%;
+}
+
+.card-slider-container .crd-sldr-course-info-date {
+	position: absolute;
+	bottom: 10px;
+}
+
+.card-slider-container .crd-sldr-course-info-price ul li {
+	list-style-type: none;
+	font-size: 12px;
+	padding: 2px 0px !important;
+	color: #000000;
+	font-weight: 600;
+}
+
+.card-slider-container .crd-sldr-course-info-price ul {
+	padding: 0px;
+	margin: 5px 0px;
+}
+
+.main_price-percentage {
+	font-size: 12px;
+	color: #249a56;
+	font-weight: 800 !important;
+}
+
+.card-slider-container .crd-sldr-course-info-price ul li .cut_price {
+	text-decoration: line-through;
+	font-size: 14px;
+	font-weight: 500;
+	margin-left: 2%;
+	color: #9b9b9b;
+}
+
+.card-slider-container .card-slider-card-img-cont .card-slider-card-cover-img img {
+	height: 160px;
+	object-fit: cover;
+}
+
+.card-slider-container h2.crd-sldr-course-info span.crd-sldr-course-info-org,
+.card-slider-container h2.crd-sldr-course-info span.crd-sldr-course-info-code {
+	color: #7f7f7f !important;
+	font-weight: 400;
+	line-height: 1.5;
+	display: block;
+	width: 100%;
+}
+
+.card-slider-container .crd-sldr-course-info-price ul li span {
+	font-weight: 600;
+}
+
+.card-slider-container .card-slider-card-learn-more-btn {
+	background: #ffffff;
+	color: #18355e;
+	border-radius: 10px;
+	font-weight: 700;
+	position: absolute;
+	top: 38%;
+	left: 15%;
+	padding: 11px;
+	display: block;
+	width: 100%;
+	text-align: center;
+	max-width: 200px;
+	opacity: 0;
+}
+
+.card-slider-course:hover .card-slider-card-learn-more-btn,
+.card-slider-course:focus .card-slider-card-learn-more-btn {
+	transition: ease-out 0.25s;
+	opacity: 1 !important;
+	z-index: 999;
+}
+
+.card-slider-container span.crd-sldr-course-info-org {
+	font-size: 15px !important;
+}
+
+.card-slider-container span.crd-sldr-course-info-code {
+	font-size: 13px !important;
+}
+
+.card-slider-container .crd-sldr-course-info-price span.crd-sldr-course-info-main-price_cut {
+	background: #f8400f;
+	border-radius: 5px;
+	font-size: 11px;
+	padding: 2px 4px;
+	text-decoration: line-through;
+	color: #ffffff;
+}
+
+.card-slider-container .crd-sldr-course-info-price ul li .crd-sldr-course-info-main-price-percentage {
+	font-size: 12px;
+	color: #249a56;
+	font-weight: 800 !important;
+}
+
+.card-slider-container .crd-sldr-course-info {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+span.crd-sldr-course-info-code.f1 {
+	width: 100% !important;
+}
+
+.crd-sldr-course-info-price.fl {
+	width: 100% !important;
+}
+
+.card-slider-container .crd-sldr-course-info-price li {
+	margin: 8px 0px 5px 0px !important;
+}
+
+.card-slider-title {
+	font-size: 22px !important;
+	font-weight: 600;
+	color: #1a345c;
+	margin-bottom: 40px;
+	margin-top: 30px;
+}
+
+.card-slider-container article:hover {
+	background: #f5f5f5;
+	border-color: #bebebe;
+	box-shadow: 0 1px 4px 0 rgb(0 117 180 / 40%);
+	transition: all 0.125s linear 0s;
+	transition-property: all;
+	transition-duration: 0.125s;
+	transition-timing-function: linear;
+	transition-delay: 0s;
+}
+
+.card-slider-container .price-set {
+	display: flex;
+	height: 40px;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-top: 20px;
+}
+
+.card-slider-container .img-container {
+	height: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.card-slider-container .card-slider-course {
+	display: block;
+	float: left;
+	width: 100%;
+	overflow: hidden;
+	padding-top: 0px;
+	min-width: 100% !important;
+}
+
+.card-slider-container ul.card-slider-card-container {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	list-style: none;
+	padding: 0px;
+}
+
+.card-slider-container article {
+	border-radius: 10px !important;
+	box-shadow: 0 1px 10px 0 rgb(0 0 0 / 13%), inset 0 0 0 1px rgb(255 255 255 / 75%);
+}
+
+.card-slider-next-btn, .card-slider-prev-btn {
+	position: absolute;
+	top: 52%;
+	z-index: 9999999;
+	color: #1a345c;
+}
+
+.card-slider-next-btn {
+	right: 0;
+}
+
+.card-slider-prev-btn {
+	left: 0;
+}
+
+.card-slider-next-btn i, .card-slider-prev-btn i {
+	font-size: 24px;
+	cursor: pointer;
+	width: 45px;
+	height: 45px;
+	background: #ffffff;
+	border-radius: 50%;
+	box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
+}
+
+.card-slider-next-btn i::before {
+	position: absolute;
+	top: 21%;
+	left: 36%;
+}
+
+.card-slider-prev-btn i::before {
+	position: absolute;
+	top: 21%;
+	left: 28%;
+}
+
+.card-slider-container .card-slider-card-cover-img {
+	height: 160px;
+	overflow: hidden;
+	border-radius: 10px 10px 0px 0px;
+	position: relative;
+}
+
+.card-slider-container .card-slider-card-cover-img::before {
+	left: 0;
+	position: absolute;
+	top: 0;
+	opacity: 0;
+	background: #000;
+	width: 100%;
+	height: 160px;
+	content: '';
+	z-index: 10;
+}
+
+.card-slider-course:hover .card-slider-card-cover-img::before,
+.card-slider-course:focus .card-slider-card-cover-img::before {
+	transition: opacity 0.25s ease-out 0.25s;
+	opacity: 0.6;
+}
+
+.card-slider-container article a {
+	text-decoration: none !important;
+}
+
+section.find-courses {
+	background: none;
+}
+
+.card-slider-courses {
+	position: relative;
+}
+
+.loader-sec {
+	width: 100%;
+	height: 100%;
+	background: #ffffffe0;
+	position: absolute;
+	z-index: 99999999;
+}
+
+.loader {
+	position: absolute;
+	left: 55%;
+	top: 25px;
+	z-index: 99999999;
+	width: 80px;
+	height: 80px;
+	margin: -76px 0 0 -76px;
+	border: 8px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 8px solid #3498db;
+	-webkit-animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+	0% {
+		-webkit-transform: rotate(0deg);
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+	}
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.coupon_details {
+	position: absolute;
+	right: 14px;
+	bottom: 14px;
+}
+
+.coupon_details p {
+	display: flex;
+	margin: 0px;
+	line-height: 1.4;
+	justify-content: flex-end;
+}
+
+.coupon_details span.coupen_code_value {
+	font-size: 12px;
+	color: #ed9800;
+	font-weight: 600;
+}
+
+.content-wrapper {
+	padding: 0 20px 10px;
+}
+
+section.card-slider-container {
+	min-height: 200px !important;
+}
+
+@media screen and (min-width: 769px) and (max-width: 1180px) {
+	.coupon_details {
+		position: absolute;
+		left: 14px;
+		bottom: 26px;
+		right: auto;
+	}
+
+	.card-slider-container .crd-sldr-course-info-label {
+		line-height: 1.9;
+	}
+
+	.crd-sldr-course-info-price.fl ul {
+		margin: 0px !important;
+	}
+
+	.crd-sldr-course-info-price.fl ul li {
+		margin: 0px !important;
+		padding: 0px !important;
+	}
+}
+
+@media screen and (max-width: 575px) {
+
+	.loader {
+		width: 40px;
+		border: 5px solid #f3f3f3;
+		border-top: 5px solid #3498db;
+		height: 40px;
+		top: 100px;
+		left: 75%;
+	}
+
+	.slider-heading a {
+		font-size: 13px;
+	}
+
+	.card-slider-title {
+		font-size: 16px !important;
+	}
+}
+
+.owl-item {
+	padding: 0px 3px !important;
+}

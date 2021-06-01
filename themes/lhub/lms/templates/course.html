@@ -69,7 +69,7 @@ color: #7f7f7f;
 padding: 4px 0px 0px 0px;
 margin-top: 12px;
 color: #7f7f7f;
-font-size: 16px;
+font-size: 13px;
 }
 
 span.course-title,
@@ -180,6 +180,23 @@ font-size: 12px;
 color: #249a56;
 font-weight: 800 !important;
 }
+.coupon_details span.coupen_code_value {
+  font-size: 12px;
+  color: #ed9800;
+  font-weight: 600;
+}
+.coupon_details {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+}
+
+.coupon_details p {
+    display: flex;
+    margin: 0px;
+    line-height: 1.4;
+    justify-content: flex-end;
+}
 
 </style>
 <article class="course" id="${course.id}" role="region" aria-label="${course.display_name_with_default}">
@@ -203,9 +220,12 @@ font-weight: 800 !important;
           <div class="price_details">
 
     <ul>
-
-       <li>Discount Percentage: <span class="main_price-percentage">${course.discount_percentage_string}</span></li>
-       % if course.discounted_price == 0:
+       % if course.discount_type == 'Percentage':
+          <li>Discount Percentage: <span class="main_price-percentage">${format(course.discount_percentage, ".2f")}%</span></li>
+      % else:
+      <li>Discount: <span class="main_price-percentage">-${format(course.discount_percentage, ".2f")}</span></li>
+      % endif
+          % if course.discounted_price == 0:
              <li>Price: <span class="main_price_cut">S$${format(course.price, ".2f")}</span></li>
              <li>Discounted Price: <span class="main_price">Free</span>
        % else:
@@ -228,9 +248,21 @@ font-weight: 800 !important;
 	</ul>
 
 </div>
+% endif
 
-
-      % endif
+      % if course.coupon_applicable:
+        <div class="coupon_details">
+        % for voucher in course.available_vouchers:
+            % if voucher["incentive_type"] == 'Percentage':
+                <p><span class="coupen_code_value"><i class="fa fa-check"></i>${voucher["coupon_code"]} -${voucher["incentive_value"]}%</span></p>
+            % endif  
+            % if voucher["incentive_type"] == 'Absolute':
+                <p><span class="coupen_code_value"><i class="fa fa-check"></i>${voucher["coupon_code"]} -S$${voucher["incentive_value"]}</span></p>
+            % endif
+          % endfor
+        </div>
+      % endif 
+      
       </h2>
       <%
       if course.start is not None:
@@ -244,6 +276,7 @@ font-weight: 800 !important;
           <div class="course-date localized_datetime" aria-hidden="true" data-format="shortDate" data-datetime="${course_date_string}" data-language="${LANGUAGE_CODE}" data-string="${_("Starts: {date}")}"></div>
       % endif
     </div>
+
     <div class="sr">
       <ul>
         <li>${course.display_org_with_default}</li>
@@ -254,6 +287,7 @@ font-weight: 800 !important;
             <li>${_("Starts")}: <time class="localized_datetime" itemprop="startDate" data-format="shortDate" data-datetime="${course_date_string}" data-language="${LANGUAGE_CODE}"></time></li>
         % endif
       </ul>
+     
     </div>
   </a>
 </article>

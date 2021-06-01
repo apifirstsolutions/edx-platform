@@ -11,7 +11,7 @@
 %>
 
 <%namespace name='static' file='../static_content.html'/>
-
+<link rel="stylesheet" href="/static/lhub/courses.css" type="text/css" media="all">
 % if course_discovery_enabled:
 <%block name="header_extras">
   % for template_name in ["course_card", "filter_bar", "filter", "facet", "facet_option"]:
@@ -30,30 +30,6 @@
 </%block>
 % endif
 
-<style>
-    .selects-wrapper-all {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 5px;
-        padding: 0 20px;
-    }
-
-    .select-wrapper {
-        margin: 0 20px 15px 0;
-    }
-
-    .select-wrapper select {
-        border: 2px solid #5678a9;
-        border-radius: 8px;
-        min-width: 200px;
-    }
-
-    .selects-wrapper-all .select-name {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 14px;
-    }
-</style>
 
 <%block name="pagetitle">${_("Courses")}</%block>
 <div class="selects-wrapper-all">
@@ -178,45 +154,144 @@
 
   </div>
 </div>
+        % if course_discovery_enabled:
+        <div id="discovery-form" role="search" aria-label="course" class="wrapper-search-context">
+          <div id="discovery-message" class="search-status-label"></div>
+          <form class="wrapper-search-input">
+            <label for="discovery-input" class="sr">${_('Search for a course')}</label>
+            <input id="discovery-input" class="discovery-input" placeholder="${_('Search for a course')}" type="text"/>
+            <button type="submit" class="button postfix discovery-submit" title="${_('Search')}">
+              <span class="icon fa fa-search" aria-hidden="true"></span>
+              <div aria-live="polite" aria-relevant="all">
+                <div id="loading-indicator" class="loading-spinner hidden">
+                  <span class="icon fa fa-spinner fa-spin" aria-hidden="true"></span>
+                  <span class="sr">${_('Loading')}</span>
+                </div>
+              </div>
+            </button>
+          </form>
+        </div>
+
+        <div id="filter-bar" class="filters hide-phone is-collapsed">
+        </div>
+        % endif
+        %if show_categorized_view == False:
+        <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
+
+            ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
+              % if course_tag:
+                  %for key in course_tag:
+                    %for val  in key.items():
+                      % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
+                          % if loop.index == 0 :
+                           <ul class="courses-listing" style="margin: 0 0 3px 0;">
+                               <li class="courses-listing-item" >
+                                   <h3>${val[0]}</h3>
+                                   <%include file="../course.html" args="course=tag" />
+                               </li>
+                          % else:
+                              <li class="courses-listing-item" >
+                                   %if len(key.items()) > 1:
+                                      <h3>&nbsp;</h3>
+                                  % endif
+                                   <%include file="../course.html" args="course=tag" />
+                               </li>
+
+                          % endif
+                      %endfor
+                                </ul>
+                    %endfor
+                  %endfor
+              %endif
+
+            </div>
 
           <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
+            <ul class="courses-listing courses-list">
+              %for course in courses:
+              <li class="courses-listing-item">
+                <%include file="../course.html" args="course=course" />
+              </li>
+              %endfor
+            </ul>
+        %else:
+              <!--   from here -->
+%if user.is_authenticated:
+   <section class="card-slider-container">
+<input id="user_industry" type="hidden" value="${user_industry}">
 
-          ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
-            % if course_tag:
-                %for key in course_tag:
-                  %for val  in key.items():
-                    % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
-                        % if loop.index == 0 :
-                         <ul class="courses-listing" style="margin: 0 0 3px 0;">
-                             <li class="courses-listing-item" >
-                                 <h3>${val[0]}</h3>
-                                 <%include file="../course.html" args="course=tag" />
-                             </li>
-                        % else:
-                            <li class="courses-listing-item" >
-                                 %if len(key.items()) > 1:
-                                    <h3>&nbsp;</h3>
-                                % endif
-                                 <%include file="../course.html" args="course=tag" />
-                             </li>
 
-                        % endif
-                    %endfor
-                              </ul>
-                  %endfor
-                %endfor
-            %endif
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Recommended Courses for You</h2>
+      <a href="#" id="rec_id" = >View All</a>
+      </div>
+            <div class="card-slider-courses">
+            <div class="loader-sec" id = "recommended_courses_loader" style="display:none;">
+            <div class="loader"></div>
+        </div>
+        <div class="card-slider-prev-btn" id = "recommended_prev_btn" style="display:none"><i class="fas fa-chevron-left"></i></div>
+         <div id="recommended_next_btn" style="display:none" class=" card-slider-next-btn"><i class="fas fa-chevron-right"></i></div>
+         <ul id="recommended_courses_ul" class="card-slider-card-container owl-carousel owl-theme">
 
-          </div>
+         </ul>
+      </div>
+   </section>
+%endif
+      <section class="card-slider-container">
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Most Popular Courses</h2>
+      <a href="/courses?sort=enrollments">View All</a>
+      </div>
 
-        <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
-          <ul class="courses-listing courses-list">
-            %for course in courses:
-            <li class="courses-listing-item">
-              <%include file="../course.html" args="course=course" />
-            </li>
-            %endfor
-          </ul>
+
+
+      <div class="card-slider-courses">
+            <div class="loader-sec" id = "most_popular_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
+        <div id = "popular_prev_btn" style="display:none" class="card-slider-prev-btn"><i class="fas fa-chevron-left"></i></div>
+         <div id = "popular_next_btn" style="display:none" class=" card-slider-next-btn"><i class="fas fa-chevron-right"></i></div>
+         <ul id="most_popular_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+      <input type=hidden id="show_categorized_view" value="{{show_categorized_view}}" style="display: none;">
+      <input type=hidden id="is_authenticated" value="{{user.is_authenticated}}" style="display: none;">
+   </section>
+      <section class="card-slider-container">
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Top Rated Courses</h2>
+      <a href="/courses?sort=rating">View All</a>
+      </div>
+      <div class="card-slider-courses">
+            <div class="loader-sec" id = "top_rated_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
+        <div id = "top_prev_btn" style="display:none" class="card-slider-prev-btn"><i class="fas fa-chevron-left"></i></div>
+         <div id = "top_next_btn" style="display:none" class=" card-slider-next-btn" ><i class="fas fa-chevron-right"></i></div>
+         <ul id = "top_rated_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+   </section>
+      <section class="card-slider-container">
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Free Courses</h2>
+      <a href="/courses?mode=free">View All</a>
+      </div>
+      <div class="card-slider-courses">
+            <div class="loader-sec" id = "free_courses_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
+        <div id = "free_prev_btn" style="display:none" class="card-slider-prev-btn"><i class="fas fa-chevron-left"></i></div>
+         <div id = "free_next_btn" style="display:none" class=" card-slider-next-btn"><i class="fas fa-chevron-right"></i></div>
+         <ul id="free_courses_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+   </section>
+   <!-- to here -->
+        %endif
         </div>
 
 
@@ -232,3 +307,4 @@
     </section>
 </main>
 
+<script src="${static.url('js/courses.js')}"></script>

@@ -2773,6 +2773,9 @@ INSTALLED_APPS = [
     #LHUB Mobile APIs
     'lms.djangoapps.lhub_mobile.apps.LhubMobileConfig',
 
+    #LHUB_ECOMMERCE_OFFER
+    'lms.djangoapps.lhub_ecommerce_offer.apps.LhubEcommerceOfferConfig',
+
     'lms.djangoapps.lhub_notification.apps.NotificationConfig',
     'lms.djangoapps.lhub_extended_api.apps.LhubExtendedApiConfig',
 
