@@ -65,10 +65,27 @@ class SubscriptionViewSet(
 
   serializer_class = SubscriptionSerializer
   queryset = Subscription.objects.all()
+  http_method_names = ['get', 'post', 'patch']
 
+  def _cancel_subscription(subscription, new_status):
+    if subscription.user is not None and \
+      subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
+      new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+
+      svc = SubscriptionService()
+      return svc.cancel_subscription(subscription)
+
+
+  def update(self, request, pk=None):
+    pass
+
+
+  # TODO handle POST request as well, or remove it
   def partial_update(self, request, pk=None):
     subscription = Subscription.objects.get(id=pk)
     new_status = request.data['status']
+
+    self._cancel_subscription(subscription, new_status)
     
     if subscription.user is not None and \
       subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \

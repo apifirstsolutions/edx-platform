@@ -29,7 +29,7 @@
         </div>
         
         <div class="subscription-block">
-            <%block name="pagecontent">${description}</%block>
+            <%block name="pagecontent">${description | n}</%block>
         </div>
         <div style="display: flex;"  class="subscription-block">
 
@@ -37,13 +37,15 @@
           <div style="width: 250px;">
             % for option in options:
               <div>
-                <input type="radio" id="${option[0]}" name="options" value="${option[3]}" checked>
+                <input type="radio" id="${option[0]}" name="options" value="${option[3]}">
                 <label for="${option[0]}">$${option[2]} SGD ${option[1]}</label>
               </div>
             % endfor
           </div>
           <div style="flex-grow: 1;">
-            <button href="#">Subscribe</button>
+            <a href="http://localhost:18130/basket/add/?sku=demo-plan-month">
+              <button>Subscribe</button>
+            </a>
           </div>
 
         </div>
