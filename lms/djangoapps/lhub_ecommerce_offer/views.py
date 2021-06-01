@@ -57,7 +57,11 @@ class Ecommerce_Offer(APIView):
             for course in ecommerce_data['courses_id']:
                 if course not in str(ecommerce_offer[0].course.all()):
                     # add course in the Offer courses
-                    ecommerce_offer[0].course.add(CourseOverview.get_from_id(course))
+
+                    try:
+                        ecommerce_offer[0].course.add(CourseOverview.get_from_id(course))
+                    except CourseOverview.DoesNotExist:
+                        return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 
         # Else if Offer does not exist
@@ -86,7 +90,10 @@ class Ecommerce_Offer(APIView):
             ecommerce_offer.save()
 
             for course_id in ecommerce_data['courses_id']:
-                ecommerce_offer.course.add(CourseOverview.get_from_id(course_id))
+                try:
+                    ecommerce_offer.course.add(CourseOverview.get_from_id(course_id))
+                except CourseOverview.DoesNotExist:
+                    return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 
         return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
@@ -151,7 +158,11 @@ class Ecommerce_Coupon(APIView):
             for course in ecommerce_data['courses_id']:
                 if course not in str(ecommerce_coupon[0].course.all()):
                     # add course in the coupon courses
-                    ecommerce_coupon[0].course.add(CourseOverview.get_from_id(course))
+                    try:
+                        ecommerce_coupon[0].course.add(CourseOverview.get_from_id(course))
+                    except CourseOverview.DoesNotExist:
+                        return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
         # Else if Offer does not exist
@@ -179,7 +190,10 @@ class Ecommerce_Coupon(APIView):
             ecommerce_coupon.save()
 
             for course_id in ecommerce_data['courses_id']:
-                ecommerce_coupon.course.add(CourseOverview.get_from_id(course_id))
+                try:
+                    ecommerce_coupon.course.add(CourseOverview.get_from_id(course_id))
+                except CourseOverview.DoesNotExist:
+                    return Response({'status': 'Failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 
         return Response({'status': 'Succes'}, status=status.HTTP_200_OK)
