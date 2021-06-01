@@ -236,3 +236,12 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = corsheaders_default_headers + (
     'use-jwt-cookie',
 )
+
+from .common import _make_mako_template_dirs
+DEFAULT_SITE_THEME = 'lhub'
+ENABLE_COMPREHENSIVE_THEMING = True
+COMPREHENSIVE_THEME_DIRS = [
+    "/edx/app/edxapp/edx-platform/themes/"
+]
+TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
+derive_settings(__name__)
