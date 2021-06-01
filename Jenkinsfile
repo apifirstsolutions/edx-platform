@@ -18,6 +18,10 @@ pipeline {
     agent { docker { image 'python:3.5.1' } }
     //agent any 
 
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // I. itemized build stages for init, build, test, deploy
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     stages {
 
         stage("init") {
@@ -104,8 +108,10 @@ pipeline {
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // THESE ARE ACTIONS THAT WE TAKE BASED ON THE JENKINS 
-    // PIPELINE RESULT.
+    // II. conditional processing that we add after the pipeline
+    //     has executed. we can differentiate between
+    //     build success, failure, or a change in state 
+    //     (i.e. builds had been successful but this build failed.)
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
    post {
 
