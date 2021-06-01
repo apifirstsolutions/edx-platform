@@ -987,7 +987,8 @@ function show_most_popular_courses(target) {
                             </div>`
 
                            available_vouchers = response['result']['results'][i]['available_vouchers'];
-                           if (available_vouchers.length > 0)
+                           available_applicable = response['result']['results'][i]['voucher_applicable'];
+                           if (available_applicable == true)
                                 {
                                    course+=`<div class="coupon_details">`
                                   for (var j=0; j < available_vouchers.length; j++)
@@ -1147,9 +1148,9 @@ function show_free_courses(target) {
 
                               </ul>
                            </div>`
-
                            available_vouchers = response['result']['results'][i]['available_vouchers'];
-                           if (available_vouchers.length > 0)
+                           available_applicable = response['result']['results'][i]['voucher_applicable'];
+                           if (available_applicable == true)
                                 {
                                    course+=`<div class="coupon_details">`
                                   for (var j=0; j < available_vouchers.length; j++)
