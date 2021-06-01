@@ -257,6 +257,7 @@ AUTHENTICATION_BACKENDS = [
     'common.djangoapps.third_party_auth.dummy.DummyBackend',
     'common.djangoapps.third_party_auth.saml.SAMLAuthBackend',
     'common.djangoapps.third_party_auth.lti.LTIAuthBackend',
+    'common.djangoapps.third_party_auth.auth0.Auth0OAuth2',
 ] + AUTHENTICATION_BACKENDS
 
 THIRD_PARTY_AUTH_CUSTOM_AUTH_FORMS = {

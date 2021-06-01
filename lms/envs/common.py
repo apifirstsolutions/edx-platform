@@ -363,7 +363,7 @@ FEATURES = {
     # .. toggle_target_removal_date: None
     # .. toggle_warnings: None
     # .. toggle_tickets: None
-    'ENABLE_THIRD_PARTY_AUTH': False,
+    'ENABLE_THIRD_PARTY_AUTH': True,
 
     # .. toggle_name: ENABLE_MKTG_SITE
     # .. toggle_implementation: DjangoSetting
@@ -695,6 +695,8 @@ FEATURES = {
     # .. toggle_tickets: https://openedx.atlassian.net/browse/TNL-7273
     # .. toggle_warnings: This temporary feature toggle does not have a target removal date.
     'ENABLE_ORA_USERNAMES_ON_DATA_EXPORT': False,
+
+    'AUTH0_DOMAIN': 'dev-evb2pfr9.us.auth0.com',
 }
 
 # Specifies extra XBlock fields that should available when requested via the Course Blocks API

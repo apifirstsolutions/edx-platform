@@ -407,6 +407,8 @@ FEATURES = {
     # .. toggle_warnings: Also set settings.LIBRARY_AUTHORING_MICROFRONTEND_URL and see
     #   REDIRECT_TO_LIBRARY_AUTHORING_MICROFRONTEND for rollout.
     'ENABLE_LIBRARY_AUTHORING_MICROFRONTEND': False,
+
+    'AUTH0_DOMAIN': 'dev-evb2pfr9.us.auth0.com',
 }
 
 ENABLE_JASMINE = False
