@@ -16,4 +16,3 @@ class Migration(migrations.Migration):
             field=models.TextField(blank=True, null=True),
         ),
     ]
-

@@ -1,10 +1,17 @@
 from django.db import models
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from django.utils.translation import gettext_lazy as _
 
 
 
 class Offer(models.Model):
-    incentive_type = models.CharField(max_length=250)
+    PERCENTAGE, FIXED = ("Percentage", "Absolute")
+    TYPE_CHOICES = (
+        (PERCENTAGE, _("Discount is a percentage off of the product's value")),
+        (FIXED, _("Discount is a fixed amount off of the product's value")),
+    )
+    incentive_type = models.CharField(
+        _("Type"), max_length=250, choices=TYPE_CHOICES, blank=True)
     incentive_value = models.DecimalField(max_digits=12, decimal_places=2)
     condition_type = models.CharField(max_length=250)
     condition_value = models.DecimalField(max_digits=12, decimal_places=2)
@@ -24,7 +31,15 @@ class Offer(models.Model):
 class Coupon(models.Model):
     name = models.CharField(max_length=250)
     coupon_code = models.CharField(max_length=250)
-    incentive_type = models.CharField(max_length=250)
+
+    PERCENTAGE, FIXED = ("Percentage", "Absolute")
+    TYPE_CHOICES = (
+        (PERCENTAGE, _("Discount is a percentage off of the product's value")),
+        (FIXED, _("Discount is a fixed amount off of the product's value")),
+    )
+    incentive_type = models.CharField(
+        _("Type"), max_length=250, choices=TYPE_CHOICES, blank=True)
+
     incentive_value = models.DecimalField(max_digits=12, decimal_places=2)
     usage = models.CharField(max_length=250)
     start_datetime = models.DateTimeField('start date')

@@ -269,8 +269,7 @@ class CourseOverview(TimeStampedModel):
         course_overview.self_paced = course.self_paced
         if hasattr(course, 'difficulty_level'):
             course_overview.difficulty_level = course.difficulty_level
-        logging.info(course.new_category)
-        logging.info(type(course.new_category))
+
         if course.new_category and course.new_category != '-':
             category_object = Category.objects.filter(id=int(course.new_category)).first()
             course_overview.new_category = category_object

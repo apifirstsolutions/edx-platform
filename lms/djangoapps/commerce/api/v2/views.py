@@ -33,6 +33,7 @@ from django.apps import apps
 from common.djangoapps.feedback.models import CourseReview
 from rest_framework import status
 
+from common.djangoapps.student.views import create_course_tag
 CourseEnrollment = apps.get_model('student', 'CourseEnrollment')
 
 class CourseListView(ListAPIView):
@@ -140,10 +141,25 @@ class CourseListView(ListAPIView):
                 search_string = search_string.strip()
                 if course.name.lower().find(search_string) > -1: #and course.platform_visibility in ['mobile', 'both', 'Mobile', 'Both', None]:
                     filtered_courses_list.append(course)
-
+            course_tag_type = self.request.query_params.get('coursename').lower()
+            course_tag_list_ids = create_course_tag(course_list, course_tag_type)
+            for tagged_course in course_tag_list_ids:
+                for course_ in course_list:
+                    if str(course_.id) == str(tagged_course) and course_ not in filtered_courses_list:
+                        filtered_courses_list.append(course_)
+            return filtered_courses_list
+        if self.request.query_params.get('course_tag_type', None):
+            filtered_courses_list = []
+            course_list = filtered_courses if len(filtered_courses) > 0 else courses
+            course_tag_type = self.request.query_params.get('course_tag_type').lower()
+            course_tag_list_ids = create_course_tag(course_list, course_tag_type)
+            for tagged_course in course_tag_list_ids:
+                for course_ in course_list:
+                    if str(course_.id) == str(tagged_course) and course_ not in filtered_courses_list:
+                        filtered_courses_list.append(course_)
             return filtered_courses_list
 
-        if not self.request.query_params.get('coursename', None) and not filter:
+        if not self.request.query_params.get('coursename', None) and not filter and not self.request.query_params.get('course_tag_type', None):
             return courses
 
         return filtered_courses
@@ -178,12 +194,10 @@ class WebCourseListView(CourseListView):
     class CourseListPageNumberPagination(LazyPageNumberPagination):
         max_page_size = 100
     authentication_classes = (JwtAuthentication,BearerAuthentication,SessionAuthentication)
-    permission_classes = ((AllowAny,))
+    permission_classes = (AllowAny,)
     serializer_class = WebCourseSerializer
     pagination_class = CourseListPageNumberPagination
-    # filter_class = CourseListFilter
-    # filterset_class = CourseListFilter
-    # filter_backends = [DjangoFilterBackend]
+
 
     def get_queryset(self):
         filtered_courses = []
@@ -211,7 +225,7 @@ class WebCourseListView(CourseListView):
                 if platform == None or platform in request_filters['platform_visibility']:
                     platform_only_courses.append(course)
             else:
-                if platform == None or platform == "both":
+                if platform in [None, "both"]:
                     platform_only_courses.append(course)
         courses = platform_only_courses
 
@@ -430,7 +444,6 @@ def add_voucher_to_basket(request):
         api = ecommerce_api_client(user)
 
         try:
-            logging.info(request.data)
             response = api.apply_voucher_mobile.post(request.data)
 
             if 'status_code' in response and response['status_code'] == 400:
@@ -518,8 +531,6 @@ def get_basket_content_mobile(request,id=None):
         response = api.basket_details.get(id=id)
     else:
         response = api.basket_details_mobile.get()
-        log.info("==============")
-        log.info(response)
     if response['status_code'] == 404:
         return HttpResponseNotFound(response['message'])
     return Response(response)

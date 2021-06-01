@@ -19,9 +19,6 @@ log = logging.getLogger(__name__)
 
 DEFAULT_DATA_API = 'openedx.core.djangoapps.enrollments.data'
 
-
-
-
 def mobile_get_enrollments(username,platform_visibility=None ,include_inactive=False):
     """Retrieves all the courses a user is enrolled in.
 

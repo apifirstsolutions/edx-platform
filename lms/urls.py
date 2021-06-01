@@ -672,12 +672,12 @@ urlpatterns += [
     ),
 
     # Course experience api
-    #url(
-        #r'^api/v1/courses/{}/'.format(
-            #settings.COURSE_ID_PATTERN,
-        #),
-        #include('common.djangoapps.feedback.urls'),
-    #),
+    # url(
+    # r'^api/v1/courses/{}/'.format(
+    # settings.COURSE_ID_PATTERN,
+    # ),
+    # include('common.djangoapps.feedback.urls'),
+    # ),
     url(r'^api/course_reviews/', include('common.djangoapps.feedback.urls')),
 
     # Course bookmarks UI in LMS
@@ -690,7 +690,7 @@ urlpatterns += [
 
     # Calendar Sync UI in LMS
     url(
-        r'^courses/{}/'.format(settings.COURSE_ID_PATTERN,),
+        r'^courses/{}/'.format(settings.COURSE_ID_PATTERN, ),
         include('openedx.features.calendar_sync.urls'),
     ),
 
@@ -1047,13 +1047,20 @@ urlpatterns += [
     url(r'^api/course_experience/', include('openedx.features.course_experience.api.v1.urls')),
 ]
 
-#Banner API
+# LHUB Developed
 urlpatterns += [
     url(r'^api/banner/', include('lms.djangoapps.banner.api.urls')),
-
+    url(r'^analytics_dashboard/', include('lms.djangoapps.analytics_dashboard.urls')),
 ]
-
 #Course Block User API
 urlpatterns += [
     url(r'^/course_block_user/', include('lms.djangoapps.course_block_user.urls')),
 ]
+
+#Course tag api related
+urlpatterns += [
+    url(r'^api/course_tag/', include('lms.djangoapps.course_tag.api.urls')),
+
+]
+
+

@@ -25,7 +25,7 @@ from django.urls import reverse
             % if banner_list:
                 % for y in banner_list:
                         % if loop.index==1:
-                        <div class="item active" >
+                        <div class="item active" style="height:720px">
                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100">
                                 </a>
@@ -34,7 +34,7 @@ from django.urls import reverse
                         </div>
                         </div>
                         % else:
-                        <div class="item">
+                        <div class="item" style="height:720px">
                              <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100">
                              </a>

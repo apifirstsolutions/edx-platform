@@ -289,7 +289,7 @@ class AccountViewSet(ViewSet):
         """
         token_ =  request.META.get('HTTP_AUTHORIZATION')
         if "JWT" in token_:
-            return Response({'username': None})
+            return Response({'username': ""})
         return Response({'username': request.user.username})
 
     def list(self, request):

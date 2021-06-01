@@ -37,8 +37,6 @@ class OfferAdmin(admin.ModelAdmin):
 
 
     def courses_sku(self, obj):
-        # return "\n".join([a.course_sku for a in obj.CourseOverview.all()])
-        # for a in obj.CourseOverview.all():
         pass
 
 
@@ -72,8 +70,6 @@ class CouponAdmin(admin.ModelAdmin):
 
 
     def courses_sku(self, obj):
-        # return "\n".join([a.course_sku for a in obj.CourseOverview.all()])
-        # for a in obj.CourseOverview.all():
         pass
 
 

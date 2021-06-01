@@ -15,11 +15,19 @@ from rest_framework.permissions import IsAuthenticated
 from edx_rest_framework_extensions.paginators import NamespacedPageNumberPagination
 from django.core.paginator import InvalidPage
 from rest_framework.serializers import ValidationError
-from rest_framework.status import HTTP_200_OK, HTTP_500_INTERNAL_SERVER_ERROR
 
-from django.http import Http404
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from openedx.core.lib.api.authentication import BearerAuthentication
+from rest_framework.authentication import SessionAuthentication
+import requests
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+# from ..decorators import mobile_view
+from lms.djangoapps.mobile_api.utils import API_V05, API_V1
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 class LazyPageNumberPagination(NamespacedPageNumberPagination):
@@ -53,6 +61,7 @@ class LazyPageNumberPagination(NamespacedPageNumberPagination):
             raise NotFound(msg)
 
         return super(LazyPageNumberPagination, self).get_paginated_response(data)
+
 
 @view_auth_classes(is_authenticated=True)
 class BannerApi(DeveloperErrorViewMixin, ListAPIView):
@@ -107,20 +116,6 @@ class CustomAPIException(ValidationError):
 API views for Mobile Home page
 """
 
-
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from openedx.core.lib.api.authentication import BearerAuthentication
-from rest_framework.authentication import SessionAuthentication
-import requests
-from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
-from logging import getLogger
-#from ..decorators import mobile_view
-from lms.djangoapps.mobile_api.utils import API_V05, API_V1
-logger = getLogger(__name__)
-
 @api_view(['GET'])
 @authentication_classes((BearerAuthentication, SessionAuthentication, JwtAuthentication))
 @permission_classes([IsAuthenticated])
@@ -134,7 +129,7 @@ def mobile_home_page(request):
     url_list["category"] = '/api/courses/v2/courses/categories/?page=1&page_size=1000'
     url_list['recommended_courses'] = '/api/courses/v2/recommended/courses/?page=1&page_size=10'
     url_list["most_popular"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=enrollments_count'
-    url_list["top_rated_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=-ratings'
+    url_list["top_rated_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=enrollments_count'
     url_list["free_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&sale_type=free'
     headers = {
         'Authorization': bearer_token_from_request
@@ -143,7 +138,7 @@ def mobile_home_page(request):
     response_obj = {"message": "Authentication Failed ", "net_response_chunk": {}, "status": False, "status_code": 401}
     error_flag = True
     response_code_list = []
-    api_version = 'v1' 
+    api_version = 'v1'
     if api_version:
         try:
             for key, api_url in url_list.items():
@@ -182,3 +177,4 @@ def mobile_home_page(request):
     else:
         obj = {"message": "Wrong API version", "net_response_chunk": {}, "status": False, "status_code": 400}
         return Response(obj)
+

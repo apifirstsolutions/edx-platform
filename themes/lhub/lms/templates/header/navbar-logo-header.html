@@ -33,7 +33,7 @@ font-size: 14px;
 margin-top: 20px;
 }
 
-.global-header form.search-foam button.search-btn {
+.global-header div.search-panel button.search-btn {
 padding: 7px 20px;
 font-size: 14px;
 }
@@ -120,7 +120,7 @@ header.global-header .main-header .main .nav-item:last-child a  {
 .global-header .nav-links .secondary .cart-item img {
 	width: 32px;
 }
-.global-header .category-block, .global-header form.search-foam {
+.global-header .category-block, .global-header div.search-panel {
     display: inline;
     float: left;
     margin-top: 35px;
@@ -133,12 +133,12 @@ header.global-header .main-header .main .nav-item:last-child a  {
     margin-top: 15px;
     display: block;
 }
-.global-header form {
+.global-header div.search-panel {
     margin-left: 5%;
     width: 30%;
     position: relative !important;
 }
-.global-header form.search-foam input {
+.global-header div.search-panel input {
     outline: none !important;
     border: none !important;
     font-family: 'Poppins';
@@ -149,29 +149,29 @@ header.global-header .main-header .main .nav-item:last-child a  {
     height: 48px;
     border-radius: 25px;
 }
-.global-header form.search-foam img {
+.global-header div.search-panel img {
     position: absolute;
     width: 18px;
     top: 16px;
     left: 15px;
 }
-.global-header form.search-foam input::placeholder {
+.global-header div.search-panel input::placeholder {
 color: #c0c0c0;
 font-style: normal;
 }
 
-.global-header form.search-foam input button {
+.global-header div.search-panel input button {
 position: absolute;
 }
 
-.global-header form.search-foam input button {
+.global-header div.search-panel input button {
 position: absolute;
 float: left;
 display: block;
 top: 0px;
 }
 
-.global-header form.search-foam button.search-btn {
+.global-header div.search-panel button.search-btn {
 background: #5678a9;
 position: absolute;
 top: 5px;
@@ -200,7 +200,7 @@ align-items: center;
 position: relative;
 width: 100%;
 }
-.global-header .category-block, .global-header form.search-foam {
+.global-header .category-block, .global-header div.search-panel {
 display: block;
 float: left;
 }
@@ -211,7 +211,7 @@ text-align: center;
 padding: 12px 0px;
 }
 
-.global-header form.search-foam {
+.global-header div.search-panel {
 width: 96%;
 position: relative;
 margin: 0px auto !important;
@@ -241,7 +241,7 @@ font-weight: 600 !important;
 background: #18355e !important;
 color: #ffffff !important;
 }
-.global-header form.search-foam input {
+.global-header div.search-panel input {
 outline: none !important;
 border: none !important;
 font-family: 'Poppins';
@@ -253,13 +253,13 @@ height: 48px;
 border-radius: 25px;
 }
 
-.global-header form.search-foam img {
+.global-header div.search-panel img {
 position: absolute;
 width: 18px;
 top: 16px;
 left: 15px;
 }
-.global-header form.search-foam button.search-btn {
+.global-header div.search-panel button.search-btn {
 background: #5678a9;
 position: absolute;
 top: 5px;
@@ -418,20 +418,20 @@ border-radius: 25px;
     </ul>
 </div>
 
-<form class="search-foam">
+<div class="search-panel">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
-  <input type="text" placeholder="Search.." name="search">
+  <input type="text" placeholder="Search.." name="search" class="js-search-input">
   <button class="search-btn" type="">GO</button>
-</form>
+</div>
 %endif
 
 % if "/about" in request.path:
  % if request.user.is_anonymous:
-<form class="search-foam">
+<div class="search-panel">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
   <input type="text" placeholder="Search.." name="search">
   <button class="search-btn" type="">GO</button>
-</form>
+</div>
  %endif
 %endif
 

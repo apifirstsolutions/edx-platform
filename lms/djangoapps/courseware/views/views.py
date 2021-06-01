@@ -143,8 +143,9 @@ from ..entrance_exams import user_can_skip_entrance_exam
 from ..module_render import get_module, get_module_by_usage_id, get_module_for_descriptor
 from commerce.api.v1.models import Course
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
-from lms.djangoapps.banner.models import Banner
 from lms.djangoapps.course_block_user.models import CourseBlockUser
+from lms.djangoapps.banner.models import Banner
+from common.djangoapps.student.views import create_course_tag
 
 log = logging.getLogger("edx.courseware")
 
@@ -275,6 +276,7 @@ def courses(request):
     if difficulty_level_id == "":
         difficulty_level_id = None
     mode = request.GET.get('mode', '')
+    search_input = request.GET.get('search', '')
     # if request.GET.keys()
 
     if mode == "":
@@ -282,6 +284,7 @@ def courses(request):
     category = sub_category = difficulty_level = None
     show_categorized_view = True
     courses_list = []
+    course_list_initial = []
     filter_ = None
     course_discovery_meanings = getattr(settings, 'COURSE_DISCOVERY_MEANINGS', {})
     if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
@@ -297,7 +300,7 @@ def courses(request):
         else:
             filter_ = {'organization': None}
         courses_list = get_courses_with_extra_info(request.user,filter_=filter_)
-
+        course_list_initial = courses_list
         if sort == 'latest':
             courses_list = sort_by_start_date(courses_list)
         elif sort == 'rating':
@@ -325,8 +328,7 @@ def courses(request):
     def filter_courses(course):
         if course.platform_visibility not in ["Web", "Both", None]:
             return False
-        print('===========123123')
-        print(course.new_category_id)
+
         if category and course.new_category_id != category.id:
             return False
 
@@ -343,6 +345,9 @@ def courses(request):
         elif mode == 'discounted' and not course.discount_applicable:
             return False
 
+        if search_input and search_input.lower() not in course.display_name_with_default.lower():
+            return False
+
         return True
 
     courses_list = filter(filter_courses, courses_list)
@@ -356,15 +361,15 @@ def courses(request):
         selected_category_name = category.name
     elif sub_category:
         selected_category_name = '{} - {}'.format(sub_category.category.name, sub_category.name)
-
     banner_list = Banner.objects.filter(platform__in = ['WEB', 'BOTH'], enabled=True)
+    course_tag = create_course_tag(course_list_initial)
 
     if len(request.GET.keys()) ==  0:
 
         show_categorized_view = True
 
     elif len(request.GET.keys()) > 0:
-        if (difficulty_level_id==None) and (sort==None) and (mode==None) and (category_id==None) and (subcategory_id == None):
+        if not (difficulty_level_id or sort or mode or category_id or subcategory_id or search_input):
             show_categorized_view = True
         else:
             show_categorized_view = False
@@ -377,7 +382,6 @@ def courses(request):
     return render_to_response(
         "courseware/courses.html",
         {
-
             'courses': courses_list,
             'course_discovery_meanings': course_discovery_meanings,
             'programs_list': programs_list,
@@ -390,8 +394,8 @@ def courses(request):
             'banner_list': banner_list,
             'show_categorized_view': show_categorized_view,
             'user_industry': user_category,
-        },
-
+            'course_tag': course_tag
+        }
     )
 
 
@@ -1839,7 +1843,6 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
                 }
 
         missed_deadlines, missed_gated_content = dates_banner_should_display(course_key, request.user)
-
         path_ = request.get_full_path()
         next_qry = None
         previous_qry = None
