@@ -4,6 +4,30 @@
 
 <%block name="pagetitle">${name}</%block>
 
+<%block name="js_extra">
+  <script>
+    $(function(){
+      var SUBSCRIBE_TO;
+      $(".subscription-option").change(function(){
+          SUBSCRIBE_TO = $(".subscription-option:checked").val();
+          if (SUBSCRIBE_TO === 'one-time') {
+            $("button#subscribe").html("Buy Now");
+          }
+      });
+
+      $("button#subscribe").click(function(e){
+        e.preventDefault();
+        
+        if (SUBSCRIBE_TO) {
+          console.log("http://localhost:18130/basket/add/?sku=" + SUBSCRIBE_TO);
+          window.location.href = "http://localhost:18130/basket/add/?sku=" + SUBSCRIBE_TO;
+        }
+      });
+    });
+  </script>
+</%block>
+
+
 <style>
   .subscription-block {
     margin: 1em;
@@ -15,11 +39,8 @@
     padding: 0.5em;
     margin: 0.5em 0
   }
-
-  .subscription-course-btn {
-
-  }
 </style>
+
 <main id="main" aria-label="Content" tabindex="-1">
     <section class="container about">
         <div class="subscription-block">
@@ -37,15 +58,13 @@
           <div style="width: 250px;">
             % for option in options:
               <div>
-                <input type="radio" id="${option[0]}" name="options" value="${option[3]}">
+                <input type="radio" id="${option[0]}" name="subscription-option" class="subscription-option" value="${option[3]}">
                 <label for="${option[0]}">$${option[2]} SGD ${option[1]}</label>
               </div>
             % endfor
           </div>
           <div style="flex-grow: 1;">
-            <a href="http://localhost:18130/basket/add/?sku=demo-plan-month">
-              <button>Subscribe</button>
-            </a>
+            <button id="subscribe">Subscribe</button>
           </div>
 
         </div>

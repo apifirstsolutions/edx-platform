@@ -23,11 +23,11 @@ def render_plan_view(request, template, slug):
     options = []
     
     if (plan.price_month is not None):
-        options.append(('month', '/month', plan.price_month, plan.stripe_price_month_id))
+        options.append(('month', '/month', plan.price_month, plan.slug + '-month'))
     if (plan.price_year is not None):
-        options.append(('year', '/year', plan.price_year, plan.stripe_price_year_id))
+        options.append(('year', '/year', plan.price_year, plan.slug + '-year'))
     if (plan.price_onetime is not None):
-        options.append(('one-time', 'one-time pay', plan.price_onetime, None))
+        options.append(('one-time', 'one-time pay', plan.price_onetime, plan.slug + '-one-time'))
 
     try:
         context = {
