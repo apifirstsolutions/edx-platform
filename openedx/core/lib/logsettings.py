@@ -44,8 +44,8 @@ def get_logger_config(log_dir,
                           u'[%(name)s] [user %(userid)s] [ip %(remoteip)s] %(filename)s:%(lineno)d - %(message)s',
                 'datefmt': '%Y-%m-%d %H:%M:%S',
             },
-            'syslog_format': {'format': syslog_format},
-            'raw': {'format': '%(message)s'},
+            'syslog_format': {'format': syslog_format, 'datefmt': '%Y-%m-%d %H:%M:%S',},
+            'raw': {'format': '%(message)s', 'datefmt': '%Y-%m-%d %H:%M:%S',},
         },
         'filters': {
             'require_debug_false': {
