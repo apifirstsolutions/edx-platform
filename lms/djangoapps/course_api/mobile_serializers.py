@@ -31,6 +31,9 @@ class _MediaSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
         """
         return getattr(course_overview, self.uri_attribute)
 
+    class Meta:
+        ref_name = 'course_api.mobile'
+
 
 class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
@@ -43,6 +46,8 @@ class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
     small = AbsoluteURLField()
     large = AbsoluteURLField()
 
+    class Meta:
+        ref_name = 'course_api.mobile'
 
 class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
@@ -51,6 +56,9 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     #course_image = _MediaSerializer(source='*', uri_attribute='course_image_url')
     #course_video = _MediaSerializer(source='*', uri_attribute='course_video_url')
     image = ImageSerializer(source='image_urls')
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
 class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
@@ -79,6 +87,9 @@ class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
 
     # 'course_id' is a deprecated field, please use 'id' instead.
     #course_id = serializers.CharField(source='id', read_only=True)
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
     def get_hidden(self, course_overview):
         """
@@ -128,6 +139,9 @@ class CategorySerializer(serializers.Serializer):  # pylint: disable=abstract-me
     # 'course_id' is a deprecated field, please use 'id' instead.
     #course_id = serializers.CharField(source='id', read_only=True)
 
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     def get_hidden(self, course_overview):
         """
         Get the representation for SerializerMethodField `hidden`
@@ -166,6 +180,9 @@ class CourseDetailSerializer(CourseSerializer):  # pylint: disable=abstract-meth
 
     overview = serializers.SerializerMethodField()
 
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     def get_overview(self, course_overview):
         """
         Get the representation for SerializerMethodField `overview`
@@ -182,3 +199,6 @@ class CourseKeySerializer(serializers.BaseSerializer):  # pylint:disable=abstrac
     """
     def to_representation(self, instance):
         return str(instance)
+
+    class Meta:
+        ref_name = 'course_api.mobile'

@@ -31,6 +31,9 @@ class _MediaSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
         """
         return getattr(course_overview, self.uri_attribute)
 
+    class Meta:
+        ref_name = 'course_api'
+
 
 class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
@@ -43,6 +46,9 @@ class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
     small = AbsoluteURLField()
     large = AbsoluteURLField()
 
+    class Meta:
+        ref_name = 'course_api'
+
 
 class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
@@ -51,7 +57,8 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     course_image = _MediaSerializer(source='*', uri_attribute='course_image_url')
     course_video = _MediaSerializer(source='*', uri_attribute='course_video_url')
     image = ImageSerializer(source='image_urls')
-
+    class Meta:
+        ref_name = 'course_api'
 
 class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
@@ -99,6 +106,9 @@ class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
         ])
         return self.context['request'].build_absolute_uri(base_url)
 
+    class Meta:
+        ref_name = 'course_api'
+
 
 class CourseDetailSerializer(CourseSerializer):  # pylint: disable=abstract-method
     """
@@ -123,6 +133,9 @@ class CourseDetailSerializer(CourseSerializer):  # pylint: disable=abstract-meth
         # from the CourseOverview object in SQL.
         return CourseDetails.fetch_about_attribute(course_overview.id, 'overview')
 
+    class Meta:
+        ref_name = 'course_api'
+
 
 class CourseKeySerializer(serializers.BaseSerializer):  # pylint:disable=abstract-method
     """
@@ -137,3 +150,6 @@ class CourseKeySerializer(serializers.BaseSerializer):  # pylint:disable=abstrac
         monitoring_utils.increment('course_key_serializer_to_representation_call_count')
 
         return str(instance)
+
+    class Meta:
+        ref_name = 'course_api'

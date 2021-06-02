@@ -7,20 +7,24 @@
 <%block name="js_extra">
   <script>
     $(function(){
-      var SUBSCRIBE_TO;
+      var PRODUCT_SKU;
       $(".subscription-option").change(function(){
-          SUBSCRIBE_TO = $(".subscription-option:checked").val();
-          if (SUBSCRIBE_TO === 'one-time') {
+          PRODUCT_SKU = $(".subscription-option:checked").val();
+          
+          if (PRODUCT_SKU.endsWith("-one-time")) {
             $("button#subscribe").html("Buy Now");
+          } else {
+            $("button#subscribe").html("Subscribe");
           }
       });
 
       $("button#subscribe").click(function(e){
         e.preventDefault();
+
+        console.log("http://edx.devstack.lms:18130/basket/add/?sku=" + PRODUCT_SKU);
         
-        if (SUBSCRIBE_TO) {
-          console.log("http://localhost:18130/basket/add/?sku=" + SUBSCRIBE_TO);
-          window.location.href = "http://localhost:18130/basket/add/?sku=" + SUBSCRIBE_TO;
+        if (PRODUCT_SKU) {
+          window.location.href = "http://edx.devstack.lms:18130/basket/add/?sku=" + PRODUCT_SKU;
         }
       });
     });

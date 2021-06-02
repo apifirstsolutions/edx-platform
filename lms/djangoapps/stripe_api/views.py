@@ -111,6 +111,7 @@ def basket_item_count(request):
             response =  api.basket_item_count.get()
             return Response(response)
         except Exception as e:
+            # return Response({"status":False,"status_code":200,"result":{"number_of_item":1},"message":""})
             return Response({'message':e, 'status': False, 'result':{}, 'status_code':400})
 
 @api_view(['POST'])
