@@ -93,12 +93,12 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 //Disable course sale type if already exist or not indexed in discovery
                 if (this.model.get('indexed_in_discovery') && this.model.get('course_sale_type') === null) {
                     this.$el.find('#course-course-sale-type').prop("disabled", false)
-                    this.$el.find('#course-course-price').prop("disabled", false)
                 }
                 else {
                     this.$el.find('#course-course-sale-type').prop("disabled", true)
-                    this.$el.find('#course-course-price').prop("disabled", false)
                 }
+                //Disable course price
+                this.$el.find('#course-course-price').prop("disabled", true)
             },
 
             render: function () {
@@ -403,7 +403,7 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                     this.$el.find('#course-course-price').prop("disabled", true)
                 }
                 else {
-                    this.$el.find('#course-course-price').prop("disabled", false)
+                    this.$el.find('#course-course-price').prop("disabled", true)
                 }
             },
             updateModel: function (event) {

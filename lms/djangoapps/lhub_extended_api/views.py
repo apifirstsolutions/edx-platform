@@ -278,7 +278,8 @@ class LHUBOrderDetailView(APIView):
                     "username": "staff"
                 },
                 "vouchers": [],
-                "payment_method": "1111 Visa",
+                "card_number": "1111",
+                "card_type": "Visa",
                 "order_date": "Apr 14, 2021",
                 "receipt_url": "http://localhost:18130/checkout/receipt/?order_number=EDX-100002",
                 "items_total": "149.00",

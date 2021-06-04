@@ -3,6 +3,7 @@ Course API Serializers.  Representing course catalog data
 """
 
 
+from lms.djangoapps.lhub_ecommerce_offer.models import Coupon
 import six.moves.urllib.error
 import six.moves.urllib.parse
 import six.moves.urllib.request
@@ -52,6 +53,37 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     #course_video = _MediaSerializer(source='*', uri_attribute='course_video_url')
     image = ImageSerializer(source='image_urls')
 
+class AvailableVouchersSerializer(serializers.ModelSerializer):
+    """ AvailableVouchers serializer. """
+    name = serializers.CharField()
+    code = serializers.CharField(source="coupon_code")
+    discount_type = serializers.CharField(source="incentive_type")
+    discount_value = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        source="incentive_value"
+    )
+    allow_combine = serializers.BooleanField(source="is_exclusive")
+
+    def get_identity(self, data):
+        try:
+            return data.get('name', None)
+        except AttributeError:
+            return None
+
+    class Meta(object):
+        model = Coupon
+        fields = (
+            'name',
+            'code',
+            'discount_type',
+            'discount_value',
+            'allow_combine',
+        )
+        # For disambiguating within the drf-yasg swagger schema
+        ref_name = 'lms.Coupon'
+
+
 class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
     Serializer for Course objects providing minimal data about the course.
@@ -76,6 +108,9 @@ class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     #mobile_available = serializers.BooleanField()
     #hidden = serializers.SerializerMethodField()
     #invitation_only = serializers.BooleanField()
+    discount_type = serializers.CharField(required=False)
+    voucher_applicable = serializers.BooleanField(required=False)
+    available_vouchers = AvailableVouchersSerializer(required=False, many=True)
 
     # 'course_id' is a deprecated field, please use 'id' instead.
     #course_id = serializers.CharField(source='id', read_only=True)

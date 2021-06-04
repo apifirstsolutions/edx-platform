@@ -172,21 +172,30 @@ def index(request, extra_context=None, user=AnonymousUser()):
         search_engine = SearchEngine.get_search_engine(index="home_search")
         key_word = str(request.GET.get('search_'))
         key_obj = []
+
+        tag = None
         course_tag = CourseTag.objects.all()
         for x in course_tag:
-            if key_word in str(x.display_name):
-                print("key_obj000000000000000000000000000------------------->>>>>>>", x.crs_ovr_view.id)
+
+            if key_word in str(x.course_tag_type.display_name):
+                tag = x.course_tag_type.display_name
                 doc_string = {
-                    "course_id": str(x.crs_ovr_view.id),
-                    "course_tag": str(x.crs_ovr_view__display_name_with_default)
+                    "course_id": str(x.course_over_view.id),
+                    "course_tag": str(x.course_tag_type.display_name)
                 }
                 search_result = search_engine.search(field_dictionary=doc_string)
                 if search_result and int(search_result['total']):
-                    key_obj.append(str(x.crs_ovr_view.id)) if str(x.crs_ovr_view.id) not in key_obj else None
+                    key_obj.append(tag) if tag not in key_obj else None
                 else:
                     search_engine.index("home", [doc_string])
                     log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj.append(str(x.crs_ovr_view.id)) if str(x.crs_ovr_view.id) not in key_obj else None
+                    key_obj.append(tag) if tag not in key_obj else None
+        courses_ = key_obj
+
+        if courses_:
+            context = {'courses': courses_, 'course_tag':True}
+            return JsonResponse(context, status=200)
+
 
 
         for crs in courses:
@@ -210,7 +219,9 @@ def index(request, extra_context=None, user=AnonymousUser()):
                     search_engine.index("home", [doc_string])
                     log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
                     key_obj.append(str(crs.id)) if str(crs.id) not in key_obj else None
-                courses_ = key_obj
+
+        courses_ = key_obj
+
         context= {'courses': courses_}
         return JsonResponse(context, status=200)
 
@@ -255,6 +266,29 @@ def index(request, extra_context=None, user=AnonymousUser()):
     # Add marketable programs to the context.
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
     print("REACHED ==================", context)
+
+
+    search_engine = SearchEngine.get_search_engine(index="home_search")
+    search_result_ = search_engine.search()
+
+    total_results = []
+    result = []
+    seen = set()
+    for x in search_result_['results']:
+        if 'name' not in x['data'].keys():
+            total_results.append(x['data'])
+
+    for x in total_results:
+        t = tuple(x.items())
+        if t not in seen:
+            seen.add(t)
+            result.append(x)
+
+
+    context['search_top'] = result
+
+    print("REACHED ==================", context)
+
 
     return render_to_response('index.html', context)
 

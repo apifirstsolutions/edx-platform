@@ -291,7 +291,7 @@ $(document).ready(function() {
     var currency = 'S$'
     var two_decimal_price = append_decimal_point(cart_total)
     var total = currency.concat(two_decimal_price)
-    var tax = two_decimal_price * tax_percent/100
+    var tax = two_decimal_price * (tax_percent/100)
     var tax = tax.toFixed(2)
     var updated_cart_total = ((+two_decimal_price) + (+tax)).toFixed(2)
     var updated_cart_total = currency.concat(updated_cart_total)
@@ -357,9 +357,10 @@ $(document).ready(function() {
     course_price = response['result']['result'][i]['price']
     course_discounted_price = response['result']['result'][i]['discounted_price']
     course_discount_percentage = response['result']['result'][i]['discount_percentage']
+    course_discount_type = response['result']['result'][i]['discount_type']
+    
 
-
-
+    
     var course = `<li class="courses-listing-item">
     <article class="course" id="`+course_id+`" role="region" aria-label="`+course_name+`">
     <a href="/courses/`+course_id+`/about">
@@ -382,10 +383,17 @@ $(document).ready(function() {
     <ul>`
     if (course_discount_applicable == true)
     {
-
+    if (course_discount_type == 'Percentage')
+    {
     course +=`<li>Discount Percentage: <span class="main_price-percentage">`+course_discount_percentage+`%</span></li>
     <li>Price: <span class="main_price_cut">S$`+course_price+`</span></li>
     <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
+    }
+    else{
+        course +=`<li>Discount: <span class="main_price-percentage">`+course_discount_percentage+`</span></li>
+    <li>Price: <span class="main_price_cut">S$`+course_price+`</span></li>
+    <li>Discounted Price: <span class="main_price">S$`+course_discounted_price+`</span></li>`
+    }
     }
     else if (course_discount_applicable == false && course_price > 0 )
     {
@@ -400,8 +408,30 @@ $(document).ready(function() {
 
     course +=`
     </ul>
-    </div>
-    </h2>
+    </div>`
+
+           available_vouchers = response['result']['result'][i]['available_vouchers']
+
+           if (available_vouchers.length > 0)
+                {
+                   course+=`<div class="coupon_details">` 
+                  for (var j=0; j < available_vouchers.length; j++)
+                  {  
+                        if (available_vouchers[j]["incentive_type"] == 'Absolute')
+                        {
+                    
+                           course+= `<p><span class="coupen_code_value"><i class="fa fa-check"></i>`+ available_vouchers[j]["coupon_code"] +` -S$` + available_vouchers[j]["incentive_value"]+`</span></p>`
+                        }
+                        else
+                        {    
+
+                         course+=   `<p><span class="coupen_code_value"><i class="fa fa-check"></i>` +available_vouchers[j]["coupon_code"]+ ` -`+available_vouchers[j]["incentive_value"]+`%</span></p>`
+                        }    
+                    }
+            course+=`</div>`
+        }
+
+        course+=`</h2>
     <div class="course-date localized_datetime" aria-hidden="true" data-format="shortDate" data-datetime="2013-02-05T05:00:00+0000" data-language="en" data-string="Starts: {date}">Starts: `+course_start+`</div>
     </div>
     </a>

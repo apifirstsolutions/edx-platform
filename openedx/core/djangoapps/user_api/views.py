@@ -199,6 +199,5 @@ def get_ephemeral_key(request):
         if 'result' in res.keys():
             return Response(res['result'])
         else:
-            logging.info('=====view 404 =====')
             raise Http404("Customer with this id do not exist")        
 
