@@ -47,7 +47,7 @@ from common.djangoapps.student.models import (
 )
 from common.djangoapps.student.roles import REGISTERED_ACCESS_ROLES
 from xmodule.modulestore.django import modulestore
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 
 User = get_user_model()  # pylint:disable=invalid-name
 

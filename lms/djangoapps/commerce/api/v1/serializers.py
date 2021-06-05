@@ -112,6 +112,9 @@ class _MediaSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     Nested serializer to represent a media object.
     """
 
+    class Meta:
+        ref_name = 'commerce.api.v1'
+
     def __init__(self, uri_attribute, *args, **kwargs):
         super(_MediaSerializer, self).__init__(*args, **kwargs)
         self.uri_attribute = uri_attribute
@@ -131,6 +134,10 @@ class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
     The URLs will be absolute URLs with the host set to the host of the current request. If the values to be
     serialized are already absolute URLs, they will be unchanged.
     """
+
+    class Meta:
+        ref_name = 'commerce.api.v1'
+
     raw = AbsoluteURLField()
     small = AbsoluteURLField()
     large = AbsoluteURLField()
@@ -140,6 +147,9 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     """
     Nested serializer to represent a collection of media objects
     """
+    class Meta:
+        ref_name = 'commerce.v1'
+
     #course_image = _MediaSerializer(source='*', uri_attribute='course_image_url')
     #course_video = _MediaSerializer(source='*', uri_attribute='course_video_url')
     image = ImageSerializer(source='image_urls')

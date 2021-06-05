@@ -27,8 +27,8 @@ from .mobile_serializers import CourseDetailSerializer, CourseKeySerializer, Cou
 from openedx.core.djangoapps.content.course_overviews.models import Category, SubCategory, CourseOverview
 from openedx.core.lib.api.view_utils import LazySequence
 import importlib
-custom_reg_form = importlib.import_module('lms.djangoapps.custom-form-app', 'custom_reg_form')
-from custom_reg_form.models import UserExtraInfo
+# custom_reg_form = importlib.import_module('lms.djangoapps.custom-form-app', 'custom_reg_form')
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 from django.db.models import Count, F, Q
 #from itertools import chain
 #from django.forms.models import model_to_dict
