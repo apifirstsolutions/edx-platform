@@ -69,7 +69,7 @@ PLATFORM_TWITTER_ACCOUNT = "@YourPlatformTwitterAccount"
 
 ENABLE_JASMINE = False
 
-LMS_ROOT_URL = 'https://localhost:18000'
+LMS_ROOT_URL = 'https://edx.devstack.lms:18000'
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 LMS_ENROLLMENT_API_PATH = "/api/enrollment/v1/"
 
@@ -2790,6 +2790,9 @@ INSTALLED_APPS = [
 
     # Analytics Dashboard
     'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig',
+
+    # custom-reg-form
+    'lms.djangoapps.custom_form_app.custom_reg_form',
 ]
 
 ######################### CSRF #########################################
@@ -3589,8 +3592,8 @@ SOCIAL_PLATFORMS = {
 }
 
 # E-Commerce API Configuration
-ECOMMERCE_PUBLIC_URL_ROOT = 'http://localhost:8002'
-ECOMMERCE_API_URL = 'http://localhost:8002/api/v2'
+ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
+ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
 ECOMMERCE_API_TIMEOUT = 5
 ECOMMERCE_SERVICE_WORKER_USERNAME = 'ecommerce_worker'
 ECOMMERCE_API_SIGNING_KEY = 'SET-ME-PLEASE'

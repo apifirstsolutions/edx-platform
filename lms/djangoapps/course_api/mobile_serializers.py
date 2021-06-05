@@ -20,6 +20,9 @@ class _MediaSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     Nested serializer to represent a media object.
     """
 
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     def __init__(self, uri_attribute, *args, **kwargs):
         super(_MediaSerializer, self).__init__(*args, **kwargs)
         self.uri_attribute = uri_attribute
@@ -40,6 +43,10 @@ class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
     The URLs will be absolute URLs with the host set to the host of the current request. If the values to be
     serialized are already absolute URLs, they will be unchanged.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     raw = AbsoluteURLField()
     small = AbsoluteURLField()
     large = AbsoluteURLField()
@@ -49,6 +56,10 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     """
     Nested serializer to represent a collection of media objects
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
+        
     #course_image = _MediaSerializer(source='*', uri_attribute='course_image_url')
     #course_video = _MediaSerializer(source='*', uri_attribute='course_video_url')
     image = ImageSerializer(source='image_urls')
@@ -89,6 +100,9 @@ class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     Serializer for Course objects providing minimal data about the course.
     Compare this with CourseDetailSerializer.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
     #blocks_url = serializers.SerializerMethodField()
     #effort = serializers.CharField()
@@ -139,6 +153,9 @@ class CategorySerializer(serializers.Serializer):  # pylint: disable=abstract-me
     Serializer for Course objects providing minimal data about the course.
     Compare this with CourseDetailSerializer.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
     #blocks_url = serializers.SerializerMethodField()
     #effort = serializers.CharField()
@@ -199,6 +216,9 @@ class CourseDetailSerializer(CourseSerializer):  # pylint: disable=abstract-meth
     courses.
     """
 
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     overview = serializers.SerializerMethodField()
 
     def get_overview(self, course_overview):
@@ -215,5 +235,8 @@ class CourseKeySerializer(serializers.BaseSerializer):  # pylint:disable=abstrac
     """
     Serializer that takes a CourseKey and serializes it to a string course_id.
     """
+    class Meta:
+        ref_name = 'course_api.mobile'
+        
     def to_representation(self, instance):
         return str(instance)
