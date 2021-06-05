@@ -1063,4 +1063,8 @@ urlpatterns += [
 
 ]
 
-
+# Bundles and Subscriptions Endpoints
+urlpatterns += [
+    url(r'^api/subscriptions/', include('lms.djangoapps.subscriptions.urls.api')),
+    url(r'', include('lms.djangoapps.subscriptions.urls.ui')),
+]

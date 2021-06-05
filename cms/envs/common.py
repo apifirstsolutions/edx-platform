@@ -2093,7 +2093,7 @@ COURSE_EXPORT_DOWNLOAD_CHUNK_SIZE = 8192
 # E-Commerce API Configuration
 ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
 ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
-ECOMMERCE_API_SIGNING_KEY = 'SET-ME-PLEASE'
+ECOMMERCE_API_SIGNING_KEY = 'lms-secret'
 
 CREDENTIALS_INTERNAL_SERVICE_URL = 'http://edx.devstack.lms:8005'
 CREDENTIALS_PUBLIC_SERVICE_URL = 'http://edx.devstack.lms:8005'

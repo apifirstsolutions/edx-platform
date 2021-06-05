@@ -2591,9 +2591,6 @@ INSTALLED_APPS = [
     # for Stripe API for mobile client
     'lms.djangoapps.stripe_api',
 
-    # for HTML editor.
-    'ckeditor',
-
     # Enrollment API
     'openedx.core.djangoapps.enrollments',
 
@@ -2793,6 +2790,9 @@ INSTALLED_APPS = [
 
     # custom-reg-form
     'lms.djangoapps.custom_form_app.custom_reg_form',
+
+    # Subscriptions
+    'lms.djangoapps.subscriptions',
 ]
 
 ######################### CSRF #########################################
@@ -4228,3 +4228,11 @@ CKEDITOR_CONFIGS = {
         ]
     },
 }
+
+
+################# Settings for Subscription Djangoapp #####################
+# TODO - set in environment variables
+# STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
+STRIPE_API_KEY = 'sk_test_51ImkrKLnVbKEJoRBPa9I535It7zilmbFbzAIskjh4HYfsgkDufMw34FV55e6sJLi1IV4F993ugrH1BiJYQomUR5t009RDvIRZI' 
+STRIPE_CURRENCY = 'SGD'
+STRIPE_WEBHOOK_SECRET_KEY = os.environ.get("STRIPE_WEBHOOK_SECRET_KEY")

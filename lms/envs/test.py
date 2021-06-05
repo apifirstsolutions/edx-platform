@@ -497,8 +497,8 @@ FRONTEND_REGISTER_URL = '/register'
 # Programs Learner Portal URL
 LEARNER_PORTAL_URL_ROOT = 'http://localhost:8734'
 
-ECOMMERCE_API_URL = 'https://ecommerce.example.com/api/v2/'
-ECOMMERCE_PUBLIC_URL_ROOT = None
+ECOMMERCE_API_URL = 'https://edx.devstack.lms:18130/api/v2/'
+ECOMMERCE_PUBLIC_URL_ROOT = 'https://edx.devstack.lms:18130'
 ENTERPRISE_API_URL = 'http://enterprise.example.com/enterprise/api/v1/'
 ENTERPRISE_CONSENT_API_URL = 'http://enterprise.example.com/consent/api/v1/'
 
