@@ -306,7 +306,7 @@ arrow==1.0.3
 django-ckeditor==6.0.0
 django-fs-trumbowyg==0.1.4
 pdfkit==0.6.1
-stripe==2.5.0
+stripe==2.56.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
