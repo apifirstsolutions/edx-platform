@@ -20,7 +20,7 @@ DEFAULT_TEMPLATE_ENGINE['OPTIONS']['debug'] = DEBUG
 SITE_NAME = 'localhost:8001'
 HTTPS = 'off'
 
-CMS_BASE = 'localhost:18010'
+CMS_BASE = 'edx.devstack.lms:18010'
 
 ################################ LOGGERS ######################################
 
@@ -43,7 +43,7 @@ EMAIL_FILE_PATH = '/edx/src/ace_messages/'
 
 ################################# LMS INTEGRATION #############################
 
-LMS_BASE = 'localhost:18000'
+LMS_BASE = 'edx.devstack.lms:18000'
 LMS_ROOT_URL = 'http://{}'.format(LMS_BASE)
 FEATURES['PREVIEW_LMS_BASE'] = "preview." + LMS_BASE
 
@@ -152,10 +152,10 @@ FEATURES['CERTIFICATES_HTML_VIEW'] = True
 FEATURES['ENABLE_CREATOR_GROUP'] = False
 
 ################### FRONTEND APPLICATION PUBLISHER URL ###################
-FEATURES['FRONTEND_APP_PUBLISHER_URL'] = 'http://localhost:18400'
+FEATURES['FRONTEND_APP_PUBLISHER_URL'] = 'http://edx.devstack.lms:18400'
 
 ################### FRONTEND APPLICATION LIBRARY AUTHORING ###################
-LIBRARY_AUTHORING_MICROFRONTEND_URL = 'http://localhost:3001'
+LIBRARY_AUTHORING_MICROFRONTEND_URL = 'http://edx.devstack.lms:3001'
 
 ################################# DJANGO-REQUIRE ###############################
 
@@ -198,8 +198,8 @@ JWT_AUTH.update({
 # pylint: enable=unicode-format-string
 
 IDA_LOGOUT_URI_LIST = [
-    'http://localhost:18130/logout/',  # ecommerce
-    'http://localhost:18150/logout/',  # credentials
+    'http://edx.devstack.lms:18130/logout/',  # ecommerce
+    'http://edx.devstack.lms:18150/logout/',  # credentials
 ]
 
 ############################### BLOCKSTORE #####################################
@@ -245,3 +245,6 @@ COMPREHENSIVE_THEME_DIRS = [
 ]
 TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
 derive_settings(__name__)
+
+############
+DISCOVERY_ROOT_URL = 'http://edx.devstack.lms:18381'
