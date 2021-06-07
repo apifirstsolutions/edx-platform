@@ -7,7 +7,7 @@ import json
 import logging
 from collections import OrderedDict, namedtuple
 from datetime import datetime
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 import bleach
 import requests
 import six

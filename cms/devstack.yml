@@ -215,8 +215,8 @@ DOC_STORE_CONFIG:
     ssl: false
     user: edxapp
 ECOMMERCE_API_SIGNING_KEY: lms-secret
-ECOMMERCE_API_URL: http://localhost:8002/api/v2
-ECOMMERCE_PUBLIC_URL_ROOT: http://localhost:8002
+ECOMMERCE_API_URL: http://edx.devstack.lms:18130/api/v2
+ECOMMERCE_PUBLIC_URL_ROOT: http://edx.devstack.lms:18130
 EDXMKTG_USER_INFO_COOKIE_NAME: edx-user-info
 EDX_PLATFORM_REVISION: master
 ELASTIC_SEARCH_CONFIG:

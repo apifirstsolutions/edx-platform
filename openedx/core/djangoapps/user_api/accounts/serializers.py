@@ -23,8 +23,7 @@ from openedx.core.djangoapps.user_api.models import RetirementState, UserPrefere
 from openedx.core.djangoapps.user_api.serializers import ReadOnlyFieldsSerializerMixin
 from common.djangoapps.student.models import LanguageProficiency, SocialLink, UserProfile
 import importlib
-custom_reg_form = importlib.import_module('lms.djangoapps.custom-form-app', 'custom_reg_form')
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 from openedx.core.djangoapps.content.course_overviews.models import Category
 
 from . import (

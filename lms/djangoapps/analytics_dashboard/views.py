@@ -36,7 +36,7 @@ from django.contrib.auth.models import User
 from common.djangoapps.student.models import UserProfile, CourseEnrollmentManager
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview, Category, SubCategory
 from common.djangoapps.student.models import CourseEnrollment, CourseAccessRole
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 from logging import getLogger
 log = getLogger(__name__)
 
