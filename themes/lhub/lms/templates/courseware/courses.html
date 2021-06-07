@@ -101,6 +101,19 @@
         </div>
         % endif
 
+          <div class="row" id="topSearch">
+              <h2 class="card-slider-title" style="">Top Search</h2>
+     % if search_top:
+        %for x in search_top:
+            % if 'course_tag' in x:
+                <button class="btn btn-primary" onclick=searchCourse(true) value="${x['course_tag']}" style="margin-right:80px; margin-top:20px;">${x['course_tag']}</button>
+            %else:
+                <button class="btn btn-primary" onclick=searchCourse(false) value="${x['course_id']}" style="margin-right:80px; margin-top:20px;">${x['course_name']}</button>
+            %endif
+        %endfor
+    %endif
+</div>
+%if user.is_authenticated:
 <div class="carousel">
    <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <!-- Indicators -->
@@ -154,6 +167,7 @@
 
   </div>
 </div>
+%endif
         % if course_discovery_enabled:
         <div id="discovery-form" role="search" aria-label="course" class="wrapper-search-context">
           <div id="discovery-message" class="search-status-label"></div>
@@ -177,15 +191,18 @@
         % endif
         %if show_categorized_view == False:
         <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
-
+             <div class="loader-sec" id = "course_tag_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
 
             ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
+
               % if course_tag:
                   %for key in course_tag:
                     %for val  in key.items():
                       % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
                           % if loop.index == 0 :
-                           <ul class="courses-listing" style="margin: 0 0 3px 0;">
+                           <ul class="courses-listing ${val[0]}" style="margin: 0 0 3px 0;">
                                <li class="courses-listing-item" >
                                    <h3>${val[0]}</h3>
                                    <%include file="../course.html" args="course=tag" />

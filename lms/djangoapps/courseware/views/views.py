@@ -146,9 +146,9 @@ from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from lms.djangoapps.course_block_user.models import CourseBlockUser
 from lms.djangoapps.banner.models import Banner
 from common.djangoapps.student.views import create_course_tag
-
+import copy
 log = logging.getLogger("edx.courseware")
-
+from search.search_engine_base import SearchEngine
 
 # Only display the requirements on learner dashboard for
 # credit and verified modes.
@@ -276,7 +276,7 @@ def courses(request):
     if difficulty_level_id == "":
         difficulty_level_id = None
     mode = request.GET.get('mode', '')
-    search_input = request.GET.get('search', '')
+    # search_input = request.GET.get('search', '')
     # if request.GET.keys()
 
     if mode == "":
@@ -285,6 +285,7 @@ def courses(request):
     show_categorized_view = True
     courses_list = []
     course_list_initial = []
+    courses_list_initial_filtered = []
     filter_ = None
     course_discovery_meanings = getattr(settings, 'COURSE_DISCOVERY_MEANINGS', {})
     if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
@@ -345,12 +346,16 @@ def courses(request):
         elif mode == 'discounted' and not course.discount_applicable:
             return False
 
-        if search_input and search_input.lower() not in course.display_name_with_default.lower():
-            return False
+        # if search_input and search_input.lower() not in course.display_name_with_default.lower():
+        #     return False
 
         return True
 
     courses_list = filter(filter_courses, courses_list)
+    if sort or mode or difficulty_level_id or subcategory_id or category_id :
+        courses_list_ = copy.deepcopy(courses_list)
+    else:
+        courses_list_ = course_list_initial
     categories = Category.objects\
         .prefetch_related(Prefetch('subcategories', queryset=SubCategory.objects.order_by('name')))\
                           .order_by('name')
@@ -362,7 +367,13 @@ def courses(request):
     elif sub_category:
         selected_category_name = '{} - {}'.format(sub_category.category.name, sub_category.name)
     banner_list = Banner.objects.filter(platform__in = ['WEB', 'BOTH'], enabled=True)
-    course_tag = create_course_tag(course_list_initial)
+    for x in courses_list_:
+        courses_list_initial_filtered.append(x)
+
+    if len(courses_list_initial_filtered)==len(course_list_initial):
+        course_tag = create_course_tag(course_list_initial)
+    else:
+        course_tag = create_course_tag(courses_list_initial_filtered)
 
     if len(request.GET.keys()) ==  0:
 
@@ -377,6 +388,23 @@ def courses(request):
         show_categorized_view = False
     user_category = None
     user_extra_info = UserExtraInfo.objects.filter(user_id=request.user.id).first()
+
+    search_engine = SearchEngine.get_search_engine(index="home_search")
+    search_result_ = search_engine.search()
+
+    total_results = []
+    result = []
+    seen = set()
+    for x in search_result_['results']:
+        if 'name' not in x['data'].keys():
+            total_results.append(x['data'])
+
+    for x in total_results:
+        t = tuple(x.items())
+        if t not in seen:
+            seen.add(t)
+            result.append(x)
+    search_top = result
     if hasattr(user_extra_info, 'industry_id'):
         user_category = Category.objects.filter(id=user_extra_info.industry_id).first().id
     return render_to_response(
@@ -394,7 +422,8 @@ def courses(request):
             'banner_list': banner_list,
             'show_categorized_view': show_categorized_view,
             'user_industry': user_category,
-            'course_tag': course_tag
+            'course_tag': course_tag,
+            'search_top':search_top
         }
     )
 

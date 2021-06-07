@@ -149,29 +149,29 @@ header.global-header .main-header .main .nav-item:last-child a  {
     height: 48px;
     border-radius: 25px;
 }
-.global-header div.search-panel img {
+.global-header form.search-foam img {
     position: absolute;
     width: 18px;
     top: 16px;
     left: 15px;
 }
-.global-header div.search-panel input::placeholder {
+.global-header form.search-foam input::placeholder {
 color: #c0c0c0;
 font-style: normal;
 }
 
-.global-header div.search-panel input button {
+.global-header form.search-foam input button {
 position: absolute;
 }
 
-.global-header div.search-panel input button {
+.global-header form.search-foam input button {
 position: absolute;
 float: left;
 display: block;
 top: 0px;
 }
 
-.global-header div.search-panel button.search-btn {
+.global-header form.search-foam button.search-btn {
 background: #5678a9;
 position: absolute;
 top: 5px;
@@ -194,13 +194,12 @@ outline: none !important;
 border: none !important;
 }
 .global-header .main-header {
-/*height: 165px;*/
-display: flex;
-align-items: center;
+height: 165px;
+display: block;
 position: relative;
 width: 100%;
 }
-.global-header .category-block, .global-header div.search-panel {
+.global-header .category-block, .global-header form.search-foam {
 display: block;
 float: left;
 }
@@ -211,7 +210,7 @@ text-align: center;
 padding: 12px 0px;
 }
 
-.global-header div.search-panel {
+.global-header form.search-foam {
 width: 96%;
 position: relative;
 margin: 0px auto !important;
@@ -241,7 +240,7 @@ font-weight: 600 !important;
 background: #18355e !important;
 color: #ffffff !important;
 }
-.global-header div.search-panel input {
+.global-header form.search-foam input {
 outline: none !important;
 border: none !important;
 font-family: 'Poppins';
@@ -253,13 +252,13 @@ height: 48px;
 border-radius: 25px;
 }
 
-.global-header div.search-panel img {
+.global-header form.search-foam img {
 position: absolute;
 width: 18px;
 top: 16px;
 left: 15px;
 }
-.global-header div.search-panel button.search-btn {
+.global-header form.search-foam button.search-btn {
 background: #5678a9;
 position: absolute;
 top: 5px;
@@ -269,105 +268,6 @@ font-weight: 600;
 border: none;
 border-radius: 25px;
 }
-}
-
-.global-header {
-    overflow: visible !important;
-}
-
-.global-header:after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-.category-block {
-    position: relative;
-    width: 300px;
-}
-
-.category-block .category-item span {
-    display: block;
-    font-size: 12px;
-}
-
-.category-block .nav-categories {
-    list-style:none;
-    position: absolute;
-    left: 20px;
-    top: 100%;
-    width: 300px;
-    background: #fff;
-    margin: 0;
-    padding: 0;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
-    z-index: 100;
-    display: block;
-    visibility: hidden;
-    opacity: 0;
-    transform: translateY(-5px);
-    transition: opacity 0.1s linear, transform 0.15s linear, visibility 0s linear 0.25s;
-}
-
-.category-block:hover .nav-categories {
-    visibility: visible;
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.25s linear, transform 0.15s linear, visibility 0s linear 0s;
-}
-
-.category-block .nav-categories li {
-    color: #000;
-    position: relative;
-    padding: 7px 15px;
-    cursor: pointer;
-}
-
-.category-block .nav-categories li.has-child:before {
-    content: "\f054";
-    font-family: FontAwesome;
-    color: #000;
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 10px;
-}
-
-.category-block .nav-categories li:hover {
-    background: rgba(26, 52, 92, .1);
-}
-
-.category-block .nav-categories li ul {
-    list-style: none;
-    position: absolute;
-    left: 100%;
-    top: 0;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
-    background: #fff;
-    margin: 0;
-    padding: 0;
-    width: 300px;
-    display: block;
-    visibility: hidden;
-    opacity: 0;
-    transform: translateY(-5px);
-    transition: opacity 0.1s linear, transform 0.15s linear, visibility 0s linear 0.25s;
-}
-
-.category-block .nav-categories li ul li {
-    cursor: pointer;
-}
-
-.category-block .nav-categories li ul li:hover {
-    background: rgba(26, 52, 92, .1);
-}
-
-.category-block .nav-categories li:hover > ul {
-    visibility: visible !important;
-    opacity: 1 !important;
-    transform: translateX(0) !important;
-    transition: opacity 0.25s linear, transform 0.15s linear, visibility 0s linear 0s;
 }
 </style>
 
@@ -397,8 +297,7 @@ border-radius: 25px;
     </div>
   % endif
 </h1>
-
-% if request.path in ["/", "/courses", "/courses/"]:
+% if request.path == "/" or request.path == "/courses" or request.path == "/courses/":
 <div class="category-block">
     <a class="category-item" href="">${_("Categories")} <span>${selected_category_name}</span></a>
     <ul class="nav-categories">
@@ -418,12 +317,12 @@ border-radius: 25px;
     </ul>
 </div>
 
-<div class="search-panel">
+<form class="search-foam">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
 
   <input type="text" placeholder="Search..here" name="search" id="search">
      <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
-  <button class="search-btn" type="button" id="go">GO</button>
+  <button class="search-btn"  id="go">GO</button>
 </form>
 
 %endif
@@ -431,7 +330,7 @@ border-radius: 25px;
 
 % if "/about" in request.path:
  % if request.user.is_anonymous:
-<div class="search-panel">
+<form class="search-foam">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
   <input type="text" placeholder="Search.." name="search">
 
@@ -453,42 +352,112 @@ border-radius: 25px;
 % endif
 
 <script >
+var oldKey = null;
 $(document).ready(function() {
-$('.course1').hide();
-      $('#search').keydown(function(e){
+   $('#topSearch').css("display", "None");
+      $('#go').click(function(e){
+            e.preventDefault();
             let keyWord = $('#search').val();
-                    if(keyWord && keyWord.length>=3 && e.which != 8){
+                    if(keyWord && oldKey!=keyWord && keyWord.length>=3 && e.which != 8){
+                       oldKey = keyWord;
+                       $("#course_tag_loader").css("display", "");
                        $.ajax({
                         url: '/?search_='+keyWord,
                         type:"GET",
                         contentType: "application/json",
                         success: function(data) {
-                            console.log('success',data['courses']);
-                            $("article").each(function() {
-                                $(this).parent('li').show();
-                            });
+                            $("#course_tag_loader").css("display", "None");
+                           $('#topSearch').css("display", "");
+                            console.log("Entering", data);
+                            showAll();
+                            if(!data['course_tag']){
                              $("article").each(function() {
                                 let targetClass = $(this).attr('class');
                                 targetClass=targetClass.split(" ");
                                 if (targetClass.length >1 && data['courses'].includes(targetClass[1])) {
+
                                     $(this).show();
                                 }
                                 else{
-                                console.log($(this).parent('li').find('h3').val());
+                                console.log('Deleting this '+$(this).parent('li').find('h3').val());
                                     $(this).parent('li').hide();
                                 }
                             });
+                            }else{
+                                $(".courses-listing").each(function() {
+                                    let targetClass = $(this).attr('class');
+                                    targetClass?targetClass=targetClass.split("courses-listing "):targetClass=null;
+                                    if (targetClass && targetClass.length >1 && data['courses'] == targetClass[1]) {
+                                        //createElement(null, targetClass[1]);
+                                        $(this).show();
+                                    }
+                                    else{
+                                        $(this).hide();
+                                    }
+                                });
+                            }
 
                         },
                         error: function(data) {console.log("EEROR", data);
+                         $("#course_tag_loader").css("display", "None");
+                         //$('#topSearch').css("display", "");
                          },
                         });
                     }
                     else{
-                        $("article").each(function() {
-                                $(this).parent('li').show();
-                            });
+                        showAll();
                     }
-        });
+    });
+
+$('#search').keydown(function(e){
+    e.which == 8?showAll():null;
+});
+
+showAll = () => {
+            $("#myCarousel").hide();
+            $("article").each(function() {
+                $(this).parent('li').show();
+            });
+
+            $(".courses-listing").each(function() {
+                $(this).show();
+            });
+}
+
+searchCourse = (flag) => { showAll(); if(flag){
+                    let classCheck = $(this)[0]['activeElement'].innerHTML;
+                        $(".courses-listing").each(function() {
+                                    let targetClass = $(this).attr('class');
+                                    targetClass?targetClass=targetClass.split("courses-listing "):targetClass=null;
+                                    if (targetClass && targetClass.length >1 && classCheck == targetClass[1]) {
+                                        //createElement(null, targetClass[1]);
+                                        $(this).show();
+                                    }
+                                    else{
+                                        $(this).hide();
+                                    }
+                                });
+                    }else{
+                        let classCheck = $(this)[0]['activeElement'].value;
+                            $("article").each(function() {
+                                                        let targetClass = $(this).attr('class');
+                                                        targetClass=targetClass.split(" ");
+                                                        if (targetClass.length >1 && classCheck.includes(targetClass[1])) {
+
+                                                            $(this).show();
+                                                        }
+                                                        else{
+                                                        console.log($(this).parent('li').find('h3').val());
+                                                            $(this).parent('li').hide();
+                                                        }
+                                                    });
+
+    }
+
+
+}
+
+
+
 });
 </script>

@@ -167,8 +167,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
     else:
         courses = sort_by_announcement(courses)
 
-
-    if request.GET.get('search_'):
+    if request.GET.get('search_') or request.GET.get('search'):
         search_engine = SearchEngine.get_search_engine(index="home_search")
         key_word = str(request.GET.get('search_'))
         key_obj = []
@@ -194,7 +193,8 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
         if courses_:
             context = {'courses': courses_, 'course_tag':True}
-            return JsonResponse(context, status=200)
+            if not request.GET.get('search'):
+                return JsonResponse(context, status=200)
 
 
 
@@ -223,7 +223,8 @@ def index(request, extra_context=None, user=AnonymousUser()):
         courses_ = key_obj
 
         context= {'courses': courses_}
-        return JsonResponse(context, status=200)
+        if not request.GET.get('search'):
+            return JsonResponse(context, status=200)
 
 
     context = {
@@ -265,8 +266,6 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     # Add marketable programs to the context.
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
-    print("REACHED ==================", context)
-
 
     search_engine = SearchEngine.get_search_engine(index="home_search")
     search_result_ = search_engine.search()
@@ -287,7 +286,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     context['search_top'] = result
 
-    print("REACHED ==================", context)
+
 
 
     return render_to_response('index.html', context)
