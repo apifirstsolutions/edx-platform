@@ -17,7 +17,15 @@ from . import USE_RATE_LIMIT_2_FOR_COURSE_LIST_API, USE_RATE_LIMIT_10_FOR_COURSE
 from .api import course_detail, list_course_keys, list_courses
 from .forms import CourseDetailGetForm, CourseIdListGetForm, CourseListGetForm
 from .serializers import CourseDetailSerializer, CourseKeySerializer, CourseSerializer
-
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from openedx.core.lib.api.authentication import BearerAuthentication
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from search.search_engine_base import SearchEngine
+from rest_framework.response import Response
+from logging import getLogger
+logger = getLogger(__name__)
 
 @view_auth_classes(is_authenticated=False)
 class CourseDetailView(DeveloperErrorViewMixin, RetrieveAPIView):
@@ -467,3 +475,34 @@ class CourseIdListView(DeveloperErrorViewMixin, ListAPIView):
         This should be called once per GET request.
         """
         return super(CourseIdListView, self).get_serializer(*args, **kwargs)
+
+
+@api_view(['GET'])
+@authentication_classes((BearerAuthentication, SessionAuthentication, JwtAuthentication))
+@permission_classes([IsAuthenticated])
+def get_top_search(request):
+
+    try:
+        search_engine = SearchEngine.get_search_engine(index="home_search")
+        search_result_ = search_engine.search(size=100)
+    except Exception as ex:
+        logger.error("Elastic Search Down Pls Check "+ str(ex))
+    search_top_result = []
+    seen = set()
+    name_list = []
+
+    for x in search_result_['results']:
+        if 'name' not in x['data'].keys():
+            t = tuple(x['data'].items())
+            if t not in seen and t[1][1] not in name_list:
+                name_list.append(t[1][1])
+                seen.add(t)
+                if len(search_top_result) <= 20:
+                    search_top_result.append(x['data'])
+    pagination = {"next": None, "previous": None, "count": 1,
+                  "num_pages": 1 }
+    if search_top_result:
+        result = {'results': search_top_result}
+        return Response(
+        {"message": "", "result": result, "pagination": pagination, "status": True, "status_code": 200})
+    return Response({"message": "Error", "result": search_top_result, "pagination":pagination, "status": False, "status_code": 400})

@@ -33,7 +33,6 @@
 
 <%block name="pagetitle">${_("Courses")}</%block>
 <div class="selects-wrapper-all">
-
     <div class="select-wrapper">
         <span class="select-name">${_("Sorting")}</span>
         <select class="js-select-sort">
@@ -205,13 +204,13 @@
                           % if loop.index == 0 :
                            <ul class="courses-listing ${val[0]}" style="margin: 0 0 3px 0;">
                                <li class="courses-listing-item" >
-                                   <h3>${val[0]}</h3>
+                                   <h3 class="card-slider-title">${val[0]}</h3>
                                    <%include file="../course.html" args="course=tag" />
                                </li>
                           % else:
                               <li class="courses-listing-item" >
                                    %if len(key.items()) > 1:
-                                      <h3>&nbsp;</h3>
+                                      <h3 class="card-slider-title">&nbsp;</h3>
                                   % endif
                                    <%include file="../course.html" args="course=tag" />
                                </li>
@@ -243,7 +242,7 @@
 
       <div class="slider-heading">
       <h2 class="card-slider-title" style="">Recommended Courses for You</h2>
-      <a href="#" id="rec_id" = >View All</a>
+      <a href="#" id="rec_id">View All</a>
       </div>
             <div class="card-slider-courses">
             <div class="loader-sec" id = "recommended_courses_loader" style="display:none;">
