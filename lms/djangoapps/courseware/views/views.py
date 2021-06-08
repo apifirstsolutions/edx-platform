@@ -29,7 +29,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
 from django.views.decorators.cache import cache_control
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.generic import View
 from edx_django_utils import monitoring as monitoring_utils
@@ -147,8 +147,11 @@ from lms.djangoapps.course_block_user.models import CourseBlockUser
 from lms.djangoapps.banner.models import Banner
 from common.djangoapps.student.views import create_course_tag
 import copy
-log = logging.getLogger("edx.courseware")
 from search.search_engine_base import SearchEngine
+from lms.djangoapps.course_tag.models import CourseTag
+from common.djangoapps.util.json_request import JsonResponse
+log = logging.getLogger("edx.courseware")
+
 
 # Only display the requirements on learner dashboard for
 # credit and verified modes.
@@ -261,10 +264,12 @@ def user_groups(user):
 
 
 @ensure_csrf_cookie
+@csrf_exempt
 def courses(request):
     """
     Render "find courses" page.  The course selection work is done in courseware.courses.
     """
+    print("ENTERING HERE ============>>>>")
     sort = request.GET.get('sort', '')
     category_id = request.GET.get('category')
     if category_id == "":
@@ -380,7 +385,7 @@ def courses(request):
         show_categorized_view = True
 
     elif len(request.GET.keys()) > 0:
-        if not (difficulty_level_id or sort or mode or category_id or subcategory_id or search_input):
+        if not (difficulty_level_id or sort or mode or category_id or subcategory_id):
             show_categorized_view = True
         else:
             show_categorized_view = False
@@ -388,23 +393,21 @@ def courses(request):
         show_categorized_view = False
     user_category = None
     user_extra_info = UserExtraInfo.objects.filter(user_id=request.user.id).first()
-
     search_engine = SearchEngine.get_search_engine(index="home_search")
-    search_result_ = search_engine.search()
-
-    total_results = []
-    result = []
+    search_result_ = search_engine.search(size=100)
+    search_top_result = []
     seen = set()
+    name_list = []
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
-            total_results.append(x['data'])
+            t = tuple(x['data'].items())
+            if t not in seen and t[1][1] not in name_list:
+                name_list.append(t[1][1])
+                seen.add(t)
+                if len(search_top_result)<=20:
+                    search_top_result.append(x['data'])
 
-    for x in total_results:
-        t = tuple(x.items())
-        if t not in seen:
-            seen.add(t)
-            result.append(x)
-    search_top = result
+    search_top = search_top_result[0:19]
     if hasattr(user_extra_info, 'industry_id'):
         user_category = Category.objects.filter(id=user_extra_info.industry_id).first().id
     return render_to_response(
@@ -2184,3 +2187,77 @@ def get_financial_aid_courses(user):
             )
 
     return financial_aid_courses
+
+@csrf_exempt
+def search_keyword(request):
+
+    if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
+        if not request.user.id:
+            filter_ = {'organization': None}
+        elif request.user.is_staff:
+            filter_ = {}
+        elif _get_course_creator_status(request.user) == 'granted':
+            if request.user.user_extra_info.organization:
+                filter_ = {'organization': request.user.user_extra_info.organization.id}
+            else:
+                filter_ = {'organization': None}
+        else:
+            filter_ = {'organization': None}
+        courses_list = get_courses_with_extra_info(request.user, filter_=filter_)
+        courses = courses_list
+
+    if request.GET.get('search_') or request.GET.get('search'):
+        search_engine = SearchEngine.get_search_engine(index="home_search")
+        key_word = str(request.GET.get('search_'))
+        key_obj = []
+        key_obj_name = []
+        context = {}
+        tag = None
+        course_tag = CourseTag.objects.all()
+        for x in course_tag:
+
+            if key_word in str(x.course_tag_type.display_name):
+                tag = x.course_tag_type.display_name
+                doc_string = {
+                    "course_id": str(x.course_over_view.id),
+                    "course_tag": str(x.course_tag_type.display_name)
+                }
+                search_result = search_engine.search(field_dictionary=doc_string)
+                if search_result and int(search_result['total']):
+                    key_obj.append(tag) if tag not in key_obj else None
+                else:
+                    search_engine.index("home", [doc_string])
+                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                    key_obj.append(tag) if tag not in key_obj else None
+        courses_ = key_obj
+
+        if courses_:
+            context = {'course_tag': courses_}
+
+        for crs in courses:
+            if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
+                doc_string = {
+                "course_id": str(crs.id),
+                "course_name":  str(crs.display_name_with_default)
+                }
+                search_result = search_engine.search(field_dictionary=doc_string)
+                log.info("fetched the following from Elastic Search Engine %s", str(search_result))
+                if search_result and int(search_result['total']):
+                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
+                    # This block is used to clear index
+                    # test = []
+                    # for x in search_result['results']:
+                    #     print(x['_id'])
+                    #     test.append(x['_id'])
+                    #     print('added to Remove list ',(x['_id']))
+                    # search_engine.remove('home', test)
+                else:
+                    search_engine.index("home", [doc_string])
+                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
+
+        courses_name = key_obj_name
+        if courses_name:
+            context['course_name']= courses_name
+        return JsonResponse(context, status=200)
+

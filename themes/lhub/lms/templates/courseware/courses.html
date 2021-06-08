@@ -33,6 +33,7 @@
 
 <%block name="pagetitle">${_("Courses")}</%block>
 <div class="selects-wrapper-all">
+
     <div class="select-wrapper">
         <span class="select-name">${_("Sorting")}</span>
         <select class="js-select-sort">
@@ -113,7 +114,7 @@
         %endfor
     %endif
 </div>
-%if user.is_authenticated:
+%if user.is_authenticated and request.path == "/courses/" and request.path != "/courses":
 <div class="carousel">
    <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <!-- Indicators -->

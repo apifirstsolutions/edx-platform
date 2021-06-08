@@ -41,7 +41,7 @@ $(document).ready(function() {
             params.delete(deleteName);
         }
         params.set(name, value);
-        console.log("$('#search').val()", $('#search').val())
+        console.log("$('#search').val()", $('#search').val(),params.toString())
         window.location.search = params.toString()
 //        !$('#search').val()?window.location.search = params.toString():null;
     }

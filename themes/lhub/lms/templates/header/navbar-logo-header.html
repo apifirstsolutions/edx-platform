@@ -322,7 +322,12 @@ border-radius: 25px;
 
   <input type="text" placeholder="Search..here" name="search" id="search">
      <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
-  <button class="search-btn"  id="go">GO</button>
+    % if request.path == "/":
+  <button class="search-btn" type="button" ><a href="/courses?sort=enrollments" > GO </a></button>
+    % else:
+      <button class="search-btn" type="button" id="go">GO</button>
+    {% csrf_token %}
+    % endif
 </form>
 
 %endif
@@ -358,54 +363,66 @@ $(document).ready(function() {
       $('#go').click(function(e){
             e.preventDefault();
             let keyWord = $('#search').val();
-                    if(keyWord && oldKey!=keyWord && keyWord.length>=3 && e.which != 8){
+
+                    if(keyWord && keyWord.length>=2 && e.which != 8){
                        oldKey = keyWord;
                        $("#course_tag_loader").css("display", "");
                        $.ajax({
-                        url: '/?search_='+keyWord,
+                        url: 'course/search_?search_='+keyWord,
                         type:"GET",
                         contentType: "application/json",
                         success: function(data) {
-                            $("#course_tag_loader").css("display", "None");
-                           $('#topSearch').css("display", "");
-                            console.log("Entering", data);
                             showAll();
-                            if(!data['course_tag']){
+                            if(data['course_name']){
                              $("article").each(function() {
                                 let targetClass = $(this).attr('class');
                                 targetClass=targetClass.split(" ");
-                                if (targetClass.length >1 && data['courses'].includes(targetClass[1])) {
-
-                                    $(this).show();
-                                }
-                                else{
-                                console.log('Deleting this '+$(this).parent('li').find('h3').val());
-                                    $(this).parent('li').hide();
-                                }
+                                    if (targetClass.length >1 && data['course_name'].includes(targetClass[1])) {
+                                       $(this).show();
+                                    }
+                                    else{
+                                        $(this).parent('li').hide();
+                                      $(this).closest('ul').closest('li').hide();
+                                    }
                             });
                             }else{
+                                $("#course_tag_loader").css("display", "None");
+                                console.log("ERROR===> not matched in active class course_name");
+                            }
+                             if(data['course_tag']){
                                 $(".courses-listing").each(function() {
                                     let targetClass = $(this).attr('class');
                                     targetClass?targetClass=targetClass.split("courses-listing "):targetClass=null;
-                                    if (targetClass && targetClass.length >1 && data['courses'] == targetClass[1]) {
-                                        //createElement(null, targetClass[1]);
-                                        $(this).show();
+                                    if (targetClass && targetClass.length >1 && data['course_tag'] == targetClass[1]) {
+                                        //$(this).children().show();
+                                        $(this).show(); // to show course match
+                                         $(this).parent().css("display","block");
+                                         $(this).children().css("display","block");//css({display:"block",float:"initial !important"});
+                                        $(this).children().show(); // to show courses in other tag type.
                                     }
                                     else{
+                                        if(data['course_tag'] && !data['course_name']){
                                         $(this).hide();
+                                        }
                                     }
                                 });
+                            }else{
+                                $("#course_tag_loader").css("display", "None");
+                                console.log("ERROR===> not matched in active class course_tag");
                             }
 
                         },
                         error: function(data) {console.log("EEROR", data);
                          $("#course_tag_loader").css("display", "None");
-                         //$('#topSearch').css("display", "");
+                         $('#topSearch').css("display", "");
                          },
                         });
                     }
                     else{
                         showAll();
+                        if(keyWord.length<2){
+                        alert("Please type at least 2 letter to search a course !!");
+                        }
                     }
     });
 
@@ -414,6 +431,8 @@ $('#search').keydown(function(e){
 });
 
 showAll = () => {
+            $("#course_tag_loader").css("display", "None");
+           $('#topSearch').css("display", "");
             $("#myCarousel").hide();
             $("article").each(function() {
                 $(this).parent('li').show();
@@ -443,7 +462,6 @@ searchCourse = (flag) => { showAll(); if(flag){
                                                         let targetClass = $(this).attr('class');
                                                         targetClass=targetClass.split(" ");
                                                         if (targetClass.length >1 && classCheck.includes(targetClass[1])) {
-
                                                             $(this).show();
                                                         }
                                                         else{
@@ -452,7 +470,7 @@ searchCourse = (flag) => { showAll(); if(flag){
                                                         }
                                                     });
 
-    }
+                     }
 
 
 }

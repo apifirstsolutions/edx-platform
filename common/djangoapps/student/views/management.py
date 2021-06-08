@@ -167,65 +167,6 @@ def index(request, extra_context=None, user=AnonymousUser()):
     else:
         courses = sort_by_announcement(courses)
 
-    if request.GET.get('search_') or request.GET.get('search'):
-        search_engine = SearchEngine.get_search_engine(index="home_search")
-        key_word = str(request.GET.get('search_'))
-        key_obj = []
-
-        tag = None
-        course_tag = CourseTag.objects.all()
-        for x in course_tag:
-
-            if key_word in str(x.course_tag_type.display_name):
-                tag = x.course_tag_type.display_name
-                doc_string = {
-                    "course_id": str(x.course_over_view.id),
-                    "course_tag": str(x.course_tag_type.display_name)
-                }
-                search_result = search_engine.search(field_dictionary=doc_string)
-                if search_result and int(search_result['total']):
-                    key_obj.append(tag) if tag not in key_obj else None
-                else:
-                    search_engine.index("home", [doc_string])
-                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj.append(tag) if tag not in key_obj else None
-        courses_ = key_obj
-
-        if courses_:
-            context = {'courses': courses_, 'course_tag':True}
-            if not request.GET.get('search'):
-                return JsonResponse(context, status=200)
-
-
-
-        for crs in courses:
-            if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
-                doc_string = {
-                "course_id": str(crs.id),
-                "course_name":  str(crs.display_name_with_default)
-                }
-                search_result = search_engine.search(field_dictionary=doc_string)
-                log.info("fetched the following from Elastic Search Engine %s", str(search_result))
-                if search_result and int(search_result['total']):
-                    key_obj.append(str(crs.id)) if str(crs.id) not in key_obj else None
-                    # This block is used to clear index
-                    # test = []
-                    # for x in search_result['results']:
-                    #     print(x['_id'])
-                    #     test.append(x['_id'])
-                    #     print('added to Remove list ',(x['_id']))
-                    # search_engine.remove('home', test)
-                else:
-                    search_engine.index("home", [doc_string])
-                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj.append(str(crs.id)) if str(crs.id) not in key_obj else None
-
-        courses_ = key_obj
-
-        context= {'courses': courses_}
-        if not request.GET.get('search'):
-            return JsonResponse(context, status=200)
-
 
     context = {
         'courses': courses,
