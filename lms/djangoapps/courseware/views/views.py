@@ -264,12 +264,10 @@ def user_groups(user):
 
 
 @ensure_csrf_cookie
-@csrf_exempt
 def courses(request):
     """
     Render "find courses" page.  The course selection work is done in courseware.courses.
     """
-    print("ENTERING HERE ============>>>>")
     sort = request.GET.get('sort', '')
     category_id = request.GET.get('category')
     if category_id == "":
