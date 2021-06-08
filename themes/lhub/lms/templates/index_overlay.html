@@ -26,7 +26,11 @@ from django.urls import reverse
                 % for y in banner_list:
                         % if loop.index==1:
                         <div class="item active" style="height:720px">
+                            % if y.link_type == 'ABOUT':
                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
+                            % else:
+                                <a href="${y.link_url}">
+                            % endif
                             <img src="${y.banner_img_url_txt}"  class="d-block w-100">
                                 </a>
                         <div class="carousel-caption">
