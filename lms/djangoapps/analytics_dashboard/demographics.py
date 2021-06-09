@@ -21,21 +21,16 @@ def calculate_age(born):
 def get_learners_gender_list(user_ids):
     learners_gender = UserProfile.objects.filter(user__in=user_ids).values('gender').annotate(
         total=Count('id')).order_by('-total')
-    print(UserProfile.objects.filter(user__in=user_ids).values('gender').annotate(total=Count('id')).order_by(
-        '-total').query)
+
     for l in learners_gender:
         if l['gender'] == 'm':
             l['gender'] = 'Male'
-            print(f'{l["gender"]} {l["total"]}')
         elif l['gender'] == 'f':
             l['gender'] = 'Female'
-            print(f'{l["gender"]} {l["total"]}')
         # elif l['gender'] == 'o':
         #     l['gender'] = 'Others'
-        #     print(f'{l["gender"]} {l["total"]}')
         else:
             l['gender'] = 'Not set by user'
-            print(f'{l["gender"]} {l["total"]}')
 
     learners_gender_list = []
     learners_gender_list = [value for key, value in enumerate(learners_gender) if
@@ -49,10 +44,6 @@ def get_learners_gender_list(user_ids):
 
     # learners_gender_list.append({'gender': 'Not set by user', 'total': not_set})
     # learner_gender_l["Not set by user"] = not_set
-    print(f'\nFinal gender list: {learners_gender_list}')
-
-    for x in learners_gender_list:
-        print(f'{x["gender"]} {x["total"]}')
 
     return learners_gender_list
 
@@ -80,14 +71,7 @@ def get_learners_edu(user_ids):
         elif l['level_of_education'] == '':
             l['level_of_education'] = 'Diploma'
 
-    print(f'\nLearners Edu: {learners_edu}\n')
-    for l in learners_edu:
-        print(f'{l["level_of_education"]} {l["total"]}')
-
     learners_yob = UserExtraInfo.objects.filter(user__in=user_ids).values()
-
-    print(f'\nTotal Learners({len(user_ids)}):')
-    print(f'\nLearners Age({learners_yob.count()}):')
 
     return learners_edu
 
@@ -121,15 +105,16 @@ def median(lst):
     [learners_age_without_duplicates.append(x) for x in lst if x not in learners_age_without_duplicates]
     sorted_lst = sorted(learners_age_without_duplicates)
     lst_len = len(learners_age_without_duplicates)
+
     index = (lst_len - 1) // 2
-
     if index == 0:
-        return 0
-
-    if lst_len % 2:
-        return sorted_lst[index]
+        median_age = sorted_lst[index]
+    elif lst_len % 2:
+        median_age = sorted_lst[index]
     else:
-        return (sorted_lst[index] + sorted_lst[index + 1]) / 2.0
+        median_age = (sorted_lst[index] + sorted_lst[index + 1]) / 2.0
+
+    return median_age
 
 
 def age_dist(lst):
