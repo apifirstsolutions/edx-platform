@@ -1,3 +1,31 @@
+import json
+import requests
+
+from common.djangoapps.student.views.dashboard import (
+    get_org_black_and_whitelist_for_site,
+    get_course_enrollments,
+    get_dashboard_course_limit,
+    get_filtered_course_entitlements,
+)
+
+from logging import getLogger
+log = getLogger(__name__)
+
+def str_to_datetime(date_string):
+    """ Convert string date to datetime object """
+    from datetime import datetime
+    return datetime.strptime(date_string, '%b %d, %Y')
+
+
+def dict_fetch_all(cursor):
+    """ Return all rows from a cursor as a dict """
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
 def spread_course_by_month(course_list, column_name):
     year_dist = spread_course_by_year(course_list, column_name)
 
@@ -6,10 +34,8 @@ def spread_course_by_month(course_list, column_name):
         for c in course_list:
             created_year = c[column_name].year
             created_month = c[column_name].month
-            # if created_year in year_dist.keys():
 
             for k, v in year_dist.items():
-                # print(f'{k}, {v}')
                 if k == created_year:
                     if created_month == 1:
                         year_dist[created_year]['Jan'] += 1
@@ -50,12 +76,20 @@ def spread_course_by_month(course_list, column_name):
     else:
         raise ValueError()
 
-    # print(f'\nYear Distribution: \n{year_dist}')
-
     return year_dist
 
 
 def spread_course_by_year(course_list, column_name):
+    """
+    Distribute courses by year
+
+        {
+            2021: ['Jan': 10, 'Feb': 30, 'Mar': 40, 'Apr': 50, 'May': 10, 'Jun': 30, 'Jul': 20, 'Aug': 20, 'Sep': 10,
+                          'Oct': 80, 'Nov': 20, 'Dec': 10,]
+            2020: ['Jan': 80, 'Feb': 40, 'Mar': 60, 'Apr': 60, 'May': 70, 'Jun': 20, 'Jul': 0, 'Aug': 0, 'Sep': 0,
+                          'Oct': 0, 'Nov': 0, 'Dec': 0,]
+        }
+    """
     month_distribution = {'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0, 'Aug': 0, 'Sep': 0,
                           'Oct': 0, 'Nov': 0, 'Dec': 0, }
 
@@ -68,7 +102,19 @@ def spread_course_by_year(course_list, column_name):
                         'Oct': 0, 'Nov': 0, 'Dec': 0, }
     return year_dist
 
+
 def spread_revenue_by_year(course_list, column_name):
+    """
+    Distribute revenue by year
+
+        {
+            2021: ['Jan': 10, 'Feb': 30, 'Mar': 40, 'Apr': 50, 'May': 10, 'Jun': 30, 'Jul': 20, 'Aug': 20, 'Sep': 10,
+                          'Oct': 80, 'Nov': 20, 'Dec': 10,]
+            2020: ['Jan': 80, 'Feb': 40, 'Mar': 60, 'Apr': 60, 'May': 70, 'Jun': 20, 'Jul': 0, 'Aug': 0, 'Sep': 0,
+                          'Oct': 0, 'Nov': 0, 'Dec': 0,]
+        }
+    """
+
     month_distribution = {'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0, 'Aug': 0, 'Sep': 0,
                           'Oct': 0, 'Nov': 0, 'Dec': 0, }
 
@@ -77,7 +123,6 @@ def spread_revenue_by_year(course_list, column_name):
         if str_to_datetime(c[column_name]).year not in lst:
             lst.append(str_to_datetime(c[column_name]).year)
 
-
     lst.sort(reverse=True)
     year_dist = {}
     for l in lst:
@@ -85,21 +130,14 @@ def spread_revenue_by_year(course_list, column_name):
                         'Oct': 0, 'Nov': 0, 'Dec': 0, }
     return year_dist
 
-def str_to_datetime(date_string):
-    from datetime import datetime
-    return datetime.strptime(date_string, '%b %d, %Y')
-
-
-def dict_fetch_all(cursor):
-    """Return all rows from a cursor as a dict"""
-    columns = [col[0] for col in cursor.description]
-    return [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-    ]
-
 
 def spread_revenue_by_month(order_list, column_name):
+    """
+    Distribute revenue by month
+
+    ['Jan': 10, 'Feb': 30, 'Mar': 40, 'Apr': 50, 'May': 10, 'Jun': 30, 'Jul': 20, 'Aug': 20, 'Sep': 10,
+                'Oct': 80, 'Nov': 20, 'Dec': 10,]
+     """
     year_dist = spread_course_by_year(order_list, column_name)
 
     if len(order_list) > 0:
@@ -107,10 +145,8 @@ def spread_revenue_by_month(order_list, column_name):
         for c in order_list:
             created_year = c[column_name].year
             created_month = c[column_name].month
-            # if created_year in year_dist.keys():
 
             for k, v in year_dist.items():
-                # print(f'{k}, {v}')
                 if k == created_year:
                     if created_month == 1:
                         year_dist[created_year]['Jan'] += c['total_incl_tax']
@@ -151,25 +187,25 @@ def spread_revenue_by_month(order_list, column_name):
     else:
         raise ValueError()
 
-    # print(f'\nYear Distribution: \n{year_dist}')
-
     return year_dist
 
 
-def spread_revenue_by_month2(order_list, column_name):
-    year_dist = spread_revenue_by_year(order_list, column_name)
+def spread_revenue_by_month_from_orders_api(order_list, column_name):
+    """
+    Distribute revenue by month
 
-    print(f'\nyear dist', year_dist)
+    ['Jan': 10, 'Feb': 30, 'Mar': 40, 'Apr': 50, 'May': 10, 'Jun': 30, 'Jul': 20, 'Aug': 20, 'Sep': 10,
+                'Oct': 80, 'Nov': 20, 'Dec': 10,]
+     """
+    year_dist = spread_revenue_by_year(order_list, column_name)
 
     if len(order_list) > 0:
         created_year = 0
         for c in order_list:
             created_year = str_to_datetime(c[column_name]).year
             created_month = str_to_datetime(c[column_name]).month
-            # if created_year in year_dist.keys():
 
             for k, v in year_dist.items():
-                # print(f'{k}, {v}')
                 if k == created_year:
                     if created_month == 1:
                         year_dist[created_year]['Jan'] += float(c['price'])
@@ -210,6 +246,72 @@ def spread_revenue_by_month2(order_list, column_name):
     else:
         raise ValueError()
 
-    # print(f'\nYear Distribution: \n{year_dist}')
-
     return year_dist
+
+
+def get_orders_details(request):
+    """Get order details from the oscar to show in the admin dashboard """
+
+    host = request.get_host()
+    if "dev" in host:
+        host = "edx-dev.lhubsg.com"
+    log.info(f"host: {host}")
+
+    data = {'client_id': 'qRLaOgG6vKSbptr9qoGAdZWkCtSWikeTdM5vBPdX',
+            'username': 'staff',
+            'password': 'edx',
+            'grant_type': 'password',
+            'token_type': 'bearer'}
+
+    oauth_response = requests.post(
+        url='http://' + host + '/oauth2/access_token', data=data)
+    json_response = json.loads(oauth_response.text)
+    if "access_token" in json_response.keys():
+        jwt_token = json_response['access_token']
+        headers = {'Authorization': 'BEARER ' + jwt_token}
+        user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Safari/537.36'
+        headers['User-Agent'] = user_agent
+        URL = 'http://' + host + '/lhub_extended_api/orderlist'
+        response = requests.get(url=URL, headers=headers)
+    return response.json()
+
+
+def get_course_enrollment(request, user):
+    """
+    Get Course enrollments for the the user
+    """
+
+    disable_course_limit = request and 'course_limit' in request.GET
+    course_limit = get_dashboard_course_limit() if not disable_course_limit else None
+
+    # Get the org whitelist or the org blacklist for the current site
+    site_org_whitelist, site_org_blacklist = get_org_black_and_whitelist_for_site()
+    course_enrollments = list(
+        get_course_enrollments(user, site_org_whitelist, site_org_blacklist, course_limit, request=request))
+
+    # Get the entitlements for the user and a mapping to all available sessions for that entitlement
+    # If an entitlement has no available sessions, pass through a mock course overview object
+    (course_entitlements,
+     course_entitlement_available_sessions,
+     unfulfilled_entitlement_pseudo_sessions) = get_filtered_course_entitlements(
+        user,
+        site_org_whitelist,
+        site_org_blacklist
+    )
+
+    # Sort the enrollment pairs by the enrollment date
+    course_enrollments.sort(key=lambda x: x.created, reverse=True)
+
+    # Filter out any course enrollment course cards that are associated with fulfilled entitlements
+    for entitlement in [e for e in course_entitlements if e.enrollment_course_run is not None]:
+        course_enrollments = [
+            enr for enr in course_enrollments if entitlement.enrollment_course_run.course_id != enr.course_id
+        ]
+
+    web_course_enrollments = []
+    for course in course_enrollments:
+        platform = course._course_overview.platform_visibility
+        if platform is None or platform == 'Web' or platform == 'Both':
+            web_course_enrollments.append(course)
+
+    return course_entitlements + web_course_enrollments
