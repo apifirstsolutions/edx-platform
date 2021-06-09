@@ -211,7 +211,7 @@ class CourseSerializer(serializers.Serializer):
         return attrs
 
     def get_discounted_price_string(self, instance):
-        if instance and instance.discounted_price >= 0:
+        if instance and instance.discounted_price:
             return '{:.2f}'.format(instance.discounted_price)
         return None
 
