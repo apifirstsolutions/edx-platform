@@ -1,14 +1,14 @@
 import logging
+from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib import admin
 from ..models import SubscriptionPlan
-from ..service import SubscriptionService
+from ..services.subscription import SubscriptionService
 
 logger = logging.getLogger(__name__)
 
 class SubscriptionPlanForm(forms.ModelForm):
-  description = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
-
+  description = forms.CharField(widget = CKEditorWidget())
   class Meta:
     model = SubscriptionPlan
     fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
@@ -32,12 +32,12 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
     subscription_svc = SubscriptionService()
 
     if not change:
-      # On create
+      # On Subscription Plan creation, create Stripe and Ecommerce products with prices.
       prices = { 
         'month': obj.price_month, 
         'year': obj.price_year,
       }
-      product = subscription_svc.create_product(obj.name, prices)
+      product = subscription_svc.create_product(obj, prices, user=request.user)
       if product is not None:
         obj.stripe_prod_id = product['stripe_product_id']
         if 'stripe_price_month_id' in product:
@@ -52,7 +52,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
       if 'name' in form.changed_data:
         new_product_name = obj.name
 
-      # If month/year prices change, need to create new prices in stripe 
+      # If month/year prices change, create new prices in stripe 
       # https://stripe.com/docs/billing/subscriptions/products-and-prices#changing-prices
       new_prices = {
         'month': None, 

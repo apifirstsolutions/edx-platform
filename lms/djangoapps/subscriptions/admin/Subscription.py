@@ -3,7 +3,7 @@ import datetime
 from django import forms
 from django.contrib import admin
 from ..models import Subscription, BillingCycles, SubscriptionTransaction, Statuses
-from ..service import SubscriptionService
+from ..services.subscription import SubscriptionService
 
 logger = logging.getLogger(__name__)
 class SubscriptionForm(forms.ModelForm):

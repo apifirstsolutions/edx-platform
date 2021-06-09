@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView
 from rest_framework.serializers import ListSerializer
 from ..models import Statuses, Subscription
-from ..service import SubscriptionService
+from ..services.subscription import SubscriptionService
 
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from ..models import Bundle, SubscriptionPlan, Subscription, License

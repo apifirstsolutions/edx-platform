@@ -215,7 +215,7 @@ DOC_STORE_CONFIG:
     ssl: false
     user: edxapp
 ECOMMERCE_API_SIGNING_KEY: lms-secret
-ECOMMERCE_API_URL: http://edx.devstack.lms:18130/api/v2
+ECOMMERCE_API_URL: http://ecommerce.devstack.edx:18130/api/v2
 ECOMMERCE_PUBLIC_URL_ROOT: http://edx.devstack.lms:18130
 EDXMKTG_USER_INFO_COOKIE_NAME: edx-user-info
 EDX_PLATFORM_REVISION: master
@@ -299,24 +299,24 @@ JWT_AUTH:
     JWT_AUTH_COOKIE_HEADER_PAYLOAD: edx-jwt-cookie-header-payload
     JWT_AUTH_COOKIE_SIGNATURE: edx-jwt-cookie-signature
     JWT_AUTH_REFRESH_COOKIE: edx-jwt-refresh-cookie
-    JWT_ISSUER: http://edx.devstack.lms:8000/oauth2
+    JWT_ISSUER: http://edx.devstack.lms:18000/oauth2
     JWT_ISSUERS:
     -   AUDIENCE: lms-key
-        ISSUER: http://edx.devstack.lms:8000/oauth2
+        ISSUER: http://edx.devstack.lms:18000/oauth2
         SECRET_KEY: lms-secret
     JWT_PRIVATE_SIGNING_JWK: None
     JWT_PUBLIC_SIGNING_JWK_SET: ''
     JWT_SECRET_KEY: lms-secret
     JWT_SIGNING_ALGORITHM: null
 JWT_EXPIRATION: 30
-JWT_ISSUER: http://edx.devstack.lms:8000/oauth2
+JWT_ISSUER: http://edx.devstack.lms:18000/oauth2
 JWT_PRIVATE_SIGNING_KEY: null
 LANGUAGE_CODE: en
 LANGUAGE_COOKIE: openedx-language-preference
-LEARNER_PORTAL_URL_ROOT: https://learner-portal-edx.devstack.lms:8000
-LMS_BASE: edx.devstack.lms:8000
-LMS_INTERNAL_ROOT_URL: http://edx.devstack.lms:8000
-LMS_ROOT_URL: http://edx.devstack.lms:8000
+LEARNER_PORTAL_URL_ROOT: https://learner-portal-edx.devstack.lms:18000
+LMS_BASE: edx.devstack.lms:18000
+LMS_INTERNAL_ROOT_URL: http://lms.devstack.edx:18000
+LMS_ROOT_URL: http://lms.devstack.edx:8000
 LOCAL_LOGLEVEL: INFO
 LOGGING_ENV: sandbox
 LOGIN_REDIRECT_WHITELIST: []

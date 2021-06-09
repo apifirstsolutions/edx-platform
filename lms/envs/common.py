@@ -2591,6 +2591,9 @@ INSTALLED_APPS = [
     # for Stripe API for mobile client
     'lms.djangoapps.stripe_api',
 
+    # for HTML editor.
+    'ckeditor',
+
     # Enrollment API
     'openedx.core.djangoapps.enrollments',
 
@@ -3593,7 +3596,7 @@ SOCIAL_PLATFORMS = {
 
 # E-Commerce API Configuration
 ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
-ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
+ECOMMERCE_API_URL = 'http://ecommerce.devstack.edx:18130/api/v2'
 ECOMMERCE_API_TIMEOUT = 5
 ECOMMERCE_SERVICE_WORKER_USERNAME = 'ecommerce_worker'
 ECOMMERCE_API_SIGNING_KEY = 'SET-ME-PLEASE'

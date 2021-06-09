@@ -6,6 +6,7 @@ from enterprise.models import EnterpriseCustomer
 from django.contrib.auth.models import User
 from .helpers.unique_slugify import unique_slugify
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from ckeditor.fields import RichTextField
 
 class Statuses(Enum):
     ACTIVE = 'active'
@@ -26,7 +27,7 @@ class Bundle(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     courses = models.ManyToManyField(CourseOverview)
-    description = models.CharField(max_length=500, default=None, null=True, blank=True)
+    description = RichTextField(null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,7 +44,7 @@ class SubscriptionPlan(models.Model):
     
     bundle = models.ForeignKey(Bundle, on_delete=models.DO_NOTHING, null=True, blank=True)
     image_url = models.URLField(blank=True, max_length=255)
-    description = models.TextField(default=None, null=True, blank=True)
+    description = RichTextField(null=True, blank=True)
     ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')  # FIXME
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     grace_period = models.IntegerField(default=0)

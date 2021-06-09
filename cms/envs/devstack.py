@@ -246,5 +246,9 @@ COMPREHENSIVE_THEME_DIRS = [
 TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
 derive_settings(__name__)
 
-############
-DISCOVERY_ROOT_URL = 'http://edx.devstack.lms:18381'
+#### Discovery settings
+DISCOVERY_ROOT_URL = 'http://discovery.devstack.edx:18381'
+
+ECOMMERCE_API_URL = "http://ecommerce.devstack.edx:18130/api/v2"
+ECOMMERCE_PUBLIC_URL_ROOT = "http://edx.devstack.lms:18130"
+ECOMMERCE_INTERNAL_URL_ROOT = "http://ecommerce.devstack.edx:18130"

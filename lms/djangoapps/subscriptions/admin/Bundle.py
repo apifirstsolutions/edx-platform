@@ -1,12 +1,14 @@
 import logging
+from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib import admin
 from ..models import Bundle
 
+
 logger = logging.getLogger(__name__)
 
 class BundleForm(forms.ModelForm):
-  description = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
+  description = forms.CharField(widget = CKEditorWidget())
   class Meta:
     model = Bundle
     fields = ['name', 'slug', 'description', 'courses', 'enterprise',]

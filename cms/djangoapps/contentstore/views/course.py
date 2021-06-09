@@ -863,13 +863,13 @@ def course_outline_initial_state(locator_to_show, course_structure):
 
 def refresh_course_metadata(request,course_id):
     data = {'client_id': 'discovery-backend-service-key', 'client_secret': 'discovery-backend-service-secret', 'grant_type': 'client_credentials', 'token_type': 'jwt'}
-    response = requests.post(url = settings.LMS_ROOT_URL + '/oauth2/access_token', data=data)
+    response = requests.post(url = settings.LMS_ROOT_URL + '/oauth2/access_token', data=data)  # LMS_ROOT_URL is internal address
     json_response = json.loads(response.text)
     if "access_token" in json_response.keys():
         jwt_token = json_response['access_token']
         param_dict = {'course_id':course_id}
         headers = {'Authorization' : 'JWT ' + jwt_token}
-        URL = settings.DISCOVERY_ROOT_URL + '/api/v1/refresh_course_metadata'
+        URL = settings.DISCOVERY_ROOT_URL + '/api/v1/refresh_course_metadata'  # DISCOVERY_ROOT_URL is internal address
         response = requests.get(url = URL, headers = headers, params = param_dict)
         json_response = json.loads(response.text)
         result = json_response['is_successful']

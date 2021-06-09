@@ -578,8 +578,8 @@ ICP_LICENSE_INFO = {}
 
 LOGGING_ENV = 'sandbox'
 
-LMS_BASE = 'localhost:18000'
-LMS_ROOT_URL = "https://localhost:18000"
+LMS_BASE = 'edx.devstack.lms:18000'
+LMS_ROOT_URL = 'https://lms.devstack.edx:18000'
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 
 LOGIN_REDIRECT_URL = EDX_ROOT_URL + '/home/'
@@ -1987,8 +1987,8 @@ BASE_COOKIE_DOMAIN = 'localhost'
 MANUAL_ENROLLMENT_ROLE_CHOICES = ['Learner', 'Support', 'Partner']
 
 ############## Settings for the Discovery App ######################
-
-COURSE_CATALOG_URL_ROOT = 'http://localhost:8008'
+DISCOVERY_ROOT_URL = 'http://discovery.devstack.edx:18381'
+COURSE_CATALOG_URL_ROOT = DISCOVERY_ROOT_URL
 COURSE_CATALOG_API_URL = '{}/api/v1'.format(COURSE_CATALOG_URL_ROOT)
 
 # which access.py permission name to check in order to determine if a course is visible in
@@ -2092,7 +2092,7 @@ COURSE_EXPORT_DOWNLOAD_CHUNK_SIZE = 8192
 
 # E-Commerce API Configuration
 ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
-ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
+ECOMMERCE_API_URL = 'http://ecommerce.devstack.edx:18130/api/v2'
 ECOMMERCE_API_SIGNING_KEY = 'lms-secret'
 
 CREDENTIALS_INTERNAL_SERVICE_URL = 'http://edx.devstack.lms:8005'

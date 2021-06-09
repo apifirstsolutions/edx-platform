@@ -1,7 +1,9 @@
 import stripe
 from itertools import islice
 
-from .models import License, Transactions, SubscriptionTransaction
+from ..models import License, Transactions, SubscriptionTransaction
+from .ecommerce import create_ecommerce_product, create_stockrecord
+from ..helpers.unique_slugify import unique_slugify 
 
 from lms.envs.common import (
   STRIPE_API_KEY,
@@ -12,30 +14,61 @@ stripe.api_key = STRIPE_API_KEY
 class SubscriptionService:
   
   # Creates a Product and Prices in Stripe.
-  # Creates an Ecommerce Product with multiple prices options.
-  def create_product(self, name, prices):
+  # Creates an Ecommerce Product with prices as product variants.
+  
+  # product
+  #
+  # prices = { 
+  #   'month': obj.price_month, 
+  #   'year': obj.price_year,
+  # }
+  #
+  # user, from request
+
+  def create_product(self, product, prices, user):
     try:
-      product = stripe.Product.create(name=name,)
+
+      # Create Stripe Product
+      stripe_product = stripe.Product.create(name=product.name,)
       result = {}
-      result['stripe_product_id'] = product.id
+      result['stripe_product_id'] = stripe_product.id
+
+      # Create Ecommrce Product
+      ecommerce_product = create_ecommerce_product(user, product, prices)
+      result['ecommerce_prod_id'] = ecommerce_product['id']
       
+
       # keys must be interval values in stripe https://stripe.com/docs/api/prices/object#price_object-recurring-interval
-      for interval in prices.keys():
-        if prices[interval] is not None:
+      for cycle in prices.keys():
+        if prices[cycle] is not None:
+
+           # Create Stripe Price
           price = stripe.Price.create(
-            unit_amount= prices[interval] * 100,
+            unit_amount= prices[cycle] * 100,
             currency=STRIPE_CURRENCY,
-            recurring={ 'interval': interval },
-            product=product.id,
+            recurring={ 'interval': cycle },
+            product=stripe_product.id,
           )
 
-          result['stripe_price_' + interval + '_id'] = price.id
-      
-      # TODO - create Ecommerce Product and Prices
+          result['stripe_price_' + cycle + '_id'] = price.id
+
+          # Create Ecommerce stockrecord for prices
+          unique_slugify(product, product.name)
+          sku = product.slug + '-' + cycle
+          stockrecord = create_stockrecord(user, ecommerce_product['id'], sku, prices[cycle])
+
+          # TODO - save stockrecord id in Subscription Plan db
+
 
       return result
     except Exception as e:
       print('Stripe ERROR:: ' + str(e))
+
+
+    
+
+
+      
 
   
   # Updates a Produc name and Prices in Stripe.

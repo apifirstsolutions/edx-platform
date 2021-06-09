@@ -229,7 +229,8 @@ if FEATURES.get('ENABLE_THIRD_PARTY_AUTH') and (
 
 ############## ECOMMERCE API CONFIGURATION SETTINGS ###############
 ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
-ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
+ECOMMERCE_API_URL = 'http://ecommerce.devstack.edx:18130/api/v2'
+ECOMMERCE_INTERNAL_URL_ROOT = "http://ecommerce.devstack.edx:18130"
 
 ############## Comments CONFIGURATION SETTINGS ###############
 COMMENTS_SERVICE_URL = 'http://edx.devstack.forum:4567'
