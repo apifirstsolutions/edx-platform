@@ -1143,7 +1143,10 @@ def settings_handler(request, course_key_string):
     course_key = CourseKey.from_string(course_key_string)
     credit_eligibility_enabled = settings.FEATURES.get('ENABLE_CREDIT_ELIGIBILITY', False)
     with modulestore().bulk_operations(course_key):
+        logging.info("============REQUEST Object for viewing===========", str(request))
+        logging.info("============USER and COURSE KEY ==============", str(request.user),str(course_key))
         course_module = get_course_and_check_access(course_key, request.user)
+        logging.info("=============SOURCE of course_module generated ==================", str(course_module))
         if 'text/html' in request.META.get('HTTP_ACCEPT', '') and request.method == 'GET':
             upload_asset_url = reverse_course_url('assets_handler', course_key)
 
@@ -1190,9 +1193,14 @@ def settings_handler(request, course_key_string):
             subcategories = SubCategory.objects.all()
             regions = COUNTRIES
             current_org = None
-            course_overview = CourseOverview.objects.get(id=course_module.id)
-            display_name = course_overview.display_name
-            id = course_overview.id
+            try:
+                course_overview = CourseOverview.objects.get(id=course_module.id)
+            except Exception as e:
+                logging.info("******************ERROR while trying to get course over view table*******************", str(course_module.id))
+                logging.error("ACTUAL ERROR CAUGHT", str(e))
+
+            display_name = course_overview.display_name if course_overview else None
+            id = course_overview.id if course_overview else None
 
             try:
                 if request.user.user_extra_info.organization:
@@ -1278,26 +1286,26 @@ def settings_handler(request, course_key_string):
                 api_user = user
                 api = ecommerce_api_client(api_user)
                 try:
-                    
+
                     res = api.courses(course_key).get()
-                    
+
                     current_id = res['id']
                     if current_id:
                         course_overview = CourseOverview.objects.get(id=course_key)
-                        
+
                         if course_overview.published_in_ecommerce == False:
                             course_overview.published_in_ecommerce = True
                             course_overview.save()
                     course_details = CourseDetails.fetch(course_key)
                 except slumber.exceptions.HttpNotFoundError as e:
-                    
+
                     log.exception('Failed to fetch the course: %s',course_key)
                     course_overview = CourseOverview.objects.get(id=course_key)
                     if course_overview.published_in_ecommerce:
                             course_overview.published_in_ecommerce = False
                             course_overview.save()
                     course_details = CourseDetails.fetch(course_key)
-                
+
 
                 response = JsonResponse(
                     course_details,
