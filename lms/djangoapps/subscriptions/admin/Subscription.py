@@ -20,8 +20,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
   search_fields = ['subscription_plan__name', 'billing_cycle', 'user__email', 'enterprise__name']
   list_display = ['subscription_plan', 'billing_cycle', 'user', 'enterprise']
 
-  
-
   def save_model(self, request, obj, form, change):
     subscription_svc = SubscriptionService()
   
@@ -31,7 +29,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
       
       # determine strip_price_id based from billing_cycle selection
       if obj.billing_cycle == BillingCycles.MONTH.value or obj.billing_cycle == BillingCycles.YEAR.value:
-        obj.stripe_price_id = getattr(obj.subscription_plan, 'stripe_price_'+obj.billing_cycle+'_id')
+        obj.stripe_price_id = getattr(obj.subscription_plan, 'stripe_price_id_'+obj.billing_cycle)
 
       # If start_at is not set, set to first day of the next month, exept current day is already first day of the month
       if obj.start_at is None:

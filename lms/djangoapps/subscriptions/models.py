@@ -16,7 +16,7 @@ class Statuses(Enum):
 class BillingCycles(Enum):
     MONTH = 'month'
     YEAR = 'year'
-    ONE_TIME = 'one-time'
+    ONE_TIME = 'onetime'
 
 class SubscriptionTransaction(Enum):
     CREATE = 'CREATED'
@@ -27,7 +27,7 @@ class Bundle(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     courses = models.ManyToManyField(CourseOverview)
-    description = RichTextField(null=True, blank=True)
+    description = RichTextField(default=None, null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,9 +43,13 @@ class SubscriptionPlan(models.Model):
     slug = models.SlugField(max_length=200, blank=True)
     
     bundle = models.ForeignKey(Bundle, on_delete=models.DO_NOTHING, null=True, blank=True)
-    image_url = models.URLField(blank=True, max_length=255)
-    description = RichTextField(null=True, blank=True)
-    ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')  # FIXME
+    image_url = models.CharField(blank=True, max_length=255)
+    description = RichTextField(default=None, null=True, blank=True)
+    ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')
+    ecommerce_stockrecord_id_month = models.IntegerField(default=None, null=True, blank=True)
+    ecommerce_stockrecord_id_year = models.IntegerField(default=None, null=True, blank=True)
+    ecommerce_stockrecord_id_onetime = models.IntegerField(default=None, null=True, blank=True)
+    
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     grace_period = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -55,8 +59,8 @@ class SubscriptionPlan(models.Model):
     price_onetime = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
     price_year = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
     stripe_prod_id = models.CharField(max_length=50, null=False, blank=False, verbose_name='Stripe Product ID')
-    stripe_price_month_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='Stripe Price ID (month)')
-    stripe_price_year_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='Stripe Product ID (year)')
+    stripe_price_id_month = models.CharField(max_length=50, null=True, blank=True, verbose_name='Stripe Price ID (month)')
+    stripe_price_id_year = models.CharField(max_length=50, null=True, blank=True, verbose_name='Stripe Product ID (year)')
     
     valid_until = models.DateTimeField(default=None, null=True, blank=True)
     

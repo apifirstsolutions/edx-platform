@@ -1,16 +1,17 @@
 from django.http import JsonResponse
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from rest_framework.mixins import (
-    CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+    CreateModelMixin, 
+    ListModelMixin, 
+    RetrieveModelMixin, 
+    UpdateModelMixin
 )
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.generics import ListAPIView
-from rest_framework.serializers import ListSerializer
-from ..models import Statuses, Subscription
-from ..services.subscription import SubscriptionService
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
+from rest_framework.viewsets import GenericViewSet
 
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
-from ..models import Bundle, SubscriptionPlan, Subscription, License
+from ..services.subscription import SubscriptionService
+from ..models import Bundle, Statuses, SubscriptionPlan, Subscription
 from ..serializers import (
   BundleSerializer, 
   SubscriptionPlanSerializer,
@@ -77,27 +78,36 @@ class SubscriptionViewSet(
 
 
   def update(self, request, pk=None):
+    """
+    Disabled. Go to Django Admin to edit Subscriptions
+    """
     pass
 
-
-  # TODO handle POST request as well, or remove it
   def partial_update(self, request, pk=None):
+    """
+    Use only to Cancel or Expire an active, non-enterprise Subscriptions.
+    """
     subscription = Subscription.objects.get(id=pk)
-    new_status = request.data['status']
 
-    self._cancel_subscription(subscription, new_status)
-    
-    if subscription.user is not None and \
-      subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
-      new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+    if subscription is not None and request.data['status'] is not None:
+      new_status = request.data['status']
 
-      svc = SubscriptionService()
-      result = svc.cancel_subscription(subscription)
-      
-      if not result['success']:
-        return JsonResponse(result)
-      else:
-        subscription.status = new_status
-        subscription.save()
-        return JsonResponse(result)
+      if subscription.user is not None and \
+        subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
+        new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+
+        svc = SubscriptionService()
+        result = svc.cancel_subscription(subscription)
+        
+        if not result['success']:
+          return JsonResponse(result)
+        else:
+          subscription.status = new_status
+          subscription.save()
+          return JsonResponse(result)
+    else:
+      return Response(
+        { 'message': "Use only to Cancel or Expire an active, non-enterprise Subscriptions." }, 
+        status=HTTP_400_BAD_REQUEST
+      )
 

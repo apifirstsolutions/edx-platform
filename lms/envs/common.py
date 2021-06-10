@@ -4234,8 +4234,9 @@ CKEDITOR_CONFIGS = {
 
 
 ################# Settings for Subscription Djangoapp #####################
-# TODO - set in environment variables
+# TODO - set in environment variables or yaml file check production.py line 69
 # STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 STRIPE_API_KEY = 'sk_test_51ImkrKLnVbKEJoRBPa9I535It7zilmbFbzAIskjh4HYfsgkDufMw34FV55e6sJLi1IV4F993ugrH1BiJYQomUR5t009RDvIRZI' 
 STRIPE_CURRENCY = 'SGD'
 STRIPE_WEBHOOK_SECRET_KEY = os.environ.get("STRIPE_WEBHOOK_SECRET_KEY")
+SUBSCRIPTIONS_PARTNER_ID = 1  # month,year,onetime prices  are Stock Records of a Product in Ecommerce. Stock Records require this Partner ID.

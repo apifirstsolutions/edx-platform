@@ -346,7 +346,7 @@ display: none
       <div class="cart-item-authenticated">
 	<a href="/commerce/basket-view/">
         <span class="notification_counter" id="cart_badge" style="display:none"></span>
-        <img class="cart-icon-img" src="${static.url('/static/lhub/images/cart.png')}" alt="cart_icon"/>
+        <img class="cart-icon-img" src="${static.url('lhub/images/cart.png')}" alt="cart_icon"/>
 	</a>
       </div>
     <div class="mobile-nav-item hidden-mobile nav-item">
@@ -375,10 +375,10 @@ function getNumberOfItemInCart(){
             }
         }
     });
-    setTimeout(getNumberOfItemInCart, 4000);
+    // setTimeout(getNumberOfItemInCart, 4000);
 }
 
 $(document).ready(function(){
-    setTimeout(getNumberOfItemInCart, 4000);
+    setTimeout(getNumberOfItemInCart, 20000);
 });
 </script>

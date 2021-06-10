@@ -13,7 +13,7 @@ class SubscriptionPlanForm(forms.ModelForm):
     model = SubscriptionPlan
     fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
       'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
-      'price_month', 'stripe_price_month_id', 'price_year', 'stripe_price_year_id', 'price_onetime', 
+      'price_month', 'stripe_price_id_month', 'price_year', 'stripe_price_id_year', 'price_onetime', 
       'grace_period', 'enterprise',
     ]
 
@@ -21,58 +21,78 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
   form = SubscriptionPlanForm
   fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
     'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
-    'price_month', 'stripe_price_month_id', 'price_year', 'stripe_price_year_id', 'price_onetime', 
+    'price_month', 'stripe_price_id_month', 'price_year', 'stripe_price_id_year', 'price_onetime', 
     'grace_period', 'enterprise',
   ]
-  readonly_fields = ['slug', 'ecommerce_prod_id', 'stripe_prod_id', 'stripe_price_month_id', 'stripe_price_year_id']
+  readonly_fields = ['slug', 'ecommerce_prod_id', 'stripe_prod_id', 'stripe_price_id_month', 'stripe_price_id_year']
   search_fields = ['name', 'description', 'enterprise__name']
   list_display = ['slug', 'name', 'description', 'enterprise', 'is_featured', 'stripe_prod_id']
 
-  def save_model(self, request, obj, form, change):
+  def save_model(self, request, plan, form, change):
     subscription_svc = SubscriptionService()
 
     if not change:
-      # On Subscription Plan creation, create Stripe and Ecommerce products with prices.
+      # On Create - create Stripe and Ecommerce products with prices.
       prices = { 
-        'month': obj.price_month, 
-        'year': obj.price_year,
+        'month': plan.price_month, 
+        'year': plan.price_year,
+        'onetime': plan.price_onetime,
       }
-      product = subscription_svc.create_product(obj, prices, user=request.user)
-      if product is not None:
-        obj.stripe_prod_id = product['stripe_product_id']
-        if 'stripe_price_month_id' in product:
-          obj.stripe_price_month_id = product['stripe_price_month_id']
-        if 'stripe_price_year_id' in product:
-          obj.stripe_price_year_id = product['stripe_price_year_id']
+      
+      product_data = subscription_svc.create_product(plan, prices, user=request.user)
+      plan.stripe_prod_id = product_data.get('stripe_product_id')
+      plan.stripe_price_id_month = product_data.get('stripe_price_id_month')
+      plan.stripe_price_id_year = product_data.get('stripe_price_id_year')
+
+      plan.ecommerce_prod_id = product_data.get('ecommerce_prod_id')
+      plan.ecommerce_prod_id_month = product_data.get('ecommerce_prod_id_month')
+      plan.ecommerce_prod_id_year = product_data.get('ecommerce_prod_id_year')
+      plan.ecommerce_prod_id_onetime = product_data.get('ecommerce_prod_id_onetime')
+
+      plan.ecommerce_stockrecord_id_month = product_data.get('ecommerce_stockrecord_id_month')
+      plan.ecommerce_stockrecord_id_year = product_data.get('ecommerce_stockrecord_id_year')
+      plan.ecommerce_stockrecord_id_onetime = product_data.get('ecommerce_stockrecord_id_onetime')
         
     else:
       # On update
-
       new_product_name = None
+      new_description = None
+      new_valid_until = None
+      
       if 'name' in form.changed_data:
-        new_product_name = obj.name
+        new_product_name = plan.name
+      if 'description' in form.changed_data:
+        new_description = plan.description
+      if 'valid_until' in form.changed_data:
+        new_valid_until = plan.valid_until
 
       # If month/year prices change, create new prices in stripe 
       # https://stripe.com/docs/billing/subscriptions/products-and-prices#changing-prices
       new_prices = {
         'month': None, 
         'year': None,
+        'onetime': None,
       }
 
       if 'price_month' in form.changed_data:
-        new_prices['month'] = obj.price_month
+        new_prices['month'] = plan.price_month
 
       if 'price_year' in form.changed_data:
-        new_prices['year'] = obj.price_year
-  
-      updated_product = subscription_svc.update_product(new_product_name, new_prices, obj.stripe_prod_id)
+        new_prices['year'] = plan.price_year
+
+      updated_product = subscription_svc.update_product(
+        user=request.user,
+        plan=plan,
+        new_prices=new_prices,
+        new_product_name=new_product_name,
+        new_description=new_description,
+        new_valid_until=new_valid_until,
+      )
       
       if updated_product is not None:
-        if 'stripe_price_month_id' in updated_product:
-          obj.stripe_price_month_id = updated_product['stripe_price_month_id']
-        if 'stripe_price_year_id' in updated_product:
-          obj.stripe_price_year_id = updated_product['stripe_price_year_id']
-
-    super().save_model(request, obj, form, change)
+        plan.stripe_price_id_month = updated_product.get('stripe_price_id_month')
+        plan.stripe_price_id_year = updated_product.get('stripe_price_id_year')
+          
+    super().save_model(request, plan, form, change)
 
 admin.site.register(SubscriptionPlan, SubscriptionPlanAdmin)

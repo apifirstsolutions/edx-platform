@@ -27,14 +27,15 @@ def render_plan_view(request, template, slug):
     if (plan.price_year is not None):
         options.append(('year', '/year', plan.price_year, plan.slug + '-year'))
     if (plan.price_onetime is not None):
-        options.append(('one-time', 'one-time pay', plan.price_onetime, plan.slug + '-one-time'))
+        options.append(('onetime', 'one-time pay', plan.price_onetime, plan.slug + '-onetime'))
 
     try:
         context = {
             "name": plan.name,
             "description": plan.description,
             "courses": plan.bundle.courses.all(),
-            "options": options
+            "options": options,
+            "image_url": plan.image_url,
         }
         return render_to_response('subscriptions/' + template, context, content_type='text/html')
 

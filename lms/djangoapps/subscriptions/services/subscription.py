@@ -1,8 +1,15 @@
+
+import logging
 import stripe
 from itertools import islice
 
 from ..models import License, Transactions, SubscriptionTransaction
-from .ecommerce import create_ecommerce_product, create_stockrecord
+from .ecommerce import (
+  create_ecommerce_product, 
+  create_stockrecord, 
+  update_ecommerce_product, 
+  update_stockrecord_price,
+)
 from ..helpers.unique_slugify import unique_slugify 
 
 from lms.envs.common import (
@@ -10,6 +17,7 @@ from lms.envs.common import (
   STRIPE_CURRENCY,
 )
 
+log = logging.getLogger(__name__)
 stripe.api_key = STRIPE_API_KEY
 class SubscriptionService:
   
@@ -19,84 +27,96 @@ class SubscriptionService:
   # product
   #
   # prices = { 
-  #   'month': obj.price_month, 
-  #   'year': obj.price_year,
+  #   'month': decimal, 
+  #   'year': decimal,
+  #   'onetime': decimal,
   # }
   #
   # user, from request
 
   def create_product(self, product, prices, user):
+    unique_slugify(product, product.name)
     try:
-
       # Create Stripe Product
       stripe_product = stripe.Product.create(name=product.name,)
-      result = {}
-      result['stripe_product_id'] = stripe_product.id
-
-      # Create Ecommrce Product
-      ecommerce_product = create_ecommerce_product(user, product, prices)
-      result['ecommerce_prod_id'] = ecommerce_product['id']
+      result = {
+        'stripe_product_id': stripe_product.id
+      }
       
-
-      # keys must be interval values in stripe https://stripe.com/docs/api/prices/object#price_object-recurring-interval
+      # Create Ecommrce Product
+      ecommerce_product = create_ecommerce_product(user, product)
+      result['ecommerce_prod_id'] = ecommerce_product.get('id')
+      
       for cycle in prices.keys():
+
         if prices[cycle] is not None:
+          
+          if cycle is not 'onetime':
+            # Create Stripe Price
+            price = stripe.Price.create(
+              unit_amount= int(prices[cycle] * 100),
+              currency=STRIPE_CURRENCY,
+              recurring={ 'interval': cycle },
+              product=stripe_product.id,
+            )
+            result['stripe_price_id_' + cycle] = price.id
 
-           # Create Stripe Price
-          price = stripe.Price.create(
-            unit_amount= prices[cycle] * 100,
-            currency=STRIPE_CURRENCY,
-            recurring={ 'interval': cycle },
-            product=stripe_product.id,
-          )
-
-          result['stripe_price_' + cycle + '_id'] = price.id
-
-          # Create Ecommerce stockrecord for prices
-          unique_slugify(product, product.name)
+          # Create Ecommerce Product Variants to set differcent prices.
+          ecommerce_product_variant = create_ecommerce_product(user, product, parent_id=ecommerce_product.get('id'), cycle=cycle)
+          result['ecommerce_prod_id_' + cycle] = ecommerce_product_variant.get('id')
+          
           sku = product.slug + '-' + cycle
-          stockrecord = create_stockrecord(user, ecommerce_product['id'], sku, prices[cycle])
-
-          # TODO - save stockrecord id in Subscription Plan db
-
+          stockrecord = create_stockrecord(user, ecommerce_product_variant.get('id'), sku, prices[cycle])
+          result['ecommerce_stockrecord_id_' + cycle] = stockrecord.get('id')
 
       return result
+
     except Exception as e:
-      print('Stripe ERROR:: ' + str(e))
-
-
-    
-
-
-      
+      log.warning(u"Error occured while creating product in Stripe or Ecommerce. %s", str(e))
+      raise
 
   
-  # Updates a Produc name and Prices in Stripe.
+  # Updates a Product name and Prices in Stripe.
   # Updates an Ecommerce Product with multiple prices options.
-  def update_product(self, new_product_name, new_prices, stripe_product_id):
+
+  # FIXME use kwargs
+  def update_product(self, user, plan, new_prices, new_product_name=None, new_description=None, new_valid_until=None): 
+    result = {}
+
     try:
-      result = {}
-      
       if new_product_name is not None:
-        stripe.Product.modify(stripe_product_id, name=new_product_name)
+        stripe.Product.modify(plan.stripe_prod_id, name=new_product_name)
 
-      for interval in new_prices.keys():
-        if new_prices[interval] is not None:
-          price = stripe.Price.create(
-            unit_amount= int(new_prices[interval] * 100),
-            currency=STRIPE_CURRENCY,
-            recurring={ 'interval': interval },
-            product=stripe_product_id,
-          )
+      for cycle in new_prices.keys():
+        
+        if new_prices[cycle] is not None:
 
-          result['stripe_price_' + interval + '_id'] = price.id
-      
-      # TODO - update Ecommerce Product and Prices
+          if cycle is not 'onetime':
+            price = stripe.Price.create(
+              unit_amount= int(new_prices[cycle] * 100),
+              currency=STRIPE_CURRENCY,
+              recurring={ 'interval': cycle },
+              product=plan.stripe_prod_id,
+            )
+            result['stripe_price_id_' + cycle] = price.id
+
+          stockrecord_id = getattr(plan, 'ecommerce_stockrecord_id_'+cycle)
+          
+          if stockrecord_id is not None:
+            update_stockrecord_price(user, stockrecord_id, new_prices[cycle])
+          else:
+            # create new stockrecord
+            sku = plan.slug + '-' + cycle
+            create_stockrecord(user, plan.ecommerce_prod_id, sku, new_prices[cycle])
+    
+      # None means no change of values
+      if new_product_name is not None or new_description is not None or new_valid_until is not None:
+        update_ecommerce_product(user, plan.ecommerce_prod_id, new_product_name, new_description, new_valid_until)
 
       return result
     
     except Exception as e:
-      print('Stripe ERROR:: ' + str(e))
+      raise
 
 
   # If using Stripe - after first payment, create a Stripe subscription with Price (from subscription plan)
@@ -114,6 +134,7 @@ class SubscriptionService:
           customer=customer_id,
           billing_cycle_anchor=billing_cycle_anchor,
           proration_behavior='none',
+          # cancel_at=<valid_until>  # TODO - should cancel when valid_until change
           items=[
             { "price": price_id },
           ],
@@ -163,6 +184,13 @@ class SubscriptionService:
 
     return result
 
+
+
+  # Update a Subscription cancel time
+  def update_subscription_validity():
+    # cancel_at=<valid_until>  # TODO - should cancel when Subscription Plan valid_until date change 
+    pass
+
   # TODO - 
   # (1) After firstpayment is detected from webhook, update the current subscription and next billing date
   # (2) On expiration, update subscription status and subs. history
@@ -174,11 +202,10 @@ class SubscriptionService:
 
   
 
-
+  # TODO - 
   # Check Stripe Subscriptions status for payments and transaction information (like invoices)
   # make necessary subscription status updates
   def checkSubscription(self, subscription_id):
-   
     pass
 
 

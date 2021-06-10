@@ -7,25 +7,33 @@
 <%block name="js_extra">
   <script>
     $(function(){
-      var PRODUCT_SKU;
-      $(".subscription-option").change(function(){
-          PRODUCT_SKU = $(".subscription-option:checked").val();
-          
-          if (PRODUCT_SKU.endsWith("-one-time")) {
-            $("button#subscribe").html("Buy Now");
-          } else {
-            $("button#subscribe").html("Subscribe");
-          }
-      });
+      $("button#subscribe").click(function(){
+        var sku = $(".subscription-option:checked").val();
 
-      $("button#subscribe").click(function(e){
-        e.preventDefault();
+        if (!sku) { return; }
+        $("button#subscribe").prop('disabled', true);
+        $('body').css('cursor', 'wait');
 
-        console.log("http://edx.devstack.lms:18130/basket/add/?sku=" + PRODUCT_SKU);
-        
-        if (PRODUCT_SKU) {
-          window.location.href = "http://edx.devstack.lms:18130/basket/add/?sku=" + PRODUCT_SKU;
-        }
+        let csrf = $('#web_csrf_token').val();
+        let data = { "products": [{"sku": sku}] }
+
+        $.ajax({
+            type:"POST",
+            url:"/api/stripe/basket/buy_now/",
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            success:function(response){
+                if(response['status_code'] == 200){
+                  window.location.replace("${settings.ECOMMERCE_PUBLIC_URL_ROOT}/basket/");
+                }
+                else{
+                    console.error(response['message'])
+                }
+            },
+            error: function(data){
+                console.error(JSON.parse(data.responseText)['detail']);
+            }
+        });
       });
     });
   </script>
@@ -33,48 +41,96 @@
 
 
 <style>
+  .container {
+    padding: 0;
+  }
   .subscription-block {
     margin: 1em;
   }
 
   .subscription-course-block {
     border: 1px solid #dedede;
-    height: 8em;
+    height: 10em;
     padding: 0.5em;
     margin: 0.5em 0
   }
+
+  .plan-summary {
+    border: 1px solid;
+    padding: 1em;
+  }
 </style>
+
+<link rel="stylesheet" href="/static/lhub/courses.css" type="text/css" media="all">
 
 <main id="main" aria-label="Content" tabindex="-1">
     <section class="container about">
-        <div class="subscription-block">
-          <h1 style="text-align: left;">
-            <%block name="pageheader">${name}</%block>
-          </h1>
-        </div>
-        
-        <div class="subscription-block">
-            <%block name="pagecontent">${description | n}</%block>
-        </div>
-        <div style="display: flex;"  class="subscription-block">
 
-          
-          <div style="width: 250px;">
-            % for option in options:
-              <div>
-                <input type="radio" id="${option[0]}" name="subscription-option" class="subscription-option" value="${option[3]}">
-                <label for="${option[0]}">$${option[2]} SGD ${option[1]}</label>
+        <div class="plan-summary row">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-5">
+                <img width="400" class="thumbnail" src="${image_url}" alt="">
               </div>
-            % endfor
-          </div>
-          <div style="flex-grow: 1;">
-            <button id="subscribe">Subscribe</button>
-          </div>
+              <div class="col-md-7">
+                <div class="container">
+                  <div class="row">
+                    <div>
+                      <h1 style="text-align: left;">${name}</h1>
+                    </div>
+                    
+                    <div class="subscription-block">
+                      <%block name="pagecontent">${description | n}</%block>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="container subscription-block">
+                      <div class="row">
+                        <div class="col-sm-6 col-md-5">
+                          % for index, option in enumerate(options):
+                            <div>
+                              % if index == 0:
+                                <input 
+                                  type="radio" 
+                                  id="${option[0]}" 
+                                  name="subscription-option" 
+                                  class="subscription-option" 
+                                  value="${option[3]}"
+                                  checked
+                                >
+                              % else:
+                                <input 
+                                  type="radio" 
+                                  id="${option[0]}" 
+                                  name="subscription-option" 
+                                  class="subscription-option" 
+                                  value="${option[3]}"
+                                >
+                              % endif
+                                
 
+                              
+                              <label for="${option[0]}">$${option[2]} SGD ${option[1]}</label>
+                            </div>
+                          % endfor
+
+                        </div>
+                        <div class="col-sm-6 col-md-5">
+                          <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
+                          <button id="subscribe">Subscribe</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
 
-        <div class="subscription-block">
-          <h2>Courses</h2>
+        <div class="row subscription-block">
+          <h2 class="card-slider-title">Bundled Courses</h2>
           % for course in courses:
           <div class="subscription-course-block">
 
@@ -91,9 +147,8 @@
           </div>
           % endfor
         </div>
+        
     </section>
 </main>
 
-
-
-
+  

@@ -419,7 +419,7 @@ border-radius: 25px;
 </div>
 
 <div class="search-panel">
-  <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
+  <img src="${static.url('lhub/images/search-icon.png')}" alt="search-icon" border="0">
   <input type="text" placeholder="Search.." name="search" class="js-search-input">
   <button class="search-btn" type="">GO</button>
 </div>
@@ -428,7 +428,7 @@ border-radius: 25px;
 % if "/about" in request.path:
  % if request.user.is_anonymous:
 <div class="search-panel">
-  <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
+  <img src="${static.url('lhub/images/search-icon.png')}" alt="search-icon" border="0">
   <input type="text" placeholder="Search.." name="search">
   <button class="search-btn" type="">GO</button>
 </div>
