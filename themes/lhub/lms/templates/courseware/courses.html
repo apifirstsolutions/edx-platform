@@ -103,15 +103,7 @@
 
           <div class="row" id="topSearch">
               <h2 class="card-slider-title" style="">Top Search</h2>
-     % if search_top:
-        %for x in search_top:
-            % if 'course_tag' in x:
-                <button class="btn btn-primary" onclick=searchCourse(true) value="${x['course_tag']}" style="margin-right:80px; margin-top:20px;">${x['course_tag']}</button>
-            %else:
-                <button class="btn btn-primary" onclick=searchCourse(false) value="${x['course_id']}" style="margin-right:80px; margin-top:20px;">${x['course_name']}</button>
-            %endif
-        %endfor
-    %endif
+
 </div>
 %if user.is_authenticated and request.path == "/courses/" and request.path != "/courses":
 <div class="carousel">

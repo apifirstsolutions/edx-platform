@@ -484,22 +484,24 @@ def get_top_search(request):
 
     try:
         search_engine = SearchEngine.get_search_engine(index="home_search")
-        search_result_ = search_engine.search(size=100)
+        search_result_ = search_engine.search(size=2000)
     except Exception as ex:
         logger.error("Elastic Search Down Pls Check "+ str(ex))
     search_top_result = []
     seen = set()
     name_list = []
-
+    total_ = 0
+    total_ = search_result_['total']
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
             t = tuple(x['data'].items())
-            if t not in seen and t[1][1] not in name_list:
+            if t not in seen and t[1][1] not in name_list and total_>=5:
                 name_list.append(t[1][1])
                 seen.add(t)
                 if len(search_top_result) <= 20:
                     search_top_result.append(x['data'])
-    pagination = {"next": None, "previous": None, "count": 1,
+
+    pagination = {"next": None, "previous": None, "count": len(x['data']),
                   "num_pages": 1 }
     if search_top_result:
         result = {'results': search_top_result}

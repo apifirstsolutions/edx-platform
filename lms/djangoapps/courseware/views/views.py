@@ -392,13 +392,17 @@ def courses(request):
     user_category = None
     user_extra_info = UserExtraInfo.objects.filter(user_id=request.user.id).first()
     search_engine = SearchEngine.get_search_engine(index="home_search")
-    search_result_ = search_engine.search(size=100)
+    # print('REQUEST', request.GET.get('search_'))
+    # search_dict = {'key_word': request.GET.get('search_', )}
+    search_result_ = search_engine.search(size=2000)
     search_top_result = []
     seen = set()
     name_list = []
+    print("search_result_['results']==============views ", search_result_)
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
             t = tuple(x['data'].items())
+            print('--------------t-------------------', t, '==============tt==========', t[1][1])
             if t not in seen and t[1][1] not in name_list:
                 name_list.append(t[1][1])
                 seen.add(t)
@@ -2210,22 +2214,34 @@ def search_keyword(request):
         key_obj = []
         key_obj_name = []
         context = {}
-        tag = None
+        tag_ignore = False
         course_tag = CourseTag.objects.all()
         for x in course_tag:
-
             if key_word in str(x.course_tag_type.display_name):
                 tag = x.course_tag_type.display_name
                 doc_string = {
                     "course_id": str(x.course_over_view.id),
-                    "course_tag": str(x.course_tag_type.display_name)
+                    "course_tag": str(x.course_tag_type.display_name),
+                    "key_word": str(key_word)
                 }
                 search_result = search_engine.search(field_dictionary=doc_string)
-                if search_result and int(search_result['total']):
+                #start of deletion
+                # search_result = search_engine.search()
+                # test = []
+                # for x in search_result['results']:
+                #     print(x['_id'])
+                #     test.append(x['_id'])
+                #     print('added to Remove list ', (x['_id']))
+                # search_engine.remove('home', test)
+                #end
+                print("NET TOTAL TAGG ", search_result['total'])
+                if search_result and int(search_result['total']>50):
                     key_obj.append(tag) if tag not in key_obj else None
                 else:
-                    search_engine.index("home", [doc_string])
-                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                    if search_result['total'] < 51:
+                        search_engine.index("home", [doc_string])
+                        log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                        tag_ignore = True
                     key_obj.append(tag) if tag not in key_obj else None
         courses_ = key_obj
 
@@ -2236,26 +2252,53 @@ def search_keyword(request):
             if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
                 doc_string = {
                 "course_id": str(crs.id),
-                "course_name":  str(crs.display_name_with_default)
+                "course_name":  str(crs.display_name_with_default),
+                    "key_word": str(key_word)
                 }
-                search_result = search_engine.search(field_dictionary=doc_string)
-                log.info("fetched the following from Elastic Search Engine %s", str(search_result))
-                if search_result and int(search_result['total']):
-                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
-                    # This block is used to clear index
-                    # test = []
-                    # for x in search_result['results']:
-                    #     print(x['_id'])
-                    #     test.append(x['_id'])
-                    #     print('added to Remove list ',(x['_id']))
-                    # search_engine.remove('home', test)
-                else:
-                    search_engine.index("home", [doc_string])
-                    log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
 
+                search_result = search_engine.search(field_dictionary=doc_string)
+                print("NET TOTAL course_name ", search_result['total'])
+                log.info("fetched the following from Elastic Search Engine %s", str(search_result))
+                if search_result and int(search_result['total'])>50:
+                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
+                # # start of deletion
+                #     search_result = search_engine.search()
+                #     test = []
+                #     for x in search_result['results']:
+                #         print(x['_id'])
+                #         test.append(x['_id'])
+                #         print('added to Remove list ',(x['_id']))
+                #     search_engine.remove('home', test)
+                # #end
+                else:
+                    if search_result['total'] < 51 and not tag_ignore:
+                        search_engine.index("home", [doc_string])
+                        log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
+                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
         courses_name = key_obj_name
+        search_engine = SearchEngine.get_search_engine(index="home_search")
+        search_dict = {'key_word': str(request.GET.get('search_', None))}
+        if search_dict and search_dict != 'None':
+            # field_dictionary= search_dict,
+            search_result_ = search_engine.search(size=2000)
+            search_specific = search_engine.search(field_dictionary= search_dict, size=2000)
+        search_top_result = []
+        seen = set()
+        name_list = []
+        print('THRESHOLD===============', search_specific['total'])
+        for x in search_result_['results']:
+            if 'name' not in x['data'].keys():
+                t = tuple(x['data'].items())
+                if t not in seen and t[1][1] not in name_list and search_result_['total']>=5 and t[2][1] not in name_list:
+                    name_list.append(t[1][1])
+                    seen.add(t)
+                    print('============abount ', x['data'])
+                    if len(search_top_result) <= 20 and search_specific['total']>3:
+                        search_top_result.append(x['data'])
+        search_top = search_top_result[0:19]
         if courses_name:
             context['course_name']= courses_name
+        context['search_top'] = search_top
         return JsonResponse(context, status=200)
+
 

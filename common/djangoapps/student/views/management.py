@@ -209,26 +209,23 @@ def index(request, extra_context=None, user=AnonymousUser()):
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
 
     search_engine = SearchEngine.get_search_engine(index="home_search")
-    search_result_ = search_engine.search()
-
-    total_results = []
-    result = []
+    search_dict = {'key_word': request.GET.get('search', '')}
+    search_result_ = search_engine.search(field_dictionary=search_dict)
+    search_top_result = []
     seen = set()
+    name_list = []
+    print("FROM MANAGEMENT===========>", search_result_['results'])
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
-            total_results.append(x['data'])
-
-    for x in total_results:
-        t = tuple(x.items())
-        if t not in seen:
-            seen.add(t)
-            result.append(x)
-
-
-    context['search_top'] = result
+            t = tuple(x['data'].items())
+            if t not in seen and t[1][1] not in name_list:
+                name_list.append(t[1][1])
+                seen.add(t)
+                if len(search_top_result) <= 20:
+                    search_top_result.append(x['data'])
 
 
-
+    context['search_top'] = search_top_result
 
     return render_to_response('index.html', context)
 
