@@ -29,19 +29,27 @@ from django.urls import reverse
                             % if y.link_type == 'ABOUT':
                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
                             % else:
-                                <a href="${y.link_url}">
+                                % if y.link_url:
+                                    <a href="${y.link_url}">
+                                % endif
                             % endif
-                            <img src="${y.banner_img_url_txt}"  class="d-block w-100">
-                                </a>
+                            <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
+                                    </a>
                         <div class="carousel-caption">
                             <h4 >${y.course_over_view.display_name_with_default}</h4>
                         </div>
                         </div>
                         % else:
                         <div class="item" style="height:720px">
-                             <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
-                            <img src="${y.banner_img_url_txt}"  class="d-block w-100">
-                             </a>
+                              % if y.link_type == 'ABOUT':
+                            <a href="${reverse('about_course', args=[str(y.course_over_view.id)])}">
+                            % else:
+                                % if y.link_url:
+                                    <a href="${y.link_url}">
+                                % endif
+                            % endif
+                            <img src="${y.banner_img_url_txt}"  class="d-block w-100 p-0">
+                                    </a>
                         <div class="carousel-caption">
                             <h3>${y.course_over_view.display_name_with_default}</h3>
                         </div>
