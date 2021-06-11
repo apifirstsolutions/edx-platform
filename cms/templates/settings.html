@@ -552,7 +552,7 @@ width: 70% !important;
                 % if about_page_editable:
                 <li class="field text" id="field-course-overview">
                   <label for="course-overview">${_("Course Overview")}</label>
-                  <textarea class="tinymce text-editor" id="course-overview"></textarea>
+                  <textarea class="tinymce text-editor" id="course-overview" name="cke-overview"></textarea>
                   <label class="sr" for="course-overview-cm-textarea">
                     ${_('HTML Code Editor')}
                   </label>
@@ -918,4 +918,6 @@ overflow: hidden;
 }
 
 </style>
+
+<script src="https://cdn.ckeditor.com/4.16.1/standard/ckeditor.js"></script>
 </%block>
