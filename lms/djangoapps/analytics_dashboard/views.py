@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 from django.http import Http404
 from django.urls import reverse
@@ -195,7 +195,7 @@ def admin_view(request, *args, **kwargs):
 
 @ensure_csrf_cookie
 @login_required
-def trainer_view(request, *args, **kwargs):
+def trainer_view(request, duration=1, *args, **kwargs):
 
     user = request.user
     user_id = user.id
@@ -213,11 +213,32 @@ def trainer_view(request, *args, **kwargs):
         .values_list('course_id')
     log.info("Fetched CourseAccessRole for user id %s", str(user_id))
 
-    trainer_course_learner_count = CourseEnrollment.objects \
-        .filter(course_id__in=trainer_course_ids) \
-        .values('course_id') \
-        .annotate(total=Count('course_id')) \
-        .order_by('-total')
+    if duration is None or duration == '':
+        trainer_course_learner_count = CourseEnrollment.objects \
+            .filter(course_id__in=trainer_course_ids) \
+            .values('course_id') \
+            .annotate(total=Count('course_id')) \
+            .order_by('-total')
+    elif duration == 1:
+        trainer_course_learner_count = CourseEnrollment.objects \
+            .filter(course_id__in=trainer_course_ids, created__range=[date.today(), date.today() + timedelta(days=6)]) \
+            .values('course_id') \
+            .annotate(total=Count('course_id')) \
+            .order_by('-total')
+    elif duration == 2:
+        trainer_course_learner_count = CourseEnrollment.objects \
+            .filter(course_id__in=trainer_course_ids, created__month=datetime.today().month) \
+            .values('course_id') \
+            .annotate(total=Count('course_id')) \
+            .order_by('-total')
+    else:
+        trainer_course_learner_count = CourseEnrollment.objects \
+            .filter(course_id__in=trainer_course_ids,
+                    created__month__lte=datetime.today().month,
+                    created__month__gte=datetime.today().month - 2) \
+            .values('course_id') \
+            .annotate(total=Count('course_id')) \
+            .order_by('-total')
     log.info("Fetched CourseEnrollment for trainer courses")
 
     trainer_total_learner_count = sum([x['total'] for x in trainer_course_learner_count])
@@ -237,6 +258,7 @@ def trainer_view(request, *args, **kwargs):
     context = {
         'user_id': user_id,
         'trainer': trainer,
+        'duration': duration,
         'trainer_profile': trainer_profile,
         'trainer_courses': trainer_courses,
         'trainer_total_learner_count': trainer_total_learner_count,
