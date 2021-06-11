@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 class Banner(models.Model):
     PLATFORM_CHOICES=(('mobile', 'MOBILE'), ('web', 'WEB'), ('both', 'BOTH'))
-    LINK_CHOICES=(('about', 'ABOUT'), ('bundle', 'BUNDLE'), ('subscription', 'SUBSCRIPTION'), ('external','EXTERNAL'))
+    LINK_CHOICES=(('about', 'ABOUT'), ('bundle', 'BUNDLE'), ('subscription', 'SUBSCRIPTION'), ('external','EXTERNAL'), ('subcategory', 'SUBCATEGORY'))
     course_over_view = models.ForeignKey(CourseOverview, related_name='course_over_view', on_delete=models.CASCADE)
     banner_img_url_txt = models.TextField(blank=True, default=u"")
     banner_img = models.ImageField(upload_to = 'banner/lms/courses')
