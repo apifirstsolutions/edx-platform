@@ -586,8 +586,6 @@ class SearchCourseEnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView)
 
         username = self.request.GET.get('user', self.request.user.username)
         platform_visibility = self.request.query_params.get('platform_visibility', None)
-        log.info(f"*** username:{username} ***")
-        log.info(f"*** search_param:{course_param} ***")
         try:
             enrollment_data = api.mobile_get_search_enrollments(username, course_param, platform_visibility=platform_visibility)
         except CourseEnrollmentError:
@@ -599,23 +597,24 @@ class SearchCourseEnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView)
                     ).format(username=username)
                 }
             )
+
         if username == self.request.user.username or GlobalStaff().has_user(self.request.user) or \
             self.has_api_key_permissions(self.request):
             return LazySequence(
                 (c for c in enrollment_data),
                 est_len=enrollment_data.count()
             )
-            # return enrollment_data
+
         filtered_data = []
         for enrollment in enrollment_data:
             course_key = CourseKey.from_string(enrollment.course_details.course_id)
             if user_has_role(self.request.user, CourseStaffRole(course_key)):
                 filtered_data.append(enrollment)
+
         return LazySequence(
             (c for c in filtered_data),
             est_len=len(filtered_data)
         )
-        # return filtered_data
 
 
 @can_disable_rate_limit
