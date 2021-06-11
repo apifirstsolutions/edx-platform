@@ -31,6 +31,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
       if obj.billing_cycle == BillingCycles.MONTH.value or obj.billing_cycle == BillingCycles.YEAR.value:
         obj.stripe_price_id = getattr(obj.subscription_plan, 'stripe_price_id_'+obj.billing_cycle)
 
+      # FIXME - remove this.  is start_at is not set, it should start from now
       # If start_at is not set, set to first day of the next month, exept current day is already first day of the month
       if obj.start_at is None:
         today = datetime.datetime.today()
