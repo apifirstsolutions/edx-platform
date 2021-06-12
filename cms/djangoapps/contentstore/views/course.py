@@ -1193,6 +1193,7 @@ def settings_handler(request, course_key_string):
             subcategories = SubCategory.objects.all()
             regions = COUNTRIES
             current_org = None
+            course_overview = None
             try:
                 course_overview = CourseOverview.objects.get(id=course_module.id)
             except Exception as e:
