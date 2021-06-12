@@ -169,7 +169,8 @@ class CourseSerializer(serializers.Serializer):
     discount_applicable = serializers.BooleanField(required=False)
     discount_type = serializers.CharField(required=False)
     discounted_price = serializers.FloatField(required=False)
-    discounted_price_string = serializers.CharField(required=False)
+    discounted_price_string = serializers.SerializerMethodField()
+    # discounted_price_string = serializers.CharField(required=False)
     sale_type = serializers.CharField(required=False)
     subcategory_id = serializers.CharField(required=False)
     category = serializers.CharField(required=False)
@@ -208,6 +209,11 @@ class CourseSerializer(serializers.Serializer):
                     'Verification deadline must be after the course mode upgrade deadlines.')
 
         return attrs
+
+    def get_discounted_price_string(self, instance):
+        if instance and instance.discounted_price:
+            return '{:.2f}'.format(instance.discounted_price)
+        return None
 
     def create(self, validated_data):
         """
