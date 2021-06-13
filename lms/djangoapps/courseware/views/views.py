@@ -391,8 +391,6 @@ def courses(request):
     user_category = None
     user_extra_info = UserExtraInfo.objects.filter(user_id=request.user.id).first()
     search_engine = SearchEngine.get_search_engine(index="home_search")
-    # print('REQUEST', request.GET.get('search_'))
-    # search_dict = {'key_word': request.GET.get('search_', )}
     search_result_ = search_engine.search(size=2000)
     search_top_result = []
     seen = set()

@@ -214,7 +214,6 @@ def index(request, extra_context=None, user=AnonymousUser()):
     search_top_result = []
     seen = set()
     name_list = []
-    print("FROM MANAGEMENT===========>", search_result_['results'])
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
             t = tuple(x['data'].items())
