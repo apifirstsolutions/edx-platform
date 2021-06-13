@@ -550,6 +550,72 @@ class EnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):
         )
         # return filtered_data
 
+@can_disable_rate_limit
+class SearchCourseEnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):
+    class EnrollmentListViewMobilePagination(LazyPageNumberPagination):
+        max_page_size = 100
+
+    authentication_classes = (BearerAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (EnrollmentUserThrottle,)
+    serializer_class = MobileCourseEnrollmentSerializer
+    pagination_class = EnrollmentListViewMobilePagination
+
+    # Since the course about page on the marketing site
+    # uses this API to auto-enroll users, we need to support
+    # cross-domain CSRF.
+    def get_queryset(self):
+        """Gets a list of searched course enrollments for a user.
+
+        Returns a list for the currently logged in user, or for the user named by the 'user' GET
+        parameter. If the username does not match that of the currently logged in user, only
+        courses for which the currently logged in user has the Staff or Admin role are listed.
+        As a result, a course team member can find out which of his or her own courses a particular
+        learner is enrolled in.
+
+        Only the Staff or Admin role (granted on the Django administrative console as the staff
+        or instructor permission) in individual courses gives the requesting user access to
+        enrollment data. Permissions granted at the organizational level do not give a user
+        access to enrollment data for all of that organization's courses.
+
+        Users who have the global staff permission can access all enrollment data for all
+        courses.
+        """
+
+        course_param = self.request.query_params.get('course') or None
+
+        username = self.request.GET.get('user', self.request.user.username)
+        platform_visibility = self.request.query_params.get('platform_visibility', None)
+        try:
+            enrollment_data = api.mobile_get_search_enrollments(username, course_param, platform_visibility=platform_visibility)
+        except CourseEnrollmentError:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    "message": (
+                        u"An error occurred while retrieving enrollments for user '{username}'"
+                    ).format(username=username)
+                }
+            )
+
+        if username == self.request.user.username or GlobalStaff().has_user(self.request.user) or \
+            self.has_api_key_permissions(self.request):
+            return LazySequence(
+                (c for c in enrollment_data),
+                est_len=enrollment_data.count()
+            )
+
+        filtered_data = []
+        for enrollment in enrollment_data:
+            course_key = CourseKey.from_string(enrollment.course_details.course_id)
+            if user_has_role(self.request.user, CourseStaffRole(course_key)):
+                filtered_data.append(enrollment)
+
+        return LazySequence(
+            (c for c in filtered_data),
+            est_len=len(filtered_data)
+        )
+
 
 @can_disable_rate_limit
 class EnrollmentListView(APIView, ApiKeyPermissionMixIn):

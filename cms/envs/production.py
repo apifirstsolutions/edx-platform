@@ -557,13 +557,7 @@ MAX_BLOCKS_PER_CONTENT_LIBRARY = ENV_TOKENS.get('MAX_BLOCKS_PER_CONTENT_LIBRARY'
 add_plugins(__name__, ProjectType.CMS, SettingsType.PRODUCTION)
 
 ########################## Derive Any Derived Settings  #######################
-from .common import _make_mako_template_dirs
-DEFAULT_SITE_THEME = 'lhub'
-ENABLE_COMPREHENSIVE_THEMING = True
-COMPREHENSIVE_THEME_DIRS = [
-    "/edx/app/edxapp/edx-platform/themes/"
-]
-TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
+
 derive_settings(__name__)
 
 ############# CORS headers for cross-domain requests #################
@@ -576,14 +570,10 @@ if FEATURES.get('ENABLE_CORS_HEADERS'):
         'use-jwt-cookie',
     )
 
-
-
 ################# Settings for brand logos. #################
+LOGO_URL = ENV_TOKENS.get('LOGO_URL')
+LOGO_URL_PNG = ENV_TOKENS.get('LOGO_URL_PNG')
+LOGO_TRADEMARK_URL = ENV_TOKENS.get('LOGO_TRADEMARK_URL')
+FAVICON_URL = ENV_TOKENS.get('FAVICON_URL')
 
 
-LOGO_URL = None
-LOGO_URL_PNG = None
-LOGO_TRADEMARK_URL = None
-FAVICON_URL = None
-
-TEST_VAL = "production"

@@ -43,7 +43,7 @@ EMAIL_FILE_PATH = '/edx/src/ace_messages/'
 
 ################################# LMS INTEGRATION #############################
 
-LMS_BASE = '192.168.0.149:18000'
+LMS_BASE = 'localhost:18000'
 LMS_ROOT_URL = 'http://{}'.format(LMS_BASE)
 FEATURES['PREVIEW_LMS_BASE'] = "preview." + LMS_BASE
 
@@ -245,5 +245,3 @@ COMPREHENSIVE_THEME_DIRS = [
 ]
 TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
 derive_settings(__name__)
-
-TEST_VAL = 'devstack'

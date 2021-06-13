@@ -32,4 +32,4 @@ class BannerSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = Banner
-        fields = ('course_id', 'course_over_view', 'enabled', 'platform', 'slide_position', 'created_by', 'banner_img_url')
+        fields = ('course_id', 'course_over_view', 'enabled', 'platform', 'slide_position', 'created_by', 'banner_img_url', 'link_type', 'link_url')
