@@ -2,7 +2,6 @@
 Courseware views functions
 """
 
-
 import json
 import logging
 from collections import OrderedDict, namedtuple
@@ -150,8 +149,8 @@ import copy
 from search.search_engine_base import SearchEngine
 from lms.djangoapps.course_tag.models import CourseTag
 from common.djangoapps.util.json_request import JsonResponse
-log = logging.getLogger("edx.courseware")
 
+log = logging.getLogger("edx.courseware")
 
 # Only display the requirements on learner dashboard for
 # credit and verified modes.
@@ -398,15 +397,13 @@ def courses(request):
     search_top_result = []
     seen = set()
     name_list = []
-    print("search_result_['results']==============views ", search_result_)
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
             t = tuple(x['data'].items())
-            print('--------------t-------------------', t, '==============tt==========', t[1][1])
             if t not in seen and t[1][1] not in name_list:
                 name_list.append(t[1][1])
                 seen.add(t)
-                if len(search_top_result)<=20:
+                if len(search_top_result) <= 20:
                     search_top_result.append(x['data'])
 
     search_top = search_top_result[0:19]
@@ -1151,11 +1148,10 @@ def course_about(request, course_id):
         # Embed the course reviews tool
         reviews_fragment_view = CourseReviewsModuleFragmentView().render_to_fragment(request, course=course)
 
-
         check = course_price
         check_points = check.split('.')
         last_check = check_points[-1]
-        if not(len(last_check) > 1):
+        if not (len(last_check) > 1):
             course_price = course_price + '0'
 
         context = {
@@ -2192,7 +2188,6 @@ def get_financial_aid_courses(user):
 
 @csrf_exempt
 def search_keyword(request):
-
     if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
         if not request.user.id:
             filter_ = {'organization': None}
@@ -2211,94 +2206,66 @@ def search_keyword(request):
     if request.GET.get('search_') or request.GET.get('search'):
         search_engine = SearchEngine.get_search_engine(index="home_search")
         key_word = str(request.GET.get('search_'))
-        key_obj = []
         key_obj_name = []
         context = {}
-        tag_ignore = False
-        course_tag = CourseTag.objects.all()
-        for x in course_tag:
-            if key_word in str(x.course_tag_type.display_name):
-                tag = x.course_tag_type.display_name
-                doc_string = {
-                    "course_id": str(x.course_over_view.id),
-                    "course_tag": str(x.course_tag_type.display_name),
-                    "key_word": str(key_word)
-                }
-                search_result = search_engine.search(field_dictionary=doc_string)
-                #start of deletion
-                # search_result = search_engine.search()
-                # test = []
-                # for x in search_result['results']:
-                #     print(x['_id'])
-                #     test.append(x['_id'])
-                #     print('added to Remove list ', (x['_id']))
-                # search_engine.remove('home', test)
-                #end
-                print("NET TOTAL TAGG ", search_result['total'])
-                if search_result and int(search_result['total']>50):
-                    key_obj.append(tag) if tag not in key_obj else None
-                else:
-                    if search_result['total'] < 51:
-                        search_engine.index("home", [doc_string])
-                        log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                        tag_ignore = True
-                    key_obj.append(tag) if tag not in key_obj else None
-        courses_ = key_obj
-
-        if courses_:
-            context = {'course_tag': courses_}
-
+        matched = False
+        courses_name = None
         for crs in courses:
-            if key_word in str(crs.display_org_with_default) or key_word in str(crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
-                doc_string = {
-                "course_id": str(crs.id),
-                "course_name":  str(crs.display_name_with_default),
-                    "key_word": str(key_word)
-                }
+            if key_word in str(crs.display_org_with_default) or key_word in str(
+                crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
+                matched = True
+                key_obj_name.append(str(crs.id))
 
-                search_result = search_engine.search(field_dictionary=doc_string)
-                print("NET TOTAL course_name ", search_result['total'])
-                log.info("fetched the following from Elastic Search Engine %s", str(search_result))
-                if search_result and int(search_result['total'])>50:
-                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
-                # # start of deletion
-                #     search_result = search_engine.search()
-                #     test = []
-                #     for x in search_result['results']:
-                #         print(x['_id'])
-                #         test.append(x['_id'])
-                #         print('added to Remove list ',(x['_id']))
-                #     search_engine.remove('home', test)
-                # #end
-                else:
-                    if search_result['total'] < 51 and not tag_ignore:
-                        search_engine.index("home", [doc_string])
-                        log.info("Indexed to Elastic Search with data type as home with values %s ",str(doc_string))
-                    key_obj_name.append(str(crs.id)) if str(crs.id) not in key_obj else None
-        courses_name = key_obj_name
-        search_engine = SearchEngine.get_search_engine(index="home_search")
+        ip = get_client_ip(request)
+        if matched and ip and key_word:
+            doc_string = {"ip": str(ip),
+                          "key_word": str(key_word)
+                          }
+            search_result = search_engine.search(field_dictionary=doc_string)
+            log.info("fetched the following from Elastic Search Engine %s", str(search_result))
+            if search_result and int(search_result['total']) > 50:
+                pass
+            else:
+                if search_result['total'] < 100:  # change it to < 1 while pushing to prod, for making ip constrain
+                    search_engine.index("home", [doc_string])
+                    log.info("Indexed to Elastic Search with data type as home with values %s ", str(doc_string))
+            courses_name = key_obj_name
         search_dict = {'key_word': str(request.GET.get('search_', None))}
         if search_dict and search_dict != 'None':
-            # field_dictionary= search_dict,
             search_result_ = search_engine.search(size=2000)
-            search_specific = search_engine.search(field_dictionary= search_dict, size=2000)
         search_top_result = []
         seen = set()
         name_list = []
-        print('THRESHOLD===============', search_specific['total'])
+        generic_name_list = []
+        search_top_result_with_rank = []
         for x in search_result_['results']:
             if 'name' not in x['data'].keys():
                 t = tuple(x['data'].items())
-                if t not in seen and t[1][1] not in name_list and search_result_['total']>=5 and t[2][1] not in name_list:
+                generic_name_list.append(str(t[1][1]))
+                if t not in seen and t[1][1] not in name_list and (
+                    search_result_['total'] >= 5 or search_result['total'] >= 5):
                     name_list.append(t[1][1])
                     seen.add(t)
-                    print('============abount ', x['data'])
-                    if len(search_top_result) <= 20 and search_specific['total']>3:
+                    if len(search_top_result) <= 20:
+                        del x['data']['ip']
                         search_top_result.append(x['data'])
-        search_top = search_top_result[0:19]
+        for val in search_top_result:
+            _new_dict = val.copy()
+            hit_word = str(val['key_word'])
+            _new_dict['hits'] = generic_name_list.count(hit_word)
+            search_top_result_with_rank.append(_new_dict)
+        final_list = sorted(search_top_result_with_rank, key=lambda k: k['hits'], reverse=True)
+        search_top = final_list[0:19]
         if courses_name:
-            context['course_name']= courses_name
+            context['course_name'] = courses_name
         context['search_top'] = search_top
         return JsonResponse(context, status=200)
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip

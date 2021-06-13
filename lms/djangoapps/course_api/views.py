@@ -2,7 +2,6 @@
 Course API Views
 """
 
-
 from django.core.exceptions import ValidationError
 from django.core.paginator import InvalidPage
 from edx_django_utils.monitoring import function_trace
@@ -25,7 +24,9 @@ from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthenticat
 from search.search_engine_base import SearchEngine
 from rest_framework.response import Response
 from logging import getLogger
+
 logger = getLogger(__name__)
+
 
 @view_auth_classes(is_authenticated=False)
 class CourseDetailView(DeveloperErrorViewMixin, RetrieveAPIView):
@@ -315,6 +316,7 @@ class CourseListView(DeveloperErrorViewMixin, ListAPIView):
               }
             ]
     """
+
     class CourseListPageNumberPagination(LazyPageNumberPagination):
         max_page_size = 100
 
@@ -412,6 +414,7 @@ class CourseIdListView(DeveloperErrorViewMixin, ListAPIView):
             }
 
     """
+
     class CourseIdListPageNumberPagination(LazyPageNumberPagination):
         max_page_size = 1000
 
@@ -481,30 +484,39 @@ class CourseIdListView(DeveloperErrorViewMixin, ListAPIView):
 @authentication_classes((BearerAuthentication, SessionAuthentication, JwtAuthentication))
 @permission_classes([IsAuthenticated])
 def get_top_search(request):
-
     try:
         search_engine = SearchEngine.get_search_engine(index="home_search")
         search_result_ = search_engine.search(size=2000)
     except Exception as ex:
-        logger.error("Elastic Search Down Pls Check "+ str(ex))
+        logger.error("Elastic Search Down Pls Check " + str(ex))
     search_top_result = []
+    search_top_result_with_rank = []
     seen = set()
     name_list = []
-    total_ = 0
+    generic_name_list = []
     total_ = search_result_['total']
     for x in search_result_['results']:
         if 'name' not in x['data'].keys():
             t = tuple(x['data'].items())
-            if t not in seen and t[1][1] not in name_list and total_>=5:
+            generic_name_list.append(str(t[1][1]))
+            if t not in seen and t[1][1] not in name_list and total_ >= 5:
                 name_list.append(t[1][1])
                 seen.add(t)
                 if len(search_top_result) <= 20:
+                    del x['data']['ip']
                     search_top_result.append(x['data'])
-
+    for val in search_top_result:
+        _new_dict = val.copy()
+        hit_word = str(val['key_word'])
+        _new_dict['hits'] = generic_name_list.count(hit_word)
+        search_top_result_with_rank.append(_new_dict)
+    final_list = sorted(search_top_result_with_rank, key=lambda k: k['hits'], reverse=True)
+    search_top = final_list[0:19]
     pagination = {"next": None, "previous": None, "count": len(x['data']),
-                  "num_pages": 1 }
-    if search_top_result:
-        result = {'results': search_top_result}
+                  "num_pages": 1}
+    if search_top:
+        result = {'results': search_top_result_with_rank}
         return Response(
-        {"message": "", "result": result, "pagination": pagination, "status": True, "status_code": 200})
-    return Response({"message": "Error", "result": search_top_result, "pagination":pagination, "status": False, "status_code": 400})
+            {"message": "", "result": result, "pagination": pagination, "status": True, "status_code": 200})
+    return Response({"message": "Error", "result": search_top_result, "pagination": pagination, "status": False,
+                     "status_code": 400})

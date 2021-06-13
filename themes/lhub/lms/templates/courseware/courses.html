@@ -100,11 +100,11 @@
         <div id="filter-bar" class="filters hide-phone is-collapsed">
         </div>
         % endif
+           <div class="slider-heading"></div>
+      <h2 class="card-slider-title" style="">Top Search</h2>
+      <div id="topSearch"></div>
 
-          <div class="row" id="topSearch">
-              <h2 class="card-slider-title" style="">Top Search</h2>
 
-</div>
 %if user.is_authenticated and request.path == "/courses/" and request.path != "/courses":
 <div class="carousel">
    <div id="myCarousel" class="carousel slide" data-ride="carousel">
@@ -182,42 +182,11 @@
         </div>
         % endif
         %if show_categorized_view == False:
-        <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
-             <div class="loader-sec" id = "course_tag_loader" style="display:none;">
+          <div class="loader-sec" id = "course_tag_loader" style="display:none;">
             <div class="loader"></div>
             </div>
-
-            ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
-
-              % if course_tag:
-                  %for key in course_tag:
-                    %for val  in key.items():
-                      % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
-                          % if loop.index == 0 :
-                           <ul class="courses-listing ${val[0]}" style="margin: 0 0 3px 0;">
-                               <li class="courses-listing-item" >
-                                   <h3 class="card-slider-title">${val[0]}</h3>
-                                   <%include file="../course.html" args="course=tag" />
-                               </li>
-                          % else:
-                              <li class="courses-listing-item" >
-                                   %if len(key.items()) > 1:
-                                      <h3 class="card-slider-title">&nbsp;</h3>
-                                  % endif
-                                   <%include file="../course.html" args="course=tag" />
-                               </li>
-
-
-                          % endif
-                      %endfor
-                                </ul>
-                    %endfor
-                  %endfor
-              %endif
-
-            </div>
-
           <div class="courses${'' if course_discovery_enabled else ' no-course-discovery'}" role="region" aria-label="${_('List of Courses')}">
+
             <ul class="courses-listing courses-list">
               %for course in courses:
               <li class="courses-listing-item">

@@ -377,29 +377,13 @@ $(document).ready(function() {
                         console.log("data"+data)
                             showAll();
                             console.log("data",data)
-                            if(data['course_name']){
+                            if(['course_name']){
                              $("article").each(function() {
                                 let targetClass = $(this).attr('class');
                                 targetClass=targetClass.split(" ");
-                                    if (targetClass.length >1 && data['course_name'].includes(targetClass[1])) {
+                                    if (data['course_name'] && targetClass.length >1 && data['course_name'].includes(targetClass[1])) {
                                        $(this).show();
-                                       let mainClass=null;
-
-                                       $(this).parent().parent().attr('class').split("courses-listing").length>1?mainClass=$(this).parent().parent().attr('class').split("courses-listing")[1].trim():null;
-                                               if(mainClass && mainClass!="courses-list" && !course_tag_list.includes(mainClass)){
-
-                                                 if(data['course_name'] && !data['course_tag']){
-                                                  //  $(this).parent('li').css('float','initial').removeClass('display')
-                                               }
-                                               else{
-                                                // $(this).parent('li').css('float','block').removeClass('display');
-
-                                               }
-                                             course_tag_list.push(mainClass);
-                                   }else{
-                                           // $(this).parent('li').css('display')!='initial'?$(this).parent('li').css('inherit','block'):null;
-                                       }
-                                    }
+                                   }
                                     else{
                                         $(this).parent('li').hide();
                                         $(this).closest('ul').closest('li').hide();
@@ -407,39 +391,15 @@ $(document).ready(function() {
                             });
                             }else{
                                 $("#course_tag_loader").css("display", "None");
+                                 $("article").each(function() {$(this).hide()});
                                 console.log("not matched in active class course_name");
                             }
-                             if(data['course_tag']){
-                                $(".courses-listing").each(function() {
-                                    let targetClass = $(this).attr('class');
-                                    targetClass?targetClass=targetClass.split("courses-listing "):targetClass=null;
-                                    if (targetClass && targetClass.length >1 && data['course_tag'] == targetClass[1]) {
-                                        $(this).show(); // to show course match
-                                        $(this).children().show(); // to show courses matched in other tag type.
-                                    }
-                                    else{
-                                        if(data['course_tag'] && !data['course_name']){
-                                        $(this).hide();
-                                        }
-                                    }
-                                });
-                            }else{
-                                $("#course_tag_loader").css("display", "None");
-                                console.log("not matched in active class course_tag");
-                            }
+
                             if(data['search_top']){
                                     clearSearchTop();
                                     $.each(data['search_top'], function(key,value) {
-                                     console.log(key, value);
-                                     if(value['course_tag']){
-                                      var r= $('<input type="button" value='+value['key_word']+' class="keyWord" id="test1" style="margin-right:80px; margin-top:20px;" onclick=searchCourse(this,true) />');
-
-                                            $("#topSearch").append(r);
-                                    }else{
                                         var r= $('<input type="button" value='+value['key_word']+' class="keyWord" style="margin-right:80px; margin-top:20px;" onclick=searchCourse(this,false) />');
-
                                             $("#topSearch").append(r);
-                                    }
                                      });
                             }
                         },
