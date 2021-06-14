@@ -515,7 +515,7 @@ def get_top_search(request):
     pagination = {"next": None, "previous": None, "count": len(x['data']),
                   "num_pages": 1}
     if search_top:
-        result = {'results': search_top_result_with_rank}
+        result = {'results': search_top}
         return Response(
             {"message": "", "result": result, "pagination": pagination, "status": True, "status_code": 200})
     return Response({"message": "Error", "result": search_top_result, "pagination": pagination, "status": False,
