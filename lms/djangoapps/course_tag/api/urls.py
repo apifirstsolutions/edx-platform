@@ -5,7 +5,7 @@ URLs for CourseTag API
 
 from django.conf.urls import url
 
-from .views import  CourseTagTypeApi, CourseListViewTag
+from .views import  CourseTagTypeApi
 from lms.djangoapps.course_tag.api import views
 
 urlpatterns = [
