@@ -33,7 +33,7 @@ font-size: 14px;
 margin-top: 20px;
 }
 
-.global-header form.search-foam button.search-btn {
+.global-header div.search-panel button.search-btn {
 padding: 7px 20px;
 font-size: 14px;
 }
@@ -120,7 +120,7 @@ header.global-header .main-header .main .nav-item:last-child a  {
 .global-header .nav-links .secondary .cart-item img {
 	width: 32px;
 }
-.global-header .category-block, .global-header form.search-foam {
+.global-header .category-block, .global-header div.search-panel {
     display: inline;
     float: left;
     margin-top: 35px;
@@ -133,12 +133,12 @@ header.global-header .main-header .main .nav-item:last-child a  {
     margin-top: 15px;
     display: block;
 }
-.global-header form {
+.global-header div.search-panel {
     margin-left: 5%;
     width: 30%;
     position: relative !important;
 }
-.global-header form.search-foam input {
+.global-header div.search-panel input {
     outline: none !important;
     border: none !important;
     font-family: 'Poppins';
@@ -149,29 +149,29 @@ header.global-header .main-header .main .nav-item:last-child a  {
     height: 48px;
     border-radius: 25px;
 }
-.global-header form.search-foam img {
+.global-header div.search-panel img {
     position: absolute;
     width: 18px;
     top: 16px;
     left: 15px;
 }
-.global-header form.search-foam input::placeholder {
+.global-header div.search-panel input::placeholder {
 color: #c0c0c0;
 font-style: normal;
 }
 
-.global-header form.search-foam input button {
+.global-header div.search-panel input button {
 position: absolute;
 }
 
-.global-header form.search-foam input button {
+.global-header div.search-panel input button {
 position: absolute;
 float: left;
 display: block;
 top: 0px;
 }
 
-.global-header form.search-foam button.search-btn {
+.global-header div.search-panel button.search-btn {
 background: #5678a9;
 position: absolute;
 top: 5px;
@@ -194,12 +194,13 @@ outline: none !important;
 border: none !important;
 }
 .global-header .main-header {
-height: 165px;
-display: block;
+/*height: 165px;*/
+display: flex;
+align-items: center;
 position: relative;
 width: 100%;
 }
-.global-header .category-block, .global-header form.search-foam {
+.global-header .category-block, .global-header div.search-panel {
 display: block;
 float: left;
 }
@@ -210,7 +211,7 @@ text-align: center;
 padding: 12px 0px;
 }
 
-.global-header form.search-foam {
+.global-header div.search-panel {
 width: 96%;
 position: relative;
 margin: 0px auto !important;
@@ -240,7 +241,7 @@ font-weight: 600 !important;
 background: #18355e !important;
 color: #ffffff !important;
 }
-.global-header form.search-foam input {
+.global-header div.search-panel input {
 outline: none !important;
 border: none !important;
 font-family: 'Poppins';
@@ -252,13 +253,13 @@ height: 48px;
 border-radius: 25px;
 }
 
-.global-header form.search-foam img {
+.global-header div.search-panel img {
 position: absolute;
 width: 18px;
 top: 16px;
 left: 15px;
 }
-.global-header form.search-foam button.search-btn {
+.global-header div.search-panel button.search-btn {
 background: #5678a9;
 position: absolute;
 top: 5px;
@@ -268,6 +269,105 @@ font-weight: 600;
 border: none;
 border-radius: 25px;
 }
+}
+
+.global-header {
+    overflow: visible !important;
+}
+
+.global-header:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.category-block {
+    position: relative;
+    width: 300px;
+}
+
+.category-block .category-item span {
+    display: block;
+    font-size: 12px;
+}
+
+.category-block .nav-categories {
+    list-style:none;
+    position: absolute;
+    left: 20px;
+    top: 100%;
+    width: 300px;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+    z-index: 100;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.1s linear, transform 0.15s linear, visibility 0s linear 0.25s;
+}
+
+.category-block:hover .nav-categories {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.25s linear, transform 0.15s linear, visibility 0s linear 0s;
+}
+
+.category-block .nav-categories li {
+    color: #000;
+    position: relative;
+    padding: 7px 15px;
+    cursor: pointer;
+}
+
+.category-block .nav-categories li.has-child:before {
+    content: "\f054";
+    font-family: FontAwesome;
+    color: #000;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+}
+
+.category-block .nav-categories li:hover {
+    background: rgba(26, 52, 92, .1);
+}
+
+.category-block .nav-categories li ul {
+    list-style: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    width: 300px;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.1s linear, transform 0.15s linear, visibility 0s linear 0.25s;
+}
+
+.category-block .nav-categories li ul li {
+    cursor: pointer;
+}
+
+.category-block .nav-categories li ul li:hover {
+    background: rgba(26, 52, 92, .1);
+}
+
+.category-block .nav-categories li:hover > ul {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    transition: opacity 0.25s linear, transform 0.15s linear, visibility 0s linear 0s;
 }
 </style>
 
@@ -317,31 +417,28 @@ border-radius: 25px;
     </ul>
 </div>
 
-<form class="search-foam">
+<div class="search-panel">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
 
-  <input type="text" placeholder="Search..here" name="search" id="search">
-     <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
+  <input type="text" placeholder="Search.." name="search" id="search" class="js-search-input">
     % if request.path == "/":
   <button class="search-btn" type="button" ><a href="/courses?sort=enrollments" > GO </a></button>
     % else:
       <button class="search-btn" type="button" id="go">GO</button>
     {% csrf_token %}
     % endif
-</form>
+</div>
 
 %endif
 
 
 % if "/about" in request.path:
  % if request.user.is_anonymous:
-<form class="search-foam">
+<div class="search-panel">
   <img src="${static.url('/static/lhub/images/search-icon.png')}" alt="search-icon" border="0">
   <input type="text" placeholder="Search.." name="search">
-
-  <button class="search-btn" type="button" >GO</button>
-</form>
-
+  <button class="search-btn" type="">GO</button>
+</div>
  %endif
 %endif
 
