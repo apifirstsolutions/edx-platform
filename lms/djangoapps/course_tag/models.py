@@ -15,6 +15,7 @@ class CourseTagType(models.Model):
     is_enabled = models.BooleanField(default=True)
     sector = models.CharField(max_length=255, null=True, blank=True)
     platform = models.CharField(max_length=10, choices=PLATFORM_CHOICES, )
+    sequence = models.IntegerField(blank=True, default=0)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
