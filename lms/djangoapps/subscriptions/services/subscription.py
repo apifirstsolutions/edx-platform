@@ -180,7 +180,7 @@ class SubscriptionService:
       self.record_transaction(subscription, SubscriptionTransaction.CANCEL.value)
       result['success'] = True
     except Exception as e:
-      print(u"Error occured cancelling Subscription in Stripe. %s", str(e))
+      log.error(u"rror occured cancelling Subscription in Stripe. %s", str(e))
       raise
 
     return result
