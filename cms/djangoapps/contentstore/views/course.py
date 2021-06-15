@@ -1194,6 +1194,7 @@ def settings_handler(request, course_key_string):
             display_name = course_overview.display_name
             id = course_overview.id
 
+
             try:
                 if request.user.user_extra_info.organization:
                     current_org = CourseOverview.objects.get(id=course_module.id).organization.name
@@ -1278,26 +1279,26 @@ def settings_handler(request, course_key_string):
                 api_user = user
                 api = ecommerce_api_client(api_user)
                 try:
-                    
+
                     res = api.courses(course_key).get()
-                    
+
                     current_id = res['id']
                     if current_id:
                         course_overview = CourseOverview.objects.get(id=course_key)
-                        
+
                         if course_overview.published_in_ecommerce == False:
                             course_overview.published_in_ecommerce = True
                             course_overview.save()
                     course_details = CourseDetails.fetch(course_key)
                 except slumber.exceptions.HttpNotFoundError as e:
-                    
+
                     log.exception('Failed to fetch the course: %s',course_key)
                     course_overview = CourseOverview.objects.get(id=course_key)
                     if course_overview.published_in_ecommerce:
                             course_overview.published_in_ecommerce = False
                             course_overview.save()
                     course_details = CourseDetails.fetch(course_key)
-                
+
 
                 response = JsonResponse(
                     course_details,

@@ -128,8 +128,8 @@ def mobile_home_page(request):
     url_list["banner"] = '/api/banner/details/'
     url_list["category"] = '/api/courses/v2/courses/categories/?page=1&page_size=1000'
     url_list['recommended_courses'] = '/api/courses/v2/recommended/courses/?page=1&page_size=10'
-    url_list["most_popular"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=enrollments_count'
-    url_list["top_rated_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=enrollments_count'
+    url_list["most_popular"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=-enrollments_count'
+    url_list["top_rated_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&ordering=-ratings'
     url_list["free_courses"] = '/api/commerce/v2/courses/?platform_visibility=mobile&sale_type=free'
     headers = {
         'Authorization': bearer_token_from_request

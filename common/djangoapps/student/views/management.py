@@ -80,7 +80,10 @@ from openedx.core.djangoapps.content.course_overviews.models import CourseOvervi
 from commerce.api.v1.models import Course
 from elasticsearch.exceptions import ConnectionError
 from search.search_engine_base import SearchEngine
-
+from django.http import HttpResponseRedirect
+from elasticsearch.exceptions import ConnectionError
+from search.search_engine_base import SearchEngine
+from rest_framework.response import Response
 log = logging.getLogger("edx.student")
 
 AUDIT_LOG = logging.getLogger("audit")
@@ -164,6 +167,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
     else:
         courses = sort_by_announcement(courses)
 
+
     context = {
         'courses': courses,
         'categories': categories,
@@ -203,6 +207,24 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     # Add marketable programs to the context.
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
+
+    search_engine = SearchEngine.get_search_engine(index="home_search")
+    search_dict = {'key_word': request.GET.get('search', '')}
+    search_result_ = search_engine.search(field_dictionary=search_dict)
+    search_top_result = []
+    seen = set()
+    name_list = []
+    for x in search_result_['results']:
+        if 'name' not in x['data'].keys():
+            t = tuple(x['data'].items())
+            if t not in seen and t[1][1] not in name_list:
+                name_list.append(t[1][1])
+                seen.add(t)
+                if len(search_top_result) <= 20:
+                    search_top_result.append(x['data'])
+
+
+    context['search_top'] = search_top_result
 
     return render_to_response('index.html', context)
 

@@ -11,11 +11,11 @@ $(document).ready(function() {
         loadFilter('subcategory', value, ['category']);
     });
 
-    $('.search-btn').on('click', function (ev) {
-      ev.stopPropagation();
-      var value = $('.js-search-input').val();
-      loadFilter('search', value, []);
-    });
+//    $('.search-btn').on('click', function (ev) {
+//      ev.stopPropagation();
+//      var value = $('.js-search-input').val();
+//      loadFilter('search', value, []);
+//    });
 
     $('.js-reset-category').on('click', function(ev) {
         ev.stopPropagation();
@@ -36,10 +36,13 @@ $(document).ready(function() {
 
     function loadFilter(name, value, deleteNames) {
         let params = new URLSearchParams(window.location.search);
+        console.log("deleteNames",deleteNames)
         for (let deleteName of deleteNames) {
             params.delete(deleteName);
         }
         params.set(name, value);
-        window.location.search = params.toString();
+        console.log("$('#search').val()", $('#search').val(),params.toString())
+        window.location.search = params.toString()
+//        !$('#search').val()?window.location.search = params.toString():null;
     }
 });

@@ -3,19 +3,23 @@
 <%! from django.utils.translation import ugettext as _ %>
 <link rel="stylesheet" href="/static/lhub/courses_list.css" type="text/css" media="all">
 
+
+
 <section class="courses-container">
+
   <section class="highlighted-courses">
 
-    % if settings.FEATURES.get('COURSES_ARE_BROWSABLE'):
       <section class="courses">
-
+         <div class="loader-sec" id = "course_tag_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
           ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
             % if course_tag:
                 %for key in course_tag:
                   %for val  in key.items():
                     % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
                         % if loop.index == 0 :
-                         <ul class="courses-listing">
+                         <ul class="courses-listing ${val[0]}">
                              <li class="courses-listing-item" >
                                  <h3>${val[0]}</h3>
                                  <%include file="course.html" args="course=tag" />
@@ -124,7 +128,7 @@
         <a class="courses-more-cta" href="${marketing_link('COURSES')}"> ${_("View all Courses")} </a>
       </div>
     % endif
-    % endif
+
 
   </section>
 </section>

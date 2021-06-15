@@ -397,8 +397,7 @@ border-radius: 25px;
     </div>
   % endif
 </h1>
-
-% if request.path in ["/", "/courses", "/courses/"]:
+% if request.path == "/" or request.path == "/courses" or request.path == "/courses/":
 <div class="category-block">
     <a class="category-item" href="">${_("Categories")} <span>${selected_category_name}</span></a>
     <ul class="nav-categories">
@@ -420,10 +419,18 @@ border-radius: 25px;
 
 <div class="search-panel">
   <img src="${static.url('lhub/images/search-icon.png')}" alt="search-icon" border="0">
-  <input type="text" placeholder="Search.." name="search" class="js-search-input">
-  <button class="search-btn" type="">GO</button>
+
+  <input type="text" placeholder="Search.." name="search" id="search" class="js-search-input">
+    % if request.path == "/":
+  <button class="search-btn" type="button" ><a href="/courses?sort=enrollments" > GO </a></button>
+    % else:
+      <button class="search-btn" type="button" id="go">GO</button>
+    {% csrf_token %}
+    % endif
 </div>
+
 %endif
+
 
 % if "/about" in request.path:
  % if request.user.is_anonymous:
@@ -445,3 +452,96 @@ border-radius: 25px;
     % endif
   </div>
 % endif
+
+<script >
+var oldKey = null;
+$(document).ready(function() {
+   //$('#topSearch').css("display", "None");
+      $('#go').click(function(e){
+            e.preventDefault();
+            let keyWord = $('#search').val();
+            let course_tag_list = []
+
+                    if(keyWord && keyWord.length>=2 && e.which != 8){
+                       oldKey = keyWord;
+                       $("#course_tag_loader").css("display", "");
+                       clearSearchTop();
+                       $.ajax({
+                        url: 'course/search_?search_='+keyWord,
+                        type:"GET",
+                        contentType: "application/json",
+                        success: function(data) {
+                        console.log("data"+data)
+                            showAll();
+                            console.log("data",data)
+                            if(['course_name']){
+                             $("article").each(function() {
+                                let targetClass = $(this).attr('class');
+                                targetClass=targetClass.split(" ");
+                                    if (data['course_name'] && targetClass.length >1 && data['course_name'].includes(targetClass[1])) {
+                                       $(this).show();
+                                   }
+                                    else{
+                                        $(this).parent('li').hide();
+                                        $(this).closest('ul').closest('li').hide();
+                                    }
+                            });
+                            }else{
+                                $("#course_tag_loader").css("display", "None");
+                                 $("article").each(function() {$(this).hide()});
+                                console.log("not matched in active class course_name");
+                            }
+
+                            if(data['search_top']){
+                                    clearSearchTop();
+                                    $.each(data['search_top'], function(key,value) {
+                                        var r= $('<input type="button" value='+value['key_word']+' class="keyWord" style="margin-right:80px; margin-top:20px;" onclick=searchCourse(this,false) />');
+                                            $("#topSearch").append(r);
+                                     });
+                            }
+                        },
+                        error: function(data) {console.log("EEROR", data);
+                         $("#course_tag_loader").css("display", "None");
+                         $('#topSearch').css("display", "");
+                         },
+                        });
+                    }
+                    else{
+                        showAll();
+                        if(keyWord.length<2){
+                        alert("Please type at least 2 letter to search a course !!");
+                        }
+                    }
+    });
+
+$('#search').keydown(function(e){
+    e.which == 8?showAll():null;
+});
+clearSearchTop =() =>{
+console.log("ENTERING");
+$('#topSearch').find('input').remove();
+
+}
+
+showAll = () => {
+            $("#course_tag_loader").css("display", "None");
+           $('#topSearch').css("display", "");
+            $("#myCarousel").hide();
+            $("article").each(function() {
+                $(this).parent('li').show();
+            });
+
+            $(".courses-listing").each(function() {
+                $(this).show();
+            });
+}
+
+searchCourse = (val,flag) => {
+            console.log("THIS", $(val).attr('value'));
+            let text = $(val).attr('value');
+            if ($('#search').val() | $('#search').val()!= text){
+                    $('#search').val(text);
+                    $("#go").click()};
+             }
+});
+</script>

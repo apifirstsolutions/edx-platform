@@ -26,6 +26,7 @@ from lms.djangoapps.courseware.module_render import (
 )
 from lms.djangoapps.courseware.views import views as courseware_views
 from lms.djangoapps.courseware.views.index import CoursewareIndex
+from lms.djangoapps.courseware.views import views as elastic_search_view
 from lms.djangoapps.courseware.views.views import CourseTabView, EnrollStaffView, StaticCourseTabView
 from lms.djangoapps.discussion import views as discussion_views
 from lms.djangoapps.discussion.config.settings import is_forum_daily_digest_enabled
@@ -236,6 +237,10 @@ if settings.FEATURES.get('ENABLE_OPENBADGES'):
 
 urlpatterns += [
     url(r'^openassessment/fileupload/', include('openassessment.fileupload.urls')),
+]
+
+urlpatterns += [
+url(r'^course/search_', elastic_search_view.search_keyword, name='search_keyword'),
 ]
 
 # sysadmin dashboard, to see what courses are loaded, to delete & load courses
