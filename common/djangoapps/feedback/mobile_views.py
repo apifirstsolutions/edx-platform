@@ -22,8 +22,7 @@ from .mobile_serializers import ReviewSerializer
 from .models import CourseReview 
 from openedx.core.lib.api.view_utils import LazySequence
 import importlib
-custom_reg_form = importlib.import_module('lms.djangoapps.custom-form-app', 'custom_reg_form')
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from opaque_keys.edx.keys import CourseKey
 

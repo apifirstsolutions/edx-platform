@@ -69,7 +69,7 @@ PLATFORM_TWITTER_ACCOUNT = "@YourPlatformTwitterAccount"
 
 ENABLE_JASMINE = False
 
-LMS_ROOT_URL = 'https://localhost:18000'
+LMS_ROOT_URL = 'https://edx.devstack.lms:18000'
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 LMS_ENROLLMENT_API_PATH = "/api/enrollment/v1/"
 
@@ -652,7 +652,7 @@ FEATURES = {
     # .. toggle_name: ENABLE_LOGISTRATION_MICROFRONTEND
     # .. toggle_implementation: DjangoSetting
     # .. toggle_default: False
-    # .. toggle_description: Supports staged rollout of a new micro-frontend-based implementation of the logistration.
+    # .. toggle_description: Supports s?aged rollout of a new micro-frontend-based implementation of the logistration.
     # .. toggle_use_cases: temporary, open_edx
     # .. toggle_creation_date: 2020-09-08
     # .. toggle_target_removal_date: None
@@ -2773,14 +2773,26 @@ INSTALLED_APPS = [
     #LHUB Mobile APIs
     'lms.djangoapps.lhub_mobile.apps.LhubMobileConfig',
 
+    #LHUB_ECOMMERCE_OFFER
+    'lms.djangoapps.lhub_ecommerce_offer.apps.LhubEcommerceOfferConfig',
+
     'lms.djangoapps.lhub_notification.apps.NotificationConfig',
     'lms.djangoapps.lhub_extended_api.apps.LhubExtendedApiConfig',
 
     #banner related
     'lms.djangoapps.banner.apps.BannerConfig',
 
+    #course_block_user related
+    'lms.djangoapps.course_block_user.apps.CourseBlockUserConfig',
+
+    #Coures Tag related
+    'lms.djangoapps.course_tag.apps.CourseTagConfig',
+
     # Analytics Dashboard
     'lms.djangoapps.analytics_dashboard.apps.AnalyticsDashboardConfig',
+
+    # custom-reg-form
+    'lms.djangoapps.custom_form_app.custom_reg_form',
 ]
 
 ######################### CSRF #########################################
@@ -3580,8 +3592,8 @@ SOCIAL_PLATFORMS = {
 }
 
 # E-Commerce API Configuration
-ECOMMERCE_PUBLIC_URL_ROOT = 'http://localhost:8002'
-ECOMMERCE_API_URL = 'http://localhost:8002/api/v2'
+ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
+ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
 ECOMMERCE_API_TIMEOUT = 5
 ECOMMERCE_SERVICE_WORKER_USERNAME = 'ecommerce_worker'
 ECOMMERCE_API_SIGNING_KEY = 'SET-ME-PLEASE'

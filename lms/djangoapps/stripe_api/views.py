@@ -100,10 +100,10 @@ def custom_basket(request):
 @authentication_classes((BearerAuthentication,SessionAuthentication))
 @permission_classes([IsAuthenticated])
 def basket_item_count(request):
-
     """
     This function is used to return number of items in the basket.
     """
+
     if request.method == 'GET':
         user = request.user
         api = ecommerce_api_client(user)

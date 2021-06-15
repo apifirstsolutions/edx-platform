@@ -75,6 +75,15 @@ from common.djangoapps.util.db import outer_atomic
 from common.djangoapps.util.json_request import JsonResponse
 from xmodule.modulestore.django import modulestore
 from lms.djangoapps.banner.models import Banner
+from lms.djangoapps.course_tag.models import CourseTag
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from commerce.api.v1.models import Course
+from elasticsearch.exceptions import ConnectionError
+from search.search_engine_base import SearchEngine
+from django.http import HttpResponseRedirect
+from elasticsearch.exceptions import ConnectionError
+from search.search_engine_base import SearchEngine
+from rest_framework.response import Response
 log = logging.getLogger("edx.student")
 
 AUDIT_LOG = logging.getLogger("audit")
@@ -116,6 +125,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
 
     extra_context is used to allow immediate display of certain modal windows, eg signup.
     """
+
     if extra_context is None:
         extra_context = {}
 
@@ -157,6 +167,7 @@ def index(request, extra_context=None, user=AnonymousUser()):
     else:
         courses = sort_by_announcement(courses)
 
+
     context = {
         'courses': courses,
         'categories': categories,
@@ -187,11 +198,33 @@ def index(request, extra_context=None, user=AnonymousUser()):
     context['courses_list'] = theming_helpers.get_template_path('courses_list.html')
     #fetch banner for courses to show in home page
     context['banner_list'] = Banner.objects.filter(platform__in = ['WEB', 'BOTH'], enabled=True)
+
+    #fetch course_tag
+    context['course_tag'] = create_course_tag(courses)
+
     # Insert additional context for use in the template
     context.update(extra_context)
 
     # Add marketable programs to the context.
     context['programs_list'] = get_programs_with_type(request.site, include_hidden=False)
+
+    search_engine = SearchEngine.get_search_engine(index="home_search")
+    search_dict = {'key_word': request.GET.get('search', '')}
+    search_result_ = search_engine.search(field_dictionary=search_dict)
+    search_top_result = []
+    seen = set()
+    name_list = []
+    for x in search_result_['results']:
+        if 'name' not in x['data'].keys():
+            t = tuple(x['data'].items())
+            if t not in seen and t[1][1] not in name_list:
+                name_list.append(t[1][1])
+                seen.add(t)
+                if len(search_top_result) <= 20:
+                    search_top_result.append(x['data'])
+
+
+    context['search_top'] = search_top_result
 
     return render_to_response('index.html', context)
 
@@ -900,3 +933,38 @@ def text_me_the_app(request):
     }
 
     return render_to_response('text-me-the-app.html', context)
+
+def create_course_tag(courses=None, course_tag_name=None):
+    try:
+        target = []
+        tag = dict()
+        all_courses_with_relation = get_courses_with_extra_info(user=AnonymousUser() ,filter_={'organization': None}) if not courses else courses
+        if course_tag_name:
+            # Course API to process course tag ids
+            tagged_courses = CourseTag.objects.filter(course_tag_type__platform__in=['MOBILE', 'BOTH'],
+                                                      course_tag_type__is_enabled=True, course_tag_type__display_name__lower__icontains=course_tag_name).values_list('course_over_view', flat=True).order_by("course_tag_type__display_name")
+            for course_over_view in tagged_courses:
+                crs_ove_viw_full_obj = CourseOverview.get_from_id(course_over_view)
+                if crs_ove_viw_full_obj:
+                    target.append(crs_ove_viw_full_obj.id)
+            return target
+        else:
+            tagged_courses = CourseTag.objects.filter(course_tag_type__platform__in = ['WEB', 'BOTH'], course_tag_type__is_enabled=True).values('course_tag_type__display_name','course_over_view').order_by("course_tag_type__display_name")
+        if tagged_courses:
+            for x in tagged_courses:
+                if str(x['course_tag_type__display_name']) not in tag.keys():
+                    tag[str(x['course_tag_type__display_name'])] = []
+                else:
+                    pass
+                id_ = CourseOverview.get_from_id(x['course_over_view'])
+                index_ = all_courses_with_relation.index(id_) if id_ in all_courses_with_relation else -1
+                final = all_courses_with_relation[index_] if index_ != -1 else None
+                if final:
+                    tag[str(x['course_tag_type__display_name'])].append(final)
+            target.append(tag)
+            return target
+        return []
+    except Exception as ex:
+        logging.error("ERROR while accessing Course Tag for Home Page", ex)
+        return []
+

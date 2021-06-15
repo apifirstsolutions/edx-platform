@@ -2,7 +2,7 @@ from datetime import date
 from django.db.models import Count
 
 from common.djangoapps.student.models import UserProfile
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 from logging import getLogger
 log = getLogger(__name__)
 

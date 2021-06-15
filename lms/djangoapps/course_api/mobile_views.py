@@ -27,8 +27,8 @@ from .mobile_serializers import CourseDetailSerializer, CourseKeySerializer, Cou
 from openedx.core.djangoapps.content.course_overviews.models import Category, SubCategory, CourseOverview
 from openedx.core.lib.api.view_utils import LazySequence
 import importlib
-custom_reg_form = importlib.import_module('lms.djangoapps.custom-form-app', 'custom_reg_form')
-from custom_reg_form.models import UserExtraInfo
+# custom_reg_form = importlib.import_module('lms.djangoapps.custom-form-app', 'custom_reg_form')
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 from django.db.models import Count, F, Q
 #from itertools import chain
 #from django.forms.models import model_to_dict
@@ -327,7 +327,8 @@ class CourseListView(DeveloperErrorViewMixin, ListAPIView):
             org=form.cleaned_data['org'],
             platform='Mobile',
             filter_=form.cleaned_data['filter_'],
-            search_term=form.cleaned_data['search_term']
+            search_term=form.cleaned_data['search_term'],
+            get_extra_info=True
         )
         return result
 
@@ -557,7 +558,8 @@ def get_recommended_courses_for_web(request,id=None):
         course_dict = {'id': six.text_type(course.id), 'org':course.display_org_with_default, 'name': course.display_name, 'image': course.course_image_url
         ,'code':course.display_number_with_default,'difficulty_level': course.difficulty_level, 'enrollments_count': course.enrollments_count\
         ,'ratings': course.ratings, 'comments_count': course.comments_count, 'price': course.price, 'discount_applicable': course.discount_applicable\
-        , 'discounted_price': course.discounted_price, 'discount_percentage':course.discount_percentage, 'start': course_start}
+        , 'discounted_price': course.discounted_price, 'discount_percentage':course.discount_percentage, 'start': course_start, 'discount_type':course.discount_type\
+        , 'available_vouchers': course.available_vouchers}
         course_list.append(course_dict)
         
     return Response({'result':course_list})

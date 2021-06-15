@@ -4,7 +4,6 @@ consist primarily of authentication, request validation, and serialization.
 
 """
 
-
 import logging
 
 from six import text_type
@@ -26,11 +25,12 @@ from openedx.core.djangoapps.enrollments.errors import (
 )
 from openedx.core.djangoapps.enrollments.forms import CourseEnrollmentsApiListForm
 from openedx.core.djangoapps.enrollments.paginators import CourseEnrollmentsApiListPagination
-from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer
+from openedx.core.djangoapps.enrollments.serializers import CourseEnrollmentsApiListSerializer, \
+    CourseEnrollmentSerializer, MobileCourseEnrollmentSerializer, LearnerProgressSerializer
 from openedx.core.djangoapps.user_api.accounts.permissions import CanRetireUser
 from openedx.core.djangoapps.user_api.models import UserRetirementStatus
 from openedx.core.djangoapps.user_api.preferences.api import update_email_opt_in
-from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser,BearerAuthentication
+from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser, BearerAuthentication
 from openedx.core.lib.api.permissions import ApiKeyHeaderPermission, ApiKeyHeaderPermissionIsAuthenticated
 from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin
 from openedx.core.lib.exceptions import CourseNotFoundError
@@ -42,7 +42,7 @@ from openedx.features.enterprise_support.api import (
     enterprise_enabled
 )
 from rest_framework import permissions, status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
@@ -53,7 +53,10 @@ from util.disable_rate_limit import can_disable_rate_limit
 from openedx.core.lib.api.view_utils import LazySequence
 from edx_rest_framework_extensions.paginators import NamespacedPageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from openedx.core.lib.api.view_utils import  view_auth_classes
+from openedx.core.lib.api.view_utils import view_auth_classes
+from lms.djangoapps.lhub_notification.serializers import NotificationSerializer
+from completion.models import BlockCompletion
+
 log = logging.getLogger(__name__)
 REQUIRED_ATTRIBUTES = {
     "credit": ["credit:provider_id"],
@@ -201,7 +204,7 @@ class EnrollmentView(APIView, ApiKeyPermissionMixIn):
 
         # TODO Implement proper permissions
         if request.user.username != username and not self.has_api_key_permissions(request) \
-                and not request.user.is_staff:
+            and not request.user.is_staff:
             # Return a 404 instead of a 403 (Unauthorized). If one user is looking up
             # other users, do not let them deduce the existence of an enrollment.
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -439,9 +442,6 @@ class UnenrollmentView(APIView):
             return Response(text_type(exc), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-
 class LazyPageNumberPagination(NamespacedPageNumberPagination):
     """
     NamespacedPageNumberPagination that works with a LazySequence queryset.
@@ -475,13 +475,21 @@ class LazyPageNumberPagination(NamespacedPageNumberPagination):
         return super(LazyPageNumberPagination, self).get_paginated_response(data)
 
 
+@can_disable_rate_limit
+class ProgressDataViewMobile(DeveloperErrorViewMixin, RetrieveAPIView):
+    authentication_classes = (BearerAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LearnerProgressSerializer
 
+    def get_object(self):
+        user = self.request.GET.get('user', self.request.user)
+        qset = BlockCompletion.objects.filter(user=user)
+
+        return qset
 
 
 @can_disable_rate_limit
 class EnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):
-
-
     class EnrollmentListViewMobilePagination(LazyPageNumberPagination):
         max_page_size = 100
 
@@ -490,6 +498,7 @@ class EnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):
     throttle_classes = (EnrollmentUserThrottle,)
     serializer_class = MobileCourseEnrollmentSerializer
     pagination_class = EnrollmentListViewMobilePagination
+
     # Since the course about page on the marketing site
     # uses this API to auto-enroll users, we need to support
     # cross-domain CSRF.
@@ -524,24 +533,88 @@ class EnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):
                 }
             )
         if username == self.request.user.username or GlobalStaff().has_user(self.request.user) or \
-                self.has_api_key_permissions(self.request):
+            self.has_api_key_permissions(self.request):
             return LazySequence(
-        (c for c in enrollment_data),
-        est_len=enrollment_data.count()
-        )
-            #return enrollment_data
+                (c for c in enrollment_data),
+                est_len=enrollment_data.count()
+            )
+            # return enrollment_data
         filtered_data = []
         for enrollment in enrollment_data:
             course_key = CourseKey.from_string(enrollment.course_details.course_id)
             if user_has_role(self.request.user, CourseStaffRole(course_key)):
                 filtered_data.append(enrollment)
         return LazySequence(
-        (c for c in filtered_data),
-        est_len=len(filtered_data)
+            (c for c in filtered_data),
+            est_len=len(filtered_data)
         )
-        #return filtered_data
+        # return filtered_data
 
+@can_disable_rate_limit
+class SearchCourseEnrollmentListViewMobile(DeveloperErrorViewMixin, ListAPIView):
+    class EnrollmentListViewMobilePagination(LazyPageNumberPagination):
+        max_page_size = 100
 
+    authentication_classes = (BearerAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (EnrollmentUserThrottle,)
+    serializer_class = MobileCourseEnrollmentSerializer
+    pagination_class = EnrollmentListViewMobilePagination
+
+    # Since the course about page on the marketing site
+    # uses this API to auto-enroll users, we need to support
+    # cross-domain CSRF.
+    def get_queryset(self):
+        """Gets a list of searched course enrollments for a user.
+
+        Returns a list for the currently logged in user, or for the user named by the 'user' GET
+        parameter. If the username does not match that of the currently logged in user, only
+        courses for which the currently logged in user has the Staff or Admin role are listed.
+        As a result, a course team member can find out which of his or her own courses a particular
+        learner is enrolled in.
+
+        Only the Staff or Admin role (granted on the Django administrative console as the staff
+        or instructor permission) in individual courses gives the requesting user access to
+        enrollment data. Permissions granted at the organizational level do not give a user
+        access to enrollment data for all of that organization's courses.
+
+        Users who have the global staff permission can access all enrollment data for all
+        courses.
+        """
+
+        course_param = self.request.query_params.get('course') or None
+
+        username = self.request.GET.get('user', self.request.user.username)
+        platform_visibility = self.request.query_params.get('platform_visibility', None)
+        try:
+            enrollment_data = api.mobile_get_search_enrollments(username, course_param, platform_visibility=platform_visibility)
+        except CourseEnrollmentError:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    "message": (
+                        u"An error occurred while retrieving enrollments for user '{username}'"
+                    ).format(username=username)
+                }
+            )
+
+        if username == self.request.user.username or GlobalStaff().has_user(self.request.user) or \
+            self.has_api_key_permissions(self.request):
+            return LazySequence(
+                (c for c in enrollment_data),
+                est_len=enrollment_data.count()
+            )
+
+        filtered_data = []
+        for enrollment in enrollment_data:
+            course_key = CourseKey.from_string(enrollment.course_details.course_id)
+            if user_has_role(self.request.user, CourseStaffRole(course_key)):
+                filtered_data.append(enrollment)
+
+        return LazySequence(
+            (c for c in filtered_data),
+            est_len=len(filtered_data)
+        )
 
 
 @can_disable_rate_limit
@@ -760,7 +833,7 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
                 }
             )
         if username == request.user.username or GlobalStaff().has_user(request.user) or \
-                self.has_api_key_permissions(request):
+            self.has_api_key_permissions(request):
             return Response(enrollment_data)
         filtered_data = []
         for enrollment in enrollment_data:
@@ -805,13 +878,13 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
         if not username:
             username = request.user.username
         if username != request.user.username and not has_api_key_permissions \
-                and not GlobalStaff().has_user(request.user):
+            and not GlobalStaff().has_user(request.user):
             # Return a 404 instead of a 403 (Unauthorized). If one user is looking up
             # other users, do not let them deduce the existence of an enrollment.
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         if mode not in (CourseMode.AUDIT, CourseMode.HONOR, None) and not has_api_key_permissions \
-                and not GlobalStaff().has_user(request.user):
+            and not GlobalStaff().has_user(request.user):
             return Response(
                 status=status.HTTP_403_FORBIDDEN,
                 data={

@@ -26,6 +26,7 @@ from lms.djangoapps.courseware.module_render import (
 )
 from lms.djangoapps.courseware.views import views as courseware_views
 from lms.djangoapps.courseware.views.index import CoursewareIndex
+from lms.djangoapps.courseware.views import views as elastic_search_view
 from lms.djangoapps.courseware.views.views import CourseTabView, EnrollStaffView, StaticCourseTabView
 from lms.djangoapps.discussion import views as discussion_views
 from lms.djangoapps.discussion.config.settings import is_forum_daily_digest_enabled
@@ -209,11 +210,20 @@ urlpatterns = [
     # LHUB MOBILE API
     url(r'^api/lhub_mobile/', include('lms.djangoapps.lhub_mobile.urls')),
     url(r'^lhub/', include('lms.djangoapps.lhub_notification.urls')),
+
+
 ]
 
 urlpatterns += [
     url(r'^lhub_extended_api/', include('lms.djangoapps.lhub_extended_api.urls')),
 ]
+
+urlpatterns += [
+    url(r'^lhub_ecommerce_offer/', include('lms.djangoapps.lhub_ecommerce_offer.urls')),
+]
+
+
+
 
 if settings.FEATURES.get('ENABLE_MOBILE_REST_API'):
     urlpatterns += [
@@ -227,6 +237,10 @@ if settings.FEATURES.get('ENABLE_OPENBADGES'):
 
 urlpatterns += [
     url(r'^openassessment/fileupload/', include('openassessment.fileupload.urls')),
+]
+
+urlpatterns += [
+url(r'^course/search_', elastic_search_view.search_keyword, name='search_keyword'),
 ]
 
 # sysadmin dashboard, to see what courses are loaded, to delete & load courses
@@ -832,6 +846,16 @@ urlpatterns += [
     url(r'api/note/', include(('lms.djangoapps.note.urls', 'lms.djangoapps.note'), namespace='note')),
 ]
 
+if settings.FEATURES.get('IS_NOTE_TAB_ENABLED'):
+   urlpatterns += (
+       url(
+           r'^courses/{}/note/'.format(
+               settings.COURSE_ID_PATTERN,
+           ),
+           include('lms.djangoapps.note.urls'),
+           name='note',
+       ),
+   )
 # Embargo
 if settings.FEATURES.get('EMBARGO'):
     urlpatterns += [
@@ -1033,3 +1057,15 @@ urlpatterns += [
     url(r'^api/banner/', include('lms.djangoapps.banner.api.urls')),
     url(r'^analytics_dashboard/', include('lms.djangoapps.analytics_dashboard.urls')),
 ]
+#Course Block User API
+urlpatterns += [
+    url(r'^/course_block_user/', include('lms.djangoapps.course_block_user.urls')),
+]
+
+#Course tag api related
+urlpatterns += [
+    url(r'^api/course_tag/', include('lms.djangoapps.course_tag.api.urls')),
+
+]
+
+

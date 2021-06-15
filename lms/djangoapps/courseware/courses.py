@@ -726,9 +726,16 @@ def get_courses_with_extra_info(user, org=None, filter_=None):
         course.comments_count = course_extra_info.comments_count
         course.difficulty_level = course.difficulty_level.capitalize() if course.difficulty_level else "Unknown"
         course.discount_applicable = course_extra_info.discount_applicable
+        course.discount_percentage_string = course_extra_info.discount_percentage_string
         course.discount_percentage = course_extra_info.discount_percentage
         course.discounted_price = course_extra_info.discounted_price
         course.currency = course_extra_info.currency
+        course.discount_type = course_extra_info.discount_type
+        course.coupon_type = course_extra_info.coupon_type
+        course.coupon_available = course_extra_info.coupon_available
+        course.available_vouchers = course_extra_info.available_vouchers
+        course.coupon_applicable = course_extra_info.coupon_applicable
+
         if len(course_extra_info.modes) == 0:
             course.price = 0
         else:
@@ -775,6 +782,15 @@ def get_courses_with_extra_info_json(user, org=None, platform=None, filter_=None
         course.discount_percentage = course_extra_info.discount_percentage
         course.discounted_price = course_extra_info.discounted_price
         course.currency = course_extra_info.currency
+        course.discount_type = course_extra_info.discount_type
+        course.coupon_type = course_extra_info.coupon_type
+        course.coupon_available = course_extra_info.coupon_available
+        course.coupon_value = course_extra_info.available_vouchers
+        course.coupon_applicable = course_extra_info.coupon_applicable
+        course.discount_type = course_extra_info.discount_type
+        course.voucher_applicable = course_extra_info.coupon_applicable
+        course.available_vouchers = course_extra_info.available_vouchers
+
         if len(course_extra_info.modes) == 0:
             course.price = 0
         else:
@@ -827,6 +843,14 @@ def sort_by_rating(courses):
     courses = sorted(
         courses,
         key=lambda course: course.ratings or 0,
+        reverse=True
+    )
+    return courses
+
+def sort_by_enrollments(courses):
+    courses = sorted(
+        courses,
+        key=lambda course: course.enrollments_count or 0,
         reverse=True
     )
     return courses

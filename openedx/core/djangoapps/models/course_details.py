@@ -146,10 +146,15 @@ class CourseDetails(object):
         course_details.platform_visibility = course_descriptor.platform_visibility
         course_details.premium = course_descriptor.premium
         course_details.course_sale_type = course_descriptor.course_sale_type
-        course_details.course_price = course_descriptor.course_price
         CourseOverview = apps.get_model('course_overviews', 'CourseOverview')
-        course_details.indexed_in_discovery = CourseOverview.get_from_id(course_key).indexed_in_discovery
-        course_details.published_in_ecommerce = CourseOverview.get_from_id(course_key).published_in_ecommerce
+        try:
+            course_details.course_price = CourseOverview.get_from_id(course_key).course_price
+            course_details.indexed_in_discovery = CourseOverview.get_from_id(course_key).indexed_in_discovery
+            course_details.published_in_ecommerce = CourseOverview.get_from_id(course_key).published_in_ecommerce
+        except CourseOverview.DoesNotExist:
+            course_details.course_price = None
+            course_details.indexed_in_discovery = None
+            course_details.published_in_ecommerce = None
         course_details.self_paced = course_descriptor.self_paced
         course_details.learning_info = course_descriptor.learning_info
         course_details.instructor_info = course_descriptor.instructor_info

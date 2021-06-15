@@ -15,6 +15,7 @@ from lms.djangoapps.courseware.access import has_access
 from lms.djangoapps.courseware.courses import (
     get_course_overview_with_access,
     get_courses,
+    get_courses_with_extra_info_json,
     get_permission_for_course_about
 )
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
@@ -103,7 +104,7 @@ def _filter_by_search(course_queryset, search_term):
     )
 
 
-def list_courses(request, username, org=None, platform=None, filter_=None, search_term=None):
+def list_courses(request, username, org=None, platform=None, filter_=None, search_term=None, get_extra_info=False):
     """
     Yield all available courses.
 
@@ -134,7 +135,10 @@ def list_courses(request, username, org=None, platform=None, filter_=None, searc
         Yield `CourseOverview` objects representing the collection of courses.
     """
     user = get_effective_user(request.user, username)
-    course_qs = get_courses(user, org=org, platform=platform, filter_=filter_)
+    if get_extra_info:
+        course_qs = get_courses_with_extra_info_json(user, org=org, platform=platform, filter_=filter_)
+    else:
+        course_qs = get_courses(user, org=org, platform=platform, filter_=filter_)
     course_qs = _filter_by_search(course_qs, search_term)
     return course_qs
 

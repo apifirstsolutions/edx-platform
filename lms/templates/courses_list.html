@@ -1,28 +1,137 @@
 <%page expression_filter="h"/>
 <%namespace name='static' file='static_content.html'/>
 <%! from django.utils.translation import ugettext as _ %>
+<link rel="stylesheet" href="/static/lhub/courses_list.css" type="text/css" media="all">
+
+
 
 <section class="courses-container">
+
   <section class="highlighted-courses">
 
-    % if settings.FEATURES.get('COURSES_ARE_BROWSABLE'):
       <section class="courses">
-        <ul class="courses-listing">
+         <div class="loader-sec" id = "course_tag_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
           ## limiting the course number by using HOMEPAGE_COURSE_MAX as the maximum number of courses
+            % if course_tag:
+                %for key in course_tag:
+                  %for val  in key.items():
+                    % for tag in val[1]: # val[0] - category, val[1] - course listing as array in that category
+                        % if loop.index == 0 :
+                         <ul class="courses-listing ${val[0]}">
+                             <li class="courses-listing-item" >
+                                 <h3>${val[0]}</h3>
+                                 <%include file="course.html" args="course=tag" />
+                             </li>
+
+                        % else:
+                            <li class="courses-listing-item" >
+                                %if len(key.items()) > 1:
+                                    <h3>&nbsp;</h3>
+                                % endif
+                                 <%include file="course.html" args="course=tag" />
+                             </li>
+                        % endif
+                    %endfor
+                         </ul>
+                  %endfor
+                %endfor
+            %endif
+
+      </section>
+      <section  class="courses">
+
+      <ul class="courses-listing">
           %for course in courses[:homepage_course_max]:
-          <li class="courses-listing-item">
-              <%include file="course.html" args="course=course" />
-          </li>
+
         %endfor
         </ul>
+                          %if user.is_authenticated:
+   <section class="card-slider-container">
+<input id="user_industry" type="hidden" value="${user_industry}">
+
+
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Recommended Courses for You</h2>
+      <a href="">View All</a>
+      </div>
+            <div class="card-slider-courses">
+            <div class="loader-sec" id = "recommended_courses_loader" style="display:none;">
+            <div class="loader"></div>
+        </div>
+        <div class="card-slider-prev-btn" id = "recommended_prev_btn" style="display:none"><i class="fas fa-chevron-left"></i></div>
+         <div id="recommended_next_btn" style="display:none" class=" card-slider-next-btn"><i class="fas fa-chevron-right"></i></div>
+         <ul id="recommended_courses_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+   </section>
+%endif
+      <section class="card-slider-container">
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Most Popular Courses</h2>
+      <a href="/courses?sort=enrollments">View All</a>
+      </div>
+
+      <div class="card-slider-courses">
+            <div class="loader-sec" id = "most_popular_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
+        <div id = "popular_prev_btn" style="display:none" class="card-slider-prev-btn"><i class="fas fa-chevron-left"></i></div>
+         <div id = "popular_next_btn" style="display:none" class=" card-slider-next-btn"><i class="fas fa-chevron-right"></i></div>
+         <ul id="most_popular_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+   </section>
+      <section class="card-slider-container">
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Top Rated Courses</h2>
+      <a href="/courses?sort=rating">View All</a>
+      </div>
+      <div class="card-slider-courses">
+            <div class="loader-sec" id = "top_rated_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
+        <div id = "top_prev_btn" style="display:none" class="card-slider-prev-btn"><i class="fas fa-chevron-left"></i></div>
+         <div id = "top_next_btn" style="display:none" class=" card-slider-next-btn" ><i class="fas fa-chevron-right"></i></div>
+         <ul id = "top_rated_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+   </section>
+      <section class="card-slider-container">
+      <div class="slider-heading">
+      <h2 class="card-slider-title" style="">Free Courses</h2>
+      <a href="/courses?mode=free">View All</a>
+      </div>
+      <div class="card-slider-courses">
+            <div class="loader-sec" id = "free_courses_loader" style="display:none;">
+            <div class="loader"></div>
+            </div>
+        <div id = "free_prev_btn" style="display:none" class="card-slider-prev-btn"><i class="fas fa-chevron-left"></i></div>
+         <div id = "free_next_btn" style="display:none" class=" card-slider-next-btn"><i class="fas fa-chevron-right"></i></div>
+         <ul id="free_courses_ul" class="card-slider-card-container owl-carousel owl-theme">
+
+         </ul>
+      </div>
+   </section>
+   <!-- to here -->
+
+
       </section>
+
     ## in case there are courses that are not shown on the homepage, a 'View all Courses' link should appear
       % if homepage_course_max and len(courses) > homepage_course_max:
       <div class="courses-more">
         <a class="courses-more-cta" href="${marketing_link('COURSES')}"> ${_("View all Courses")} </a>
       </div>
     % endif
-    % endif
+
 
   </section>
 </section>
+
+<script src="${static.url('js/courses_list.js')}"></script>
+

@@ -168,7 +168,7 @@ COURSE_CATALOG_API_URL: http://localhost:8008/api/v1
 COURSE_CATALOG_URL_ROOT: http://localhost:8008
 COURSE_CATALOG_VISIBILITY_PERMISSION: see_exists
 CREDENTIALS_INTERNAL_SERVICE_URL: http://localhost:8005
-CREDENTIALS_PUBLIC_SERVICE_URL: http://localhost:8005
+CREDENTIALS_PUBLIC_SERVICE_URL: http://edx.devstack.lms:18150
 CREDIT_HELP_LINK_URL: ''
 CREDIT_PROVIDER_SECRET_KEYS: {}
 CROSS_DOMAIN_CSRF_COOKIE_DOMAIN: ''
@@ -236,8 +236,8 @@ DOC_STORE_CONFIG:
     ssl: false
     user: edxapp
 ECOMMERCE_API_SIGNING_KEY: lms-secret
-ECOMMERCE_API_URL: http://localhost:8002/api/v2
-ECOMMERCE_PUBLIC_URL_ROOT: http://localhost:8002
+ECOMMERCE_API_URL: http://edx.devstack.lms:18130/api/v2
+ECOMMERCE_PUBLIC_URL_ROOT: http://edx.devstack.lms:18130
 EDXMKTG_USER_INFO_COOKIE_NAME: edx-user-info
 EDXNOTES_INTERNAL_API: http://edx.devstack.edx_notes_api:18120/api/v1
 EDXNOTES_PUBLIC_API: http://localhost:18120/api/v1

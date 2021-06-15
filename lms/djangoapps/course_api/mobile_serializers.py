@@ -3,6 +3,7 @@ Course API Serializers.  Representing course catalog data
 """
 
 
+from lms.djangoapps.lhub_ecommerce_offer.models import Coupon
 import six.moves.urllib.error
 import six.moves.urllib.parse
 import six.moves.urllib.request
@@ -18,6 +19,9 @@ class _MediaSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     """
     Nested serializer to represent a media object.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
     def __init__(self, uri_attribute, *args, **kwargs):
         super(_MediaSerializer, self).__init__(*args, **kwargs)
@@ -39,6 +43,10 @@ class ImageSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
     The URLs will be absolute URLs with the host set to the host of the current request. If the values to be
     serialized are already absolute URLs, they will be unchanged.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     raw = AbsoluteURLField()
     small = AbsoluteURLField()
     large = AbsoluteURLField()
@@ -48,15 +56,53 @@ class _CourseApiMediaCollectionSerializer(serializers.Serializer):  # pylint: di
     """
     Nested serializer to represent a collection of media objects
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
+        
     #course_image = _MediaSerializer(source='*', uri_attribute='course_image_url')
     #course_video = _MediaSerializer(source='*', uri_attribute='course_video_url')
     image = ImageSerializer(source='image_urls')
+
+class AvailableVouchersSerializer(serializers.ModelSerializer):
+    """ AvailableVouchers serializer. """
+    name = serializers.CharField()
+    code = serializers.CharField(source="coupon_code")
+    discount_type = serializers.CharField(source="incentive_type")
+    discount_value = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        source="incentive_value"
+    )
+    allow_combine = serializers.BooleanField(source="is_exclusive")
+
+    def get_identity(self, data):
+        try:
+            return data.get('name', None)
+        except AttributeError:
+            return None
+
+    class Meta(object):
+        model = Coupon
+        fields = (
+            'name',
+            'code',
+            'discount_type',
+            'discount_value',
+            'allow_combine',
+        )
+        # For disambiguating within the drf-yasg swagger schema
+        ref_name = 'lms.Coupon'
+
 
 class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     """
     Serializer for Course objects providing minimal data about the course.
     Compare this with CourseDetailSerializer.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
     #blocks_url = serializers.SerializerMethodField()
     #effort = serializers.CharField()
@@ -76,6 +122,9 @@ class CourseSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
     #mobile_available = serializers.BooleanField()
     #hidden = serializers.SerializerMethodField()
     #invitation_only = serializers.BooleanField()
+    discount_type = serializers.CharField(required=False)
+    voucher_applicable = serializers.BooleanField(required=False)
+    available_vouchers = AvailableVouchersSerializer(required=False, many=True)
 
     # 'course_id' is a deprecated field, please use 'id' instead.
     #course_id = serializers.CharField(source='id', read_only=True)
@@ -104,6 +153,9 @@ class CategorySerializer(serializers.Serializer):  # pylint: disable=abstract-me
     Serializer for Course objects providing minimal data about the course.
     Compare this with CourseDetailSerializer.
     """
+
+    class Meta:
+        ref_name = 'course_api.mobile'
 
     #blocks_url = serializers.SerializerMethodField()
     #effort = serializers.CharField()
@@ -164,6 +216,9 @@ class CourseDetailSerializer(CourseSerializer):  # pylint: disable=abstract-meth
     courses.
     """
 
+    class Meta:
+        ref_name = 'course_api.mobile'
+
     overview = serializers.SerializerMethodField()
 
     def get_overview(self, course_overview):
@@ -180,5 +235,8 @@ class CourseKeySerializer(serializers.BaseSerializer):  # pylint:disable=abstrac
     """
     Serializer that takes a CourseKey and serializes it to a string course_id.
     """
+    class Meta:
+        ref_name = 'course_api.mobile'
+        
     def to_representation(self, instance):
         return str(instance)

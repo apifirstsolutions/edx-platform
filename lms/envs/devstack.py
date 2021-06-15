@@ -26,8 +26,8 @@ ORA2_FILEUPLOAD_BACKEND = 'django'
 DEBUG = True
 USE_I18N = True
 DEFAULT_TEMPLATE_ENGINE['OPTIONS']['debug'] = True
-LMS_BASE = 'localhost:18000'
-CMS_BASE = 'localhost:18010'
+LMS_BASE = 'edx.devstack.lms:18000'
+CMS_BASE = 'edx.devstack.lms:18010'
 SITE_NAME = LMS_BASE
 
 # By default don't use a worker, execute tasks as if they were local functions
@@ -38,9 +38,9 @@ LMS_ROOT_URL = 'http://{}'.format(LMS_BASE)
 LMS_INTERNAL_ROOT_URL = LMS_ROOT_URL
 ENTERPRISE_API_URL = '{}/enterprise/api/v1/'.format(LMS_INTERNAL_ROOT_URL)
 IDA_LOGOUT_URI_LIST = [
-    'http://localhost:18130/logout/',  # ecommerce
-    'http://localhost:18150/logout/',  # credentials
-    'http://localhost:18381/logout/',  # discovery
+    'http://edx.devstack.lms:18130/logout/',  # ecommerce
+    'http://edx.devstack.lms:18150/logout/',  # credentials
+    'http://edx.devstack.lms:18381/logout/',  # discovery
 ]
 
 ################################ LOGGERS ######################################
@@ -228,28 +228,28 @@ if FEATURES.get('ENABLE_THIRD_PARTY_AUTH') and (
     AUTHENTICATION_BACKENDS = ['common.djangoapps.third_party_auth.dummy.DummyBackend'] + list(AUTHENTICATION_BACKENDS)
 
 ############## ECOMMERCE API CONFIGURATION SETTINGS ###############
-ECOMMERCE_PUBLIC_URL_ROOT = 'http://localhost:18130'
-ECOMMERCE_API_URL = 'http://edx.devstack.ecommerce:18130/api/v2'
+ECOMMERCE_PUBLIC_URL_ROOT = 'http://edx.devstack.lms:18130'
+ECOMMERCE_API_URL = 'http://edx.devstack.lms:18130/api/v2'
 
 ############## Comments CONFIGURATION SETTINGS ###############
 COMMENTS_SERVICE_URL = 'http://edx.devstack.forum:4567'
 
 ############## Credentials CONFIGURATION SETTINGS ###############
-CREDENTIALS_INTERNAL_SERVICE_URL = 'http://edx.devstack.credentials:18150'
-CREDENTIALS_PUBLIC_SERVICE_URL = 'http://localhost:18150'
+CREDENTIALS_INTERNAL_SERVICE_URL = 'http://edx.devstack.lms:18150'
+CREDENTIALS_PUBLIC_SERVICE_URL = 'http://edx.devstack.lms:18150'
 
 ############################### BLOCKSTORE #####################################
 BLOCKSTORE_API_URL = "http://edx.devstack.blockstore:18250/api/v1/"
 
 ########################## PROGRAMS LEARNER PORTAL ##############################
-LEARNER_PORTAL_URL_ROOT = 'http://localhost:8734'
+LEARNER_PORTAL_URL_ROOT = 'http://edx.devstack.lms:8734'
 
 ########################## ENTERPRISE LEARNER PORTAL ##############################
-ENTERPRISE_LEARNER_PORTAL_NETLOC = 'localhost:8734'
+ENTERPRISE_LEARNER_PORTAL_NETLOC = 'edx.devstack.lms:8734'
 ENTERPRISE_LEARNER_PORTAL_BASE_URL = 'http://' + ENTERPRISE_LEARNER_PORTAL_NETLOC
 
 ########################## ENTERPRISE ADMIN PORTAL ##############################
-ENTERPRISE_ADMIN_PORTAL_NETLOC = 'localhost:1991'
+ENTERPRISE_ADMIN_PORTAL_NETLOC = 'edx.devstack.lms:1991'
 ENTERPRISE_ADMIN_PORTAL_BASE_URL = 'http://' + ENTERPRISE_ADMIN_PORTAL_NETLOC
 
 ###################### Cross-domain requests ######################
@@ -269,12 +269,12 @@ LOGIN_REDIRECT_WHITELIST = [
     #   BASE_URL=http://localhost:$PORT
     # as opposed to:
     #   BASE_URL=localhost:$PORT
-    'localhost:1976',  # frontend-app-program-console
-    'localhost:1994',  # frontend-app-gradebook
-    'localhost:2000',  # frontend-app-learning
-    'localhost:2001',  # frontend-app-course-authoring
-    'localhost:3001',  # frontend-app-library-authoring
-    'localhost:18400',  # frontend-app-publisher
+    'edx.devstack.lms:1976',  # frontend-app-program-console
+    'edx.devstack.lms:1994',  # frontend-app-gradebook
+    'edx.devstack.lms:2000',  # frontend-app-learning
+    'edx.devstack.lms:2001',  # frontend-app-course-authoring
+    'edx.devstack.lms:3001',  # frontend-app-library-authoring
+    'edx.devstack.lms:18400',  # frontend-app-publisher
     ENTERPRISE_LEARNER_PORTAL_NETLOC,  # frontend-app-learner-portal-enterprise
     ENTERPRISE_ADMIN_PORTAL_NETLOC,  # frontend-app-admin-portal
 ]
@@ -331,10 +331,10 @@ EDXNOTES_INTERNAL_API = 'http://edx.devstack.edxnotesapi:18120/api/v1'
 EDXNOTES_CLIENT_NAME = 'edx_notes_api-backend-service'
 
 ############## Settings for Microfrontends  #########################
-LEARNING_MICROFRONTEND_URL = 'http://localhost:2000'
-ACCOUNT_MICROFRONTEND_URL = 'http://localhost:1997'
-LOGISTRATION_MICROFRONTEND_URL = 'http://localhost:1999'
-LOGISTRATION_MICROFRONTEND_DOMAIN = 'localhost:1999'
+LEARNING_MICROFRONTEND_URL = 'http://edx.devstack.lms:2000'
+ACCOUNT_MICROFRONTEND_URL = 'http://edx.devstack.lms:1997'
+LOGISTRATION_MICROFRONTEND_URL = 'http://edx.devstack.lms:1999'
+LOGISTRATION_MICROFRONTEND_DOMAIN = 'edx.devstack.lms:1999'
 
 ############## Docker based devstack settings #######################
 
@@ -351,7 +351,7 @@ FEATURES.update({
 })
 
 ENABLE_MKTG_SITE = os.environ.get('ENABLE_MARKETING_SITE', False)
-MARKETING_SITE_ROOT = os.environ.get('MARKETING_SITE_ROOT', 'http://localhost:8080')
+MARKETING_SITE_ROOT = os.environ.get('MARKETING_SITE_ROOT', 'http://edx.devstack.lms:8080')
 
 MKTG_URLS = {
     'ABOUT': '/about',
@@ -423,14 +423,15 @@ if os.path.isfile(join(dirname(abspath(__file__)), 'private.py')):
 # the templating engine is unable to find the themed templates because they don't exist
 # in it's path. Re-calling derive_settings doesn't work because the settings was already
 # changed from a function to a list, and it can't be derived again.
+from .common import _make_mako_template_dirs
+DEFAULT_SITE_THEME = 'lhub'
+ENABLE_COMPREHENSIVE_THEMING = True
+COMPREHENSIVE_THEME_DIRS = [
+    "/edx/app/edxapp/edx-platform/themes/"
+]
+TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
+derive_settings(__name__)
 
-# from .common import _make_mako_template_dirs
-# ENABLE_COMPREHENSIVE_THEMING = True
-# COMPREHENSIVE_THEME_DIRS = [
-#     "/edx/app/edxapp/edx-platform/themes/"
-# ]
-# TEMPLATES[1]["DIRS"] = _make_mako_template_dirs
-# derive_settings(__name__)
 
 # Uncomment the lines below if you'd like to see SQL statements in your devstack LMS log.
 # LOGGING['handlers']['console']['level'] = 'DEBUG'

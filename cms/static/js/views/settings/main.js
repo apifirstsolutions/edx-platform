@@ -17,7 +17,7 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 'change #course-category': 'updateSubCategory',
                 'change #course-course-sale-type': 'disableCoursePrice',
                 'click .remove-course-introduction-video': 'removeVideo',
-                'focus #course-overview': 'codeMirrorize',
+                'focus #course-overview': 'codeCKE',
                 'focus #course-about-sidebar-html': 'codeMirrorize',
                 'mouseover .timezone': 'updateTime',
                 // would love to move to a general superclass, but event hashes don't inherit in backbone :-(
@@ -93,12 +93,12 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 //Disable course sale type if already exist or not indexed in discovery
                 if (this.model.get('indexed_in_discovery') && this.model.get('course_sale_type') === null) {
                     this.$el.find('#course-course-sale-type').prop("disabled", false)
-                    this.$el.find('#course-course-price').prop("disabled", false)
                 }
                 else {
                     this.$el.find('#course-course-sale-type').prop("disabled", true)
-                    this.$el.find('#course-course-price').prop("disabled", false)
                 }
+                //Disable course price
+                this.$el.find('#course-course-price').prop("disabled", true)
             },
 
             render: function () {
@@ -113,7 +113,7 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                 DateUtils.setupDatePicker('upgrade_deadline', this);
 
                 this.$el.find('#' + this.fieldToSelectorMap.overview).val(this.model.get('overview'));
-                this.codeMirrorize(null, $('#course-overview')[0]);
+                this.codeCKE(null, $('#course-overview')[0]);
 
                 if (this.model.get('title') !== '') {
                     this.$el.find('#' + this.fieldToSelectorMap.title).val(this.model.get('title'));
@@ -403,7 +403,7 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                     this.$el.find('#course-course-price').prop("disabled", true)
                 }
                 else {
-                    this.$el.find('#course-course-price').prop("disabled", false)
+                    this.$el.find('#course-course-price').prop("disabled", true)
                 }
             },
             updateModel: function (event) {
@@ -531,6 +531,32 @@ define(['js/views/validation', 'codemirror', 'underscore', 'jquery', 'jquery.ui'
                     this.$el.find('.current-course-introduction-video iframe').attr('src', '');
                     this.$el.find('#' + this.fieldToSelectorMap.intro_video).val('');
                     this.$el.find('.remove-course-introduction-video').hide();
+                }
+            },
+            codeCKE: function (e, forcedTarget) {
+                var thisTarget, cachethis, field, cmTextArea;
+                if (forcedTarget) {
+                    thisTarget = forcedTarget;
+                    thisTarget.id = $(thisTarget).attr('id');
+                } else if (e !== null) {
+                    thisTarget = e.currentTarget;
+                } else {
+                    return;
+                }
+
+                if (!this.codeMirrors[thisTarget.id]) {
+                    cachethis = this;
+                    field = this.selectorToField[thisTarget.id];
+                    this.codeMirrors[thisTarget.id] = CKEDITOR.replace('cke-overview');
+                    var ckInstance = this.codeMirrors[thisTarget.id];
+                    this.codeMirrors[thisTarget.id].on('change', function() {
+                        cachethis.clearValidationErrors();
+                        var newVal = ckInstance.getData();
+                        if (cachethis.model.get(field) != newVal) {
+                            cachethis.setAndValidate(field, newVal);
+                        }
+                    });
+                    
                 }
             },
             codeMirrors: {},

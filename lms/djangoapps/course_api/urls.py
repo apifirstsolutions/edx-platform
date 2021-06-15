@@ -6,7 +6,7 @@ Course API URLs
 from django.conf import settings
 from django.conf.urls import include, url
 
-from .views import CourseDetailView, CourseIdListView, CourseListView
+from .views import CourseDetailView, CourseIdListView, CourseListView, get_top_search
 from .mobile_views import CategoryListView , PopularCourseListView, SubCategoryListView, CourseListView as MobileCourseListView, get_recommended_courses_for_web
 from .mobile_api import enroll_course_endpoint
 
@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^v1/course_ids/$', CourseIdListView.as_view(), name="course-id-list"),
     url(r'', include('lms.djangoapps.course_api.blocks.urls')),
     url(r'^v2/enroll/', enroll_course_endpoint, name="course-enroll-mobile"),
+    url(r'^v1/top_search/', get_top_search, name="course-top-search"),
 ]

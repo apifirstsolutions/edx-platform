@@ -2,12 +2,11 @@
 Courseware views functions
 """
 
-
 import json
 import logging
 from collections import OrderedDict, namedtuple
 from datetime import datetime
-
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 import bleach
 import requests
 import six
@@ -29,7 +28,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext_noop
 from django.views.decorators.cache import cache_control
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.generic import View
 from edx_django_utils import monitoring as monitoring_utils
@@ -73,6 +72,7 @@ from lms.djangoapps.courseware.courses import (
     get_studio_url,
     sort_by_announcement,
     sort_by_start_date,
+    sort_by_enrollments,
     sort_by_rating,
     sort_by_price,
 
@@ -142,9 +142,15 @@ from ..entrance_exams import user_can_skip_entrance_exam
 from ..module_render import get_module, get_module_by_usage_id, get_module_for_descriptor
 from commerce.api.v1.models import Course
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
+from lms.djangoapps.course_block_user.models import CourseBlockUser
+from lms.djangoapps.banner.models import Banner
+from common.djangoapps.student.views import create_course_tag
+import copy
+from search.search_engine_base import SearchEngine
+from lms.djangoapps.course_tag.models import CourseTag
+from common.djangoapps.util.json_request import JsonResponse
 
 log = logging.getLogger("edx.courseware")
-
 
 # Only display the requirements on learner dashboard for
 # credit and verified modes.
@@ -263,12 +269,25 @@ def courses(request):
     """
     sort = request.GET.get('sort', '')
     category_id = request.GET.get('category')
+    if category_id == "":
+        category_id = None
     subcategory_id = request.GET.get('subcategory')
+    if subcategory_id == "":
+        subcategory_id = None
     difficulty_level_id = request.GET.get('difficulty_level')
+    if difficulty_level_id == "":
+        difficulty_level_id = None
     mode = request.GET.get('mode', '')
-    category = sub_category = difficulty_level = None
+    # search_input = request.GET.get('search', '')
+    # if request.GET.keys()
 
+    if mode == "":
+        mode = None
+    category = sub_category = difficulty_level = None
+    show_categorized_view = True
     courses_list = []
+    course_list_initial = []
+    courses_list_initial_filtered = []
     filter_ = None
     course_discovery_meanings = getattr(settings, 'COURSE_DISCOVERY_MEANINGS', {})
     if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
@@ -284,15 +303,19 @@ def courses(request):
         else:
             filter_ = {'organization': None}
         courses_list = get_courses_with_extra_info(request.user,filter_=filter_)
-
+        course_list_initial = courses_list
         if sort == 'latest':
             courses_list = sort_by_start_date(courses_list)
         elif sort == 'rating':
             courses_list = sort_by_rating(courses_list)
         elif sort == 'price':
             courses_list = sort_by_price(courses_list)
+        elif sort == "enrollments":
+            courses_list = sort_by_enrollments(courses_list)
+        # else:
+        #     courses_list = sort_by_announcement(courses_list)
         else:
-            courses_list = sort_by_announcement(courses_list)
+            sort = None
 
     programs_list = get_programs_with_type(request.site, include_hidden=False)
 
@@ -325,9 +348,16 @@ def courses(request):
         elif mode == 'discounted' and not course.discount_applicable:
             return False
 
+        # if search_input and search_input.lower() not in course.display_name_with_default.lower():
+        #     return False
+
         return True
 
     courses_list = filter(filter_courses, courses_list)
+    if sort or mode or difficulty_level_id or subcategory_id or category_id :
+        courses_list_ = copy.deepcopy(courses_list)
+    else:
+        courses_list_ = course_list_initial
     categories = Category.objects\
         .prefetch_related(Prefetch('subcategories', queryset=SubCategory.objects.order_by('name')))\
                           .order_by('name')
@@ -338,7 +368,45 @@ def courses(request):
         selected_category_name = category.name
     elif sub_category:
         selected_category_name = '{} - {}'.format(sub_category.category.name, sub_category.name)
+    banner_list = Banner.objects.filter(platform__in = ['WEB', 'BOTH'], enabled=True)
+    for x in courses_list_:
+        courses_list_initial_filtered.append(x)
 
+    if len(courses_list_initial_filtered)==len(course_list_initial):
+        course_tag = create_course_tag(course_list_initial)
+    else:
+        course_tag = create_course_tag(courses_list_initial_filtered)
+
+    if len(request.GET.keys()) ==  0:
+
+        show_categorized_view = True
+
+    elif len(request.GET.keys()) > 0:
+        if not (difficulty_level_id or sort or mode or category_id or subcategory_id):
+            show_categorized_view = True
+        else:
+            show_categorized_view = False
+    else:
+        show_categorized_view = False
+    user_category = None
+    user_extra_info = UserExtraInfo.objects.filter(user_id=request.user.id).first()
+    search_engine = SearchEngine.get_search_engine(index="home_search")
+    search_result_ = search_engine.search(size=2000)
+    search_top_result = []
+    seen = set()
+    name_list = []
+    for x in search_result_['results']:
+        if 'name' not in x['data'].keys():
+            t = tuple(x['data'].items())
+            if t not in seen and t[1][1] not in name_list:
+                name_list.append(t[1][1])
+                seen.add(t)
+                if len(search_top_result) <= 20:
+                    search_top_result.append(x['data'])
+
+    search_top = search_top_result[0:19]
+    if hasattr(user_extra_info, 'industry_id'):
+        user_category = Category.objects.filter(id=user_extra_info.industry_id).first().id
     return render_to_response(
         "courseware/courses.html",
         {
@@ -351,6 +419,11 @@ def courses(request):
             'selected_difficulty_level_id': difficulty_level.id if difficulty_level else '',
             'selected_mode': mode,
             'sort': sort,
+            'banner_list': banner_list,
+            'show_categorized_view': show_categorized_view,
+            'user_industry': user_category,
+            'course_tag': course_tag,
+            'search_top':search_top
         }
     )
 
@@ -606,9 +679,9 @@ def course_info(request, course_id):
             configuration_helpers.get_value('COURSE_HOMEPAGE_SHOW_ORG', True)
 
         course_title = course.display_number_with_default
-        course_subtitle = course.display_name_with_default
+        course_subtitle = course.display_name_with_default if course else None
         if course_homepage_invert_title:
-            course_title = course.display_name_with_default
+            course_title = course.display_name_with_default if course else None
             course_subtitle = course.display_number_with_default
 
         context = {
@@ -1073,11 +1146,10 @@ def course_about(request, course_id):
         # Embed the course reviews tool
         reviews_fragment_view = CourseReviewsModuleFragmentView().render_to_fragment(request, course=course)
 
-
         check = course_price
         check_points = check.split('.')
         last_check = check_points[-1]
-        if not(len(last_check) > 1):
+        if not (len(last_check) > 1):
             course_price = course_price + '0'
 
         context = {
@@ -1766,6 +1838,8 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
     course_key = usage_key.course_key
 
     requested_view = request.GET.get('view', 'student_view')
+    next_ = None
+    previous = None
     if requested_view != 'student_view':
         return HttpResponseBadRequest(
             u"Rendering of the xblock view '{}' is not supported.".format(bleach.clean(requested_view, strip=True))
@@ -1797,6 +1871,58 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
                 }
 
         missed_deadlines, missed_gated_content = dates_banner_should_display(course_key, request.user)
+        path_ = request.get_full_path()
+        next_qry = None
+        previous_qry = None
+        if path_ and request.user.id:
+            ref_obj = CourseBlockUser.objects.filter(block_mobile_view__icontains = path_, user=request.user)
+            ref_obj.id = ref_obj[0].id if ref_obj else None
+            base_url = path_.split("/xblock/")
+            if ref_obj and ref_obj.id:
+                next_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) + 1)
+                previous_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) - 1)
+                ref_obj = ref_obj[0]
+            else:
+                ref_obj = CourseBlockUser.objects.filter(descendants__icontains=path_, user=request.user)
+                ref_obj = ref_obj[0] if ref_obj else None
+
+            if ref_obj and ref_obj.descendants:
+                #loop and split
+                sub_sections = ref_obj.descendants.strip('[]').split(",")
+                print('tt', sub_sections)
+               #process middle
+                if ref_obj.processed_descendants and ref_obj.processed_descendants+1 < len(sub_sections):
+                    next_ = base_url[0] +'/xblock/'+ (sub_sections[ref_obj.processed_descendants+1]).replace("'", "")
+                    ref_obj.processed_descendants += 1
+                else:
+                    # start of black , initial
+                    if len(sub_sections) >=2 and not ref_obj.processed_descendants:
+                        next_ = base_url[0] + '/xblock/'+(sub_sections[1]).replace("'", "")
+                    else:
+                        # start of block , other condition , jump to next major block
+                        next_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) + 1)
+                        if next_qry.exists():
+                            next_ = next_qry[0].block_mobile_view
+                    ref_obj.processed_descendants = 0
+
+                if ref_obj.processed_descendants and ref_obj.processed_descendants > 0:
+
+                    previous = base_url[0]+ '/xblock/'+(sub_sections[ref_obj.processed_descendants-1]).replace("'", "")
+                    ref_obj.processed_descendants += 1
+                else:
+                    previous_qry = CourseBlockUser.objects.filter(pk=int(ref_obj.id) - 1)
+                    if not ref_obj.processed_descendants and previous_qry.exists():
+                        previous = previous_qry[0].block_mobile_view
+                    else:
+                        previous = base_url[0]+ '/xblock/'+(sub_sections[0]).replace("'", "")
+                    ref_obj.processed_descendants = 0
+            #no sub section
+            else:
+                if next_qry and next_qry.exists():
+                    next_ = next_qry[0].block_mobile_view
+                if previous_qry and previous_qry.exists():
+                    previous = previous_qry[0].block_mobile_view
+            ref_obj.save() if ref_obj else None
 
         context = {
             'fragment': block.render('student_view', context=student_view_context),
@@ -1819,7 +1945,10 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
             'is_learning_mfe': is_request_from_learning_mfe(request),
             'is_mobile_app': is_request_from_mobile_app(request),
             'reset_deadlines_url': reverse(RESET_COURSE_DEADLINES_NAME),
+            'next_': next_ if next_ else False,
+            'previous': previous if previous else False
         }
+
         return render_to_response('courseware/courseware-chromeless.html', context)
 
 
@@ -2054,3 +2183,87 @@ def get_financial_aid_courses(user):
             )
 
     return financial_aid_courses
+
+@csrf_exempt
+def search_keyword(request):
+    if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
+        if not request.user.id:
+            filter_ = {'organization': None}
+        elif request.user.is_staff:
+            filter_ = {}
+        elif _get_course_creator_status(request.user) == 'granted':
+            if request.user.user_extra_info.organization:
+                filter_ = {'organization': request.user.user_extra_info.organization.id}
+            else:
+                filter_ = {'organization': None}
+        else:
+            filter_ = {'organization': None}
+        courses_list = get_courses_with_extra_info(request.user, filter_=filter_)
+        courses = courses_list
+
+    if request.GET.get('search_') or request.GET.get('search'):
+        search_engine = SearchEngine.get_search_engine(index="home_search")
+        key_word = str(request.GET.get('search_'))
+        key_obj_name = []
+        context = {}
+        matched = False
+        courses_name = None
+        for crs in courses:
+            if key_word in str(crs.display_org_with_default) or key_word in str(
+                crs.display_name_with_default) or key_word in str(crs.display_number_with_default):
+                matched = True
+                key_obj_name.append(str(crs.id))
+
+        ip = get_client_ip(request)
+        if matched and ip and key_word:
+            doc_string = {"ip": str(ip),
+                          "key_word": str(key_word)
+                          }
+            search_result = search_engine.search(field_dictionary=doc_string)
+            log.info("fetched the following from Elastic Search Engine %s", str(search_result))
+            if search_result and int(search_result['total']) > 50:
+                pass
+            else:
+                if search_result['total'] < 100:  # change it to < 1 while pushing to prod, for making ip constrain
+                    search_engine.index("home", [doc_string])
+                    log.info("Indexed to Elastic Search with data type as home with values %s ", str(doc_string))
+            courses_name = key_obj_name
+        search_dict = {'key_word': str(request.GET.get('search_', None))}
+        if search_dict and search_dict != 'None':
+            search_result_ = search_engine.search(size=2000)
+        search_top_result = []
+        seen = set()
+        name_list = []
+        generic_name_list = []
+        search_top_result_with_rank = []
+        for x in search_result_['results']:
+            if 'name' not in x['data'].keys():
+                t = tuple(x['data'].items())
+                generic_name_list.append(str(t[1][1]))
+                if t not in seen and t[1][1] not in name_list and (
+                    search_result_['total'] >= 5 or search_result['total'] >= 5):
+                    name_list.append(t[1][1])
+                    seen.add(t)
+                    if len(search_top_result) <= 20:
+                        del x['data']['ip']
+                        search_top_result.append(x['data'])
+        for val in search_top_result:
+            _new_dict = val.copy()
+            hit_word = str(val['key_word'])
+            _new_dict['hits'] = generic_name_list.count(hit_word)
+            search_top_result_with_rank.append(_new_dict)
+        final_list = sorted(search_top_result_with_rank, key=lambda k: k['hits'], reverse=True)
+        search_top = final_list[0:19]
+        if courses_name:
+            context['course_name'] = courses_name
+        context['search_top'] = search_top
+        return JsonResponse(context, status=200)
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
