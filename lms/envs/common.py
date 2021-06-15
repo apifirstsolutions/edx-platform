@@ -363,7 +363,7 @@ FEATURES = {
     # .. toggle_target_removal_date: None
     # .. toggle_warnings: None
     # .. toggle_tickets: None
-    'ENABLE_THIRD_PARTY_AUTH': False,
+    'ENABLE_THIRD_PARTY_AUTH': True,
 
     # .. toggle_name: ENABLE_MKTG_SITE
     # .. toggle_implementation: DjangoSetting
@@ -595,7 +595,7 @@ FEATURES = {
     'ENABLE_COURSE_GOALS': True,
 
     # Set to enable Enterprise integration
-    'ENABLE_ENTERPRISE_INTEGRATION': False,
+    'ENABLE_ENTERPRISE_INTEGRATION': True,
 
     # Whether HTML XBlocks/XModules return HTML content with the Course Blocks API student_view_data
     'ENABLE_HTML_XBLOCK_STUDENT_VIEW_DATA': False,
@@ -996,6 +996,8 @@ DEFAULT_TEMPLATE_ENGINE_DIRS = DEFAULT_TEMPLATE_ENGINE['DIRS'][:]
 ###############################################################################################
 
 AUTHENTICATION_BACKENDS = [
+    'lms.djangoapps.lhub_auth.ne_sso.NEDOAuth2',
+    'lms.djangoapps.lhub_auth.auth0.Auth0OAuth2',
     'rules.permissions.ObjectPermissionBackend',
     'openedx.core.djangoapps.oauth_dispatch.dot_overrides.backends.EdxRateLimitedAllowAllUsersModelBackend',
     'bridgekeeper.backends.RulePermissionBackend',
@@ -2796,6 +2798,10 @@ INSTALLED_APPS = [
 
     # Subscriptions
     'lms.djangoapps.subscriptions',
+
+    # LHUB Auth
+    'lms.djangoapps.lhub_auth',
+
 ]
 
 ######################### CSRF #########################################
@@ -3892,7 +3898,7 @@ INTEGRATED_CHANNELS_API_CHUNK_TRANSMISSION_LIMIT = {}
 # These default settings are utilized by the LMS when interacting with the service,
 # and are overridden by the configuration parameter accessors defined in production.py
 
-ENTERPRISE_API_URL = 'https://localhost:18000/enterprise/api/v1'
+ENTERPRISE_API_URL = 'http://localhost:18000/enterprise/api/v1'
 ENTERPRISE_CONSENT_API_URL = LMS_INTERNAL_ROOT_URL + '/consent/api/v1/'
 ENTERPRISE_SERVICE_WORKER_USERNAME = 'enterprise_worker'
 ENTERPRISE_API_CACHE_TIMEOUT = 3600  # Value is in seconds
@@ -4240,3 +4246,10 @@ STRIPE_API_KEY = 'sk_test_51ImkrKLnVbKEJoRBPa9I535It7zilmbFbzAIskjh4HYfsgkDufMw3
 STRIPE_CURRENCY = 'SGD'
 STRIPE_WEBHOOK_SECRET_KEY = os.environ.get("STRIPE_WEBHOOK_SECRET_KEY")
 SUBSCRIPTIONS_PARTNER_ID = 1  # month,year,onetime prices  are Stock Records of a Product in Ecommerce. Stock Records require this Partner ID.
+
+
+
+AUTH0_DOMAIN = 'dev-evb2pfr9.us.auth0.com'
+# TODO Change to NE SSO domain===
+# NE_SSO_DOMAIN = 'dev-evb2pfr9.us.auth0.com'
+NE_SSO_DOMAIN = 'preprod-auth.fairprice.com.sg'

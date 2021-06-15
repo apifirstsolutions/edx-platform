@@ -148,6 +148,10 @@ class SubscriptionService:
         log.error(u"Error occured creating Subscription in Stripe. %s", str(e))
         raise
 
+
+      
+    # TODO assign_course_entitlement_to_user in LMS
+
     return result
   
   
@@ -218,6 +222,11 @@ class SubscriptionService:
       stripe_invoice_id=stripe_invoice_id,
       ecommerce_trans_id=ecommerce_trans_id,
     )
+
+
+  # after suscbscription user is entitled to all courses in the bundle assoc. with the Subscription Plan
+  def assign_course_entitlements():
+    pass
     
 
 
