@@ -258,7 +258,7 @@ def get_orders_details(request):
     log.info(f"host: {host}")
 
     data = {'client_id': 'qRLaOgG6vKSbptr9qoGAdZWkCtSWikeTdM5vBPdX',
-            'username': 'staff',
+            'username': 'tonytest',
             'password': 'edx',
             'grant_type': 'password',
             'token_type': 'bearer'}
@@ -266,6 +266,7 @@ def get_orders_details(request):
     oauth_response = requests.post(
         url='http://' + host + '/oauth2/access_token', data=data)
     json_response = json.loads(oauth_response.text)
+
     if "access_token" in json_response.keys():
         jwt_token = json_response['access_token']
         headers = {'Authorization': 'BEARER ' + jwt_token}
@@ -273,6 +274,7 @@ def get_orders_details(request):
         headers['User-Agent'] = user_agent
         URL = 'http://' + host + '/lhub_extended_api/orderlist'
         response = requests.get(url=URL, headers=headers)
+
     return response.json()
 
 
@@ -315,3 +317,29 @@ def get_course_enrollment(request, user):
             web_course_enrollments.append(course)
 
     return course_entitlements + web_course_enrollments
+
+
+def orders_by_quarter(order_by_month, quarter=None):
+    first_quarter = ['Jan', 'Feb', 'Mar']
+    second_quarter = ['Apr', 'May', 'Jun']
+    third_quarter = ['Jul', 'Aug', 'Sep']
+    fourth_quarter = ['Oct', 'Nov', 'Dec']
+
+    for year, data in order_by_month.copy().items():
+        for k in data.copy().keys():
+            if quarter == 1:
+                if k not in first_quarter:
+                    del data[k]
+            elif quarter == 2:
+                if k not in second_quarter:
+                    del data[k]
+            elif quarter == 3:
+                if k not in third_quarter:
+                    del data[k]
+            elif quarter == 4:
+                if k not in fourth_quarter:
+                    del data[k]
+            else:
+                pass
+
+    return order_by_month

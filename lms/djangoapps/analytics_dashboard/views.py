@@ -40,6 +40,7 @@ from lms.djangoapps.analytics_dashboard.trainer_helper import (
     get_course_enrollment,
     get_orders_details,
     str_to_datetime,
+    orders_by_quarter,
 )
 
 from logging import getLogger
@@ -306,13 +307,16 @@ def trainer_course_detail_view(request, course_id, *args, **kwargs):
 
 @ensure_csrf_cookie
 @login_required
-def revenue_view(request, *args, **kwargs):
+def revenue_view(request, duration=1, *args, **kwargs):
     user = request.user
     if not user.is_superuser:
         raise Exception("Not authenticated")
 
     orders = get_orders_details(request)['result']
+
     orders_revenue_by_month = spread_revenue_by_month_from_orders_api(orders, 'order_date')
+
+    orders_by_quarter(orders_revenue_by_month, quarter=duration)
 
     orders_sum  = sum(float(order['price']) for order in orders)
 
@@ -334,6 +338,7 @@ def revenue_view(request, *args, **kwargs):
 
     context = {
             'orders': page,
+            'duration': duration,
             'orders_filter': orders,
             'orders_sum': orders_sum,
             'current_month_revenue': current_month_revenue,
