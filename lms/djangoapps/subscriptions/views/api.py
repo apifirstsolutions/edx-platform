@@ -58,8 +58,14 @@ class PlanCourses(ListAPIView):
       Returns all Courses bundled in a Plan
       """
       plan_id = self.kwargs['id']
-      plan = SubscriptionPlan.objects.get(id=plan_id)
-      return plan.bundle.courses.all()
+      
+      try:
+        plan = SubscriptionPlan.objects.get(id=plan_id)
+        return plan.bundle.courses.all()
+      
+      except (SubscriptionPlan.DoesNotExist, Exception):
+        return []
+      
 class SubscriptionViewSet(
   GenericViewSet,
   CreateModelMixin,
