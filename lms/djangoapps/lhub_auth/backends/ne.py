@@ -9,7 +9,7 @@ from social_core.backends.oauth import BaseOAuth2
 
 from lms.envs.common import NE_SSO_DOMAIN
 
-class NEDOAuth2(BaseOAuth2):
+class NeOAuth2(BaseOAuth2):
     """
     NE SSO backend
     """

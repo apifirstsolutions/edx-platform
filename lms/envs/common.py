@@ -996,8 +996,8 @@ DEFAULT_TEMPLATE_ENGINE_DIRS = DEFAULT_TEMPLATE_ENGINE['DIRS'][:]
 ###############################################################################################
 
 AUTHENTICATION_BACKENDS = [
-    'lms.djangoapps.lhub_auth.ne_sso.NEDOAuth2',
-    'lms.djangoapps.lhub_auth.auth0.Auth0OAuth2',
+    'lms.djangoapps.lhub_auth.backends.ne.NeOAuth2',
+    'lms.djangoapps.lhub_auth.backends.auth0.Auth0OAuth2',
     'rules.permissions.ObjectPermissionBackend',
     'openedx.core.djangoapps.oauth_dispatch.dot_overrides.backends.EdxRateLimitedAllowAllUsersModelBackend',
     'bridgekeeper.backends.RulePermissionBackend',
