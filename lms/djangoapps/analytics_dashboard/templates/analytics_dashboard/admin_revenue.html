@@ -102,7 +102,44 @@ from openedx.core.djangolib.markup import HTML
                         ##<!--                            </div>-->
                         </div>
                     <div class="container-fluid mt-2">
-<!--                        <h3 class="h3">Revenue by month/year</h3>-->
+                        <div class="container mb-0 pb-0">
+                            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                                <h3 class="h4">Revenue by Month/Year</h3>
+                                <div class="btn-toolbar mb-2 mb-md-0">
+                                    <div class="dropdown">
+                                      <button class="btn btn-primary dropdown-toggle"
+                                              type="button"
+                                              id="dropdownMenuButton"
+                                              data-toggle="dropdown"
+                                              aria-haspopup="true"
+                                              aria-expanded="false"
+                                              style="display: flex; align-items:center; justify-content:center">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                          &nbsp;
+                                          % if duration == 1:
+                                             First Quarter
+                                          % elif duration == 2:
+                                             Second Quarter
+                                          % elif duration == 3:
+                                             Third Quarter
+                                          % elif duration == 4:
+                                             Fourth Quarter
+                                          % else:
+                                             All
+                                          % endif
+                                      </button>
+                                      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                        <a class="dropdown-item" href="${reverse('analytics_dashboard:admin_revenue_duration', args=[0])}">All</a>
+                                        <a class="dropdown-item" href="${reverse('analytics_dashboard:admin_revenue_duration', args=[1])}">First Quarter</a>
+                                        <a class="dropdown-item" href="${reverse('analytics_dashboard:admin_revenue_duration', args=[2])}">Second Quarter</a>
+                                        <a class="dropdown-item" href="${reverse('analytics_dashboard:admin_revenue_duration', args=[3])}">Third Quarter</a>
+                                        <a class="dropdown-item" href="${reverse('analytics_dashboard:admin_revenue_duration', args=[4])}">Fourth Quarter</a>
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-sm-1"></div>
                         <div class="col-sm-10">
                             <canvas id="revenueByMonthAndYearChart" height="300" width="500"></canvas>
@@ -126,18 +163,21 @@ from openedx.core.djangolib.markup import HTML
                         for k,val in orders_revenue_by_month.items():
                             years.append(k)
 
+                        year_label = []
                         course_count_data = []
                         for k,val in orders_revenue_by_month.items():
                             course_data = []
                             for key, value in val.items():
                                 course_data.append(value)
+                                year_label.append(key)
                             endfor
                             course_count_data.append(course_data)
                         endfor
 
                         %>
                         <script>
-                            const year_label = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                            ## const year_label = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                            const year_label = ${json.dumps(year_label)  | n}
                             var years = ${years}
                             var course_count_data = ${course_count_data}
                             var course_data = ${course_data}
@@ -204,6 +244,12 @@ from openedx.core.djangolib.markup import HTML
                                         title: {
                                             display: true,
                                             text: 'Revenue by Month/Year'
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            suggestedMin: 0,
+                                            beginAtZero: true
                                         }
                                     }
                                 },
