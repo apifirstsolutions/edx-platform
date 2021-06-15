@@ -122,6 +122,7 @@ def update_stockrecord_price(user, stockrecord_id, price):
         raise
 
 # Gets Stripe Customer ID from Ecommerce Records
-def get_stripe_customer_id():
-    pass
+def get_stripe_customer_id(user):
+    response = ecommerce_api_client(user).stripe_api.post()
+    return response['result']['customer_id'] or None
 

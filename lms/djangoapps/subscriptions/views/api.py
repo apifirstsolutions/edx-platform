@@ -1,4 +1,6 @@
+import datetime
 import logging
+from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from rest_framework.mixins import (
     CreateModelMixin, 
@@ -10,9 +12,14 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.authentication import SessionAuthentication
+
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from openedx.core.lib.api.authentication import BearerAuthentication
+
 
 from ..services.subscription import SubscriptionService
-from ..models import Bundle, Statuses, SubscriptionPlan, Subscription
+from ..models import Bundle, Statuses, SubscriptionPlan, Subscription, SubscriptionTransaction
 from ..serializers import (
   BundleSerializer, 
   SubscriptionPlanSerializer,
@@ -23,24 +30,19 @@ from openedx.core.djangoapps.content.course_overviews.serializers import (
     CourseOverviewBaseSerializer,
 )
 
+AUTHENTICATION_CLASSES = (JwtAuthentication, BearerAuthentication, SessionAuthentication,)
+
 log = logging.getLogger(__name__)
-class BundleViewSet(
-  GenericViewSet,  # generic view functionality
-  CreateModelMixin,  # handles POSTs
-  RetrieveModelMixin,  # handles GETs for 1 object
-  UpdateModelMixin,  # handles PUTs and PATCHes
-  ListModelMixin):  # handles GETs for many object
-
-  serializer_class = BundleSerializer
-  queryset = Bundle.objects.all()
-
+subscription_svc = SubscriptionService()
+User = get_user_model()
 class SubscriptionPlanViewSet(
   GenericViewSet,
   RetrieveModelMixin,
   ListModelMixin):
 
   serializer_class = SubscriptionPlanSerializer
-  queryset = SubscriptionPlan.objects.all()
+  authentication_classes = AUTHENTICATION_CLASSES
+  queryset = SubscriptionPlan.objects.all()  
 class FeaturedSubscriptionPlan(ListAPIView):
     serializer_class = SubscriptionPlanSerializer
 
@@ -74,18 +76,53 @@ class SubscriptionViewSet(
   ListModelMixin):
 
   serializer_class = SubscriptionSerializer
-  queryset = Subscription.objects.all()
+  authentication_classes = AUTHENTICATION_CLASSES
   http_method_names = ['get', 'post', 'patch']
+  queryset = Subscription.objects.all()
 
   def _cancel_subscription(subscription, new_status):
     if subscription.user is not None and \
       subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
       new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
-
-      svc = SubscriptionService()
-      return svc.cancel_subscription(subscription)
+      return subscription_svc.cancel_subscription(subscription)
 
 
+  def create(self, request):
+    # {
+    #   "billing_cycle": "month",
+    #   "license_count": 1,
+    #   "subscription_plan_slug": "slug",
+    #   "user": 15,
+    #   "status": "active"
+    #   "ecommerce_order_number": "string',
+    #   "stripe_customer_id": "string'
+    # }
+    
+    try:
+      user = User.objects.get(id=request.data.get('user'))
+      plan = SubscriptionPlan.objects.get(slug=request.data.get('subscription_plan_slug'))
+      subscription =  Subscription.objects.create(
+        billing_cycle=request.data.get('billing_cycle'),
+        license_count=1,
+        subscription_plan=plan,
+        user=user,
+        status='active',
+      )
+
+      sub_extra = subscription_svc.create_subscription(subscription, request.data.get('stripe_customer_id'))
+      subscription.stripe_customer_id = sub_extra.get('stripe_customer_id')
+      subscription.stripe_subscription_id = sub_extra.get('stripe_subscription_id')
+      subscription.stripe_price_id = sub_extra.get('stripe_price_id')
+      stripe_invoice_id = sub_extra.get('stripe_invoice_id')
+      subscription.save()
+      subscription_svc.record_transaction(subscription, SubscriptionTransaction.CREATE.value, stripe_invoice_id, request.data.get('ecommerce_order_number'))
+      
+      return  JsonResponse({ 'id': subscription.id } )
+
+    except Exception as e:
+      raise
+
+    
   def update(self, request, pk=None):
     """
     Disabled. Go to Django Admin to edit Subscriptions
@@ -107,8 +144,7 @@ class SubscriptionViewSet(
           subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
           new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
 
-          svc = SubscriptionService()
-          result = svc.cancel_subscription(subscription)
+          result = subscription_svc.cancel_subscription(subscription)
           
           if not result['success']:
             return JsonResponse(result)

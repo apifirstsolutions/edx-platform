@@ -1073,3 +1073,8 @@ urlpatterns += [
     url(r'^api/subscriptions/', include('lms.djangoapps.subscriptions.urls.api')),
     url(r'', include('lms.djangoapps.subscriptions.urls.ui')),
 ]
+
+# LHUB Auth - SCID Pro¥xy
+urlpatterns += [
+    url(r'^api/scid/', include('lms.djangoapps.lhub_auth.urls')),
+]

@@ -127,7 +127,7 @@ class Transactions(models.Model):
     )
     license_count = models.IntegerField()
     stripe_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
-    ecommerce_trans_id = models.IntegerField(default=None, null=True, blank=True)
+    ecommerce_order_number = models.CharField(max_length=50, default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

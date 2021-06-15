@@ -1,11 +1,13 @@
 import logging
-import datetime
 from django import forms
 from django.contrib import admin
+
 from ..models import Subscription, BillingCycles, SubscriptionTransaction, Statuses
 from ..services.subscription import SubscriptionService
+from ..helpers import stripe_utils
 
 logger = logging.getLogger(__name__)
+subscription_svc = SubscriptionService()
 class SubscriptionForm(forms.ModelForm):
   class Meta:
     model = Subscription
@@ -21,58 +23,52 @@ class SubscriptionAdmin(admin.ModelAdmin):
   list_display = ['subscription_plan', 'billing_cycle', 'user', 'enterprise']
 
   def save_model(self, request, obj, form, change):
-    subscription_svc = SubscriptionService()
-  
+    if obj.user is not None and obj.enterprise is not None:
+      raise Exception('User and Enterprise cannot have values at the same time.')
+
     stripe_invoice_id = None
-
-    if not change and obj.status == Statuses.ACTIVE.value:   # TODO - throw error when status is not ACTIVE durinng creation
+    action = None
+   
+    if not change:
+      # On create
+      action = SubscriptionTransaction.CREATE.value
       
-      # determine strip_price_id based from billing_cycle selection
-      if obj.billing_cycle == BillingCycles.MONTH.value or obj.billing_cycle == BillingCycles.YEAR.value:
-        obj.stripe_price_id = getattr(obj.subscription_plan, 'stripe_price_id_'+obj.billing_cycle)
+      if obj.status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value]:
+        raise Exception('Subscription status cannot be CANCELLED or EXPIRED on creation.')
+      
+      try:
+        subscription = subscription_svc.create_subscription(obj)
+        obj.stripe_customer_id = subscription.get('stripe_customer_id')
+        obj.stripe_subscription_id = subscription.get('stripe_subscription_id')
+        obj.stripe_price_id = subscription.get('stripe_price_id')
+        stripe_invoice_id = subscription.get('stripe_invoice_id')
+      
+      except Exception as e:
+        raise
 
-      # FIXME - remove this.  is start_at is not set, it should start from now
-      # If start_at is not set, set to first day of the next month, exept current day is already first day of the month
-      if obj.start_at is None:
-        today = datetime.datetime.today()
-        if today.day == 1:
-          billing_cycle_anchor = int(today.timestamp())
-        else:
-          # https://stackoverflow.com/questions/57353919/how-can-i-get-the-first-day-of-the-next-month-in-python
-          nextmonth_first_day = (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-          billing_cycle_anchor = int(nextmonth_first_day.timestamp())
-      else:
-        billing_cycle_anchor = int(obj.start_at.timestamp()) + 20   # add 20sec to ensure future time for billing_cycle_anchor else Stripe will thrown an error
-        
-      if obj.billing_cycle is not BillingCycles.ONE_TIME.value and obj.user is not None:
-        # TODO - handle error case on create_subscription
-        sub = subscription_svc.create_subscription(obj.user, obj.stripe_price_id, billing_cycle_anchor)
-
-        if sub is not None:
-          obj.stripe_customer_id = sub['stripe_customer_id']
-          obj.stripe_subscription_id = sub['stripe_subscription_id']
-          stripe_invoice_id = sub['stripe_invoice_id']
-
-      else:
-        # Enterprise subscription
-        subscription_svc.create_subscription(obj.enterprise, price_id=None, billing_cycle_anchor=None, one_time_pay=True)
-
-    # updating case
     else:
-      if 'status' in form.changed_data and obj.status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value]:
+      # On Update
+      if 'status' in form.changed_data and obj.status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+        if obj.status == Statuses.CANCELLED.value:
+          action = SubscriptionTransaction.CANCEL.value
+        if obj.status == Statuses.EXPIRED.value:
+          action = SubscriptionTransaction.EXPIRE.value
         subscription_svc.cancel_subscription(obj)
 
-    
     super().save_model(request, obj, form, change)
+    subscription_svc.record_transaction(obj, action, stripe_invoice_id)
 
-    if not change: 
+    # Set Licenses
+    # FIXME can be merged into single method
+
+    if not change:
       if (obj.user is not None):
         subscription_svc.create_single_license(obj, stripe_invoice_id=stripe_invoice_id)
       if (obj.enterprise is not None):
         subscription_svc.create_enterprise_licenses(obj)
 
     else:
-      # TODO handle increase of License Count
+      # TODO handle increase/decrease of License Count
       pass
 
 

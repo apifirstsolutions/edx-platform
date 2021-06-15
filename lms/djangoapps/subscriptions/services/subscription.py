@@ -3,18 +3,21 @@ import logging
 import stripe
 from itertools import islice
 
-from ..models import License, Transactions, SubscriptionTransaction
+from ..models import BillingCycles, License, Transactions, SubscriptionTransaction
 from .ecommerce import (
   create_ecommerce_product, 
   create_stockrecord, 
   update_ecommerce_product, 
   update_stockrecord_price,
+  get_stripe_customer_id,
 )
-from ..helpers.unique_slugify import unique_slugify 
+from ..helpers.unique_slugify import unique_slugify
+from ..helpers.stripe_utils import get_billing_cycle_anchor
 
 from lms.envs.common import (
   STRIPE_API_KEY,
   STRIPE_CURRENCY,
+  STRIPE_TAX_RATE_ID,
 )
 
 log = logging.getLogger(__name__)
@@ -34,17 +37,17 @@ class SubscriptionService:
   #
   # user, from request
 
-  def create_product(self, product, prices, user):
-    unique_slugify(product, product.name)
+  def create_product(self, plan, prices, user):
+    unique_slugify(plan, plan.name)
     try:
       # Create Stripe Product
-      stripe_product = stripe.Product.create(name=product.name,)
+      stripe_product = stripe.Product.create(name=plan.name,)
       result = {
         'stripe_product_id': stripe_product.id
       }
       
       # Create Ecommrce Product
-      ecommerce_product = create_ecommerce_product(user, product)
+      ecommerce_product = create_ecommerce_product(user, plan)
       result['ecommerce_prod_id'] = ecommerce_product.get('id')
       
       for cycle in prices.keys():
@@ -62,10 +65,10 @@ class SubscriptionService:
             result['stripe_price_id_' + cycle] = price.id
 
           # Create Ecommerce Product Variants to set differcent prices.
-          ecommerce_product_variant = create_ecommerce_product(user, product, parent_id=ecommerce_product.get('id'), cycle=cycle)
+          ecommerce_product_variant = create_ecommerce_product(user, plan, parent_id=ecommerce_product.get('id'), cycle=cycle)
           result['ecommerce_prod_id_' + cycle] = ecommerce_product_variant.get('id')
           
-          sku = product.slug + '-' + cycle
+          sku = plan.slug + '-' + cycle
           stockrecord = create_stockrecord(user, ecommerce_product_variant.get('id'), sku, prices[cycle])
           result['ecommerce_stockrecord_id_' + cycle] = stockrecord.get('id')
 
@@ -120,34 +123,44 @@ class SubscriptionService:
 
 
   # If using Stripe - after first payment, create a Stripe subscription with Price (from subscription plan)
-  def create_subscription(self, user, price_id, billing_cycle_anchor, one_time_pay=False, first_payment_transaction_id=None):
+  # custome can either be user or enterprise
+  def create_subscription(self, subscription, stripe_customer_id=None):
     result = {
       'stripe_customer_id': None,
       'stripe_subscription_id': None,
       'stripe_invoice_id': None,
+      'stripe_price_id': None,
     }
-    
-    if not one_time_pay:
+
+    onetime_pay = subscription.billing_cycle == BillingCycles.ONE_TIME.value
+   
+    if not onetime_pay and subscription.user is not None:
+
+      price_id = getattr(subscription.subscription_plan, 'stripe_price_id_' + subscription.billing_cycle)
+      result['stripe_price_id'] = price_id
+
       try:
-        customer_id = 'cus_JYiGFvd6zlyJHr'  # FIXME must be taken from ecommerce records. if does not exists, where to store when creating?
+        
+        if stripe_customer_id is None:
+          stripe_customer_id = get_stripe_customer_id(subscription.user)
+        billing_cycle_anchor = get_billing_cycle_anchor(subscription.start_at)
+       
         sub = stripe.Subscription.create(
-          customer=customer_id,
+          customer=stripe_customer_id,
           billing_cycle_anchor=billing_cycle_anchor,
           proration_behavior='none',
+          items=[{ "price": price_id }],
+          default_tax_rates=[ STRIPE_TAX_RATE_ID ],
           # cancel_at=<valid_until>  # TODO - should cancel when valid_until change
-          items=[
-            { "price": price_id },
-          ],
         )
 
-        result['stripe_customer_id'] = customer_id
+        result['stripe_customer_id'] = stripe_customer_id
         result['stripe_subscription_id'] = sub.id
         result['stripe_invoice_id'] = sub.latest_invoice
         
       except Exception as e:
         log.error(u"Error occured creating Subscription in Stripe. %s", str(e))
         raise
-
 
       
     # TODO assign_course_entitlement_to_user in LMS
@@ -178,16 +191,16 @@ class SubscriptionService:
   # Cancels a subscriptions
   # Deletes a Stripe subscription and record in Transactions
   def cancel_subscription(self, subscription):
-    result = { 'success': False, 'message': None }
+
     try:
       stripe.Subscription.delete(subscription.stripe_subscription_id)
       self.record_transaction(subscription, SubscriptionTransaction.CANCEL.value)
-      result['success'] = True
+      return { 'success': True }
     except Exception as e:
-      log.error(u"rror occured cancelling Subscription in Stripe. %s", str(e))
+      log.error(u"Error occured cancelling Subscription in Stripe. %s", str(e))
       raise
 
-    return result
+    
 
   # Update a Subscription cancel time
   def update_subscription_validity():
@@ -213,14 +226,14 @@ class SubscriptionService:
 
 
   # record transations when subscription status changes
-  def record_transaction(self, subscription, action, stripe_invoice_id=None, ecommerce_trans_id=None):
+  def record_transaction(self, subscription, action, stripe_invoice_id=None, ecommerce_order_number=None):
     Transactions.objects.create(
       subscription=subscription, 
       status=subscription.status, 
       description=action, 
       license_count=subscription.license_count,
       stripe_invoice_id=stripe_invoice_id,
-      ecommerce_trans_id=ecommerce_trans_id,
+      ecommerce_order_number=ecommerce_order_number,
     )
 
 

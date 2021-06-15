@@ -4244,12 +4244,12 @@ CKEDITOR_CONFIGS = {
 # STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY")
 STRIPE_API_KEY = 'sk_test_51ImkrKLnVbKEJoRBPa9I535It7zilmbFbzAIskjh4HYfsgkDufMw34FV55e6sJLi1IV4F993ugrH1BiJYQomUR5t009RDvIRZI' 
 STRIPE_CURRENCY = 'SGD'
+STRIPE_TAX_RATE_ID = 'txr_1J2kHBLnVbKEJoRBhQ3VABpd'
 STRIPE_WEBHOOK_SECRET_KEY = os.environ.get("STRIPE_WEBHOOK_SECRET_KEY")
 SUBSCRIPTIONS_PARTNER_ID = 1  # month,year,onetime prices  are Stock Records of a Product in Ecommerce. Stock Records require this Partner ID.
 
 
-
+################# Settings for LHUB Auth Djangoapp #####################
 AUTH0_DOMAIN = 'dev-evb2pfr9.us.auth0.com'
-# TODO Change to NE SSO domain===
-# NE_SSO_DOMAIN = 'dev-evb2pfr9.us.auth0.com'
 NE_SSO_DOMAIN = 'preprod-auth.fairprice.com.sg'
+SCID_INTERNAL_API_URL = 'http://scid.devstack.lhub:3001'
