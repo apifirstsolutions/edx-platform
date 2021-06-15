@@ -1,3 +1,4 @@
+import logging
 from django.http import JsonResponse
 from rest_framework.mixins import (
     CreateModelMixin, 
@@ -21,6 +22,8 @@ from ..serializers import (
 from openedx.core.djangoapps.content.course_overviews.serializers import (
     CourseOverviewBaseSerializer,
 )
+
+log = logging.getLogger(__name__)
 class BundleViewSet(
   GenericViewSet,  # generic view functionality
   CreateModelMixin,  # handles POSTs
@@ -87,27 +90,32 @@ class SubscriptionViewSet(
     """
     Use only to Cancel or Expire an active, non-enterprise Subscriptions.
     """
-    subscription = Subscription.objects.get(id=pk)
 
-    if subscription is not None and request.data['status'] is not None:
-      new_status = request.data['status']
+    try:
+      subscription = Subscription.objects.get(id=pk)
 
-      if subscription.user is not None and \
-        subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
-        new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+      if subscription is not None and request.data['status'] is not None:
+        new_status = request.data['status']
 
-        svc = SubscriptionService()
-        result = svc.cancel_subscription(subscription)
-        
-        if not result['success']:
-          return JsonResponse(result)
-        else:
-          subscription.status = new_status
-          subscription.save()
-          return JsonResponse(result)
-    else:
-      return Response(
-        { 'message': "Use only to Cancel or Expire an active, non-enterprise Subscriptions." }, 
-        status=HTTP_400_BAD_REQUEST
-      )
+        if subscription.user is not None and \
+          subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
+          new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
+
+          svc = SubscriptionService()
+          result = svc.cancel_subscription(subscription)
+          
+          if not result['success']:
+            return JsonResponse(result)
+          else:
+            subscription.status = new_status
+            subscription.save()
+            return JsonResponse(result)
+      else:
+        return Response(
+          { 'message': "Use only to Cancel or Expire an active, non-enterprise Subscriptions." }, 
+          status=HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+      log.error()
+      raise
 

@@ -145,7 +145,8 @@ class SubscriptionService:
         result['stripe_invoice_id'] = sub.latest_invoice
         
       except Exception as e:
-        print('Stripe ERROR:: ' + str(e))
+        log.error(u"Error occured creating Subscription in Stripe. %s", str(e))
+        raise
 
     return result
   
@@ -179,12 +180,10 @@ class SubscriptionService:
       self.record_transaction(subscription, SubscriptionTransaction.CANCEL.value)
       result['success'] = True
     except Exception as e:
-      print('Stripe ERROR:: ' + str(e))
-      result['message'] = str(e)
+      print(u"Error occured cancelling Subscription in Stripe. %s", str(e))
+      raise
 
     return result
-
-
 
   # Update a Subscription cancel time
   def update_subscription_validity():

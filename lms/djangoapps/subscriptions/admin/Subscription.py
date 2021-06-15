@@ -45,6 +45,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
         billing_cycle_anchor = int(obj.start_at.timestamp()) + 20   # add 20sec to ensure future time for billing_cycle_anchor else Stripe will thrown an error
         
       if obj.billing_cycle is not BillingCycles.ONE_TIME.value and obj.user is not None:
+        # TODO - handle error case on create_subscription
         sub = subscription_svc.create_subscription(obj.user, obj.stripe_price_id, billing_cycle_anchor)
 
         if sub is not None:

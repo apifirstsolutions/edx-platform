@@ -4,7 +4,7 @@ from django import forms
 from django.contrib import admin
 from ..models import SubscriptionPlan
 from ..services.subscription import SubscriptionService
-
+  
 logger = logging.getLogger(__name__)
 
 class SubscriptionPlanForm(forms.ModelForm):
@@ -39,7 +39,12 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
         'onetime': plan.price_onetime,
       }
       
-      product_data = subscription_svc.create_product(plan, prices, user=request.user)
+      try:
+        product_data = subscription_svc.create_product(plan, prices, user=request.user)
+      except Exception as e:
+        logger.error(u"Error creating Subscription as product. %s", str(e))
+        raise
+      
       plan.stripe_prod_id = product_data.get('stripe_product_id')
       plan.stripe_price_id_month = product_data.get('stripe_price_id_month')
       plan.stripe_price_id_year = product_data.get('stripe_price_id_year')
@@ -80,14 +85,18 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
       if 'price_year' in form.changed_data:
         new_prices['year'] = plan.price_year
 
-      updated_product = subscription_svc.update_product(
-        user=request.user,
-        plan=plan,
-        new_prices=new_prices,
-        new_product_name=new_product_name,
-        new_description=new_description,
-        new_valid_until=new_valid_until,
-      )
+      try:
+        updated_product = subscription_svc.update_product(
+          user=request.user,
+          plan=plan,
+          new_prices=new_prices,
+          new_product_name=new_product_name,
+          new_description=new_description,
+          new_valid_until=new_valid_until,
+        )
+      except Exception as e:
+        logger.error(u"Error updating Subscription product. %s", str(e))
+        raise
       
       if updated_product is not None:
         plan.stripe_price_id_month = updated_product.get('stripe_price_id_month')

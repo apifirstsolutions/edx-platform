@@ -21,7 +21,7 @@ from common.djangoapps.student.views.dashboard import (
 )
 
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview, Category, SubCategory
-from custom_reg_form.models import UserExtraInfo
+from lms.djangoapps.custom_form_app.custom_reg_form.models import UserExtraInfo
 
 from lms.djangoapps.analytics_dashboard.filters import CourseFilter
 from lms.djangoapps.analytics_dashboard.demographics import (
