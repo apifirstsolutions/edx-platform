@@ -42,34 +42,24 @@ class SubscriptionAdmin(admin.ModelAdmin):
         obj.stripe_subscription_id = subscription.get('stripe_subscription_id')
         obj.stripe_price_id = subscription.get('stripe_price_id')
         stripe_invoice_id = subscription.get('stripe_invoice_id')
-      
+
       except Exception as e:
         raise
 
     else:
       # On Update
+      if 'license_count' in form.changed_data:
+        subscription_svc.validate_license_count_change()
+
       if 'status' in form.changed_data and obj.status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
         if obj.status == Statuses.CANCELLED.value:
           action = SubscriptionTransaction.CANCEL.value
         if obj.status == Statuses.EXPIRED.value:
           action = SubscriptionTransaction.EXPIRE.value
+        
         subscription_svc.cancel_subscription(obj)
 
     super().save_model(request, obj, form, change)
     subscription_svc.record_transaction(obj, action, stripe_invoice_id)
-
-    # Set Licenses
-    # FIXME can be merged into single method
-
-    if not change:
-      if (obj.user is not None):
-        subscription_svc.create_single_license(obj, stripe_invoice_id=stripe_invoice_id)
-      if (obj.enterprise is not None):
-        subscription_svc.create_enterprise_licenses(obj)
-
-    else:
-      # TODO handle increase/decrease of License Count
-      pass
-
 
 admin.site.register(Subscription, SubscriptionAdmin)

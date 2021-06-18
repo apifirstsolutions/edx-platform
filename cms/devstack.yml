@@ -313,10 +313,10 @@ JWT_ISSUER: http://edx.devstack.lms:18000/oauth2
 JWT_PRIVATE_SIGNING_KEY: null
 LANGUAGE_CODE: en
 LANGUAGE_COOKIE: openedx-language-preference
-LEARNER_PORTAL_URL_ROOT: https://learner-portal-edx.devstack.lms:18000
+LEARNER_PORTAL_URL_ROOT: http://edx.devstack.lms:18000
 LMS_BASE: edx.devstack.lms:18000
 LMS_INTERNAL_ROOT_URL: http://lms.devstack.edx:18000
-LMS_ROOT_URL: http://lms.devstack.edx:8000
+LMS_ROOT_URL: http://edx.devstack.lms:18000
 LOCAL_LOGLEVEL: INFO
 LOGGING_ENV: sandbox
 LOGIN_REDIRECT_WHITELIST: []

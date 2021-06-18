@@ -97,6 +97,8 @@ class SubscriptionViewSet(
     #   "ecommerce_order_number": "string',
     #   "stripe_customer_id": "string'
     # }
+
+    result = { 'id': None }
     
     try:
       user = User.objects.get(id=request.data.get('user'))
@@ -117,11 +119,12 @@ class SubscriptionViewSet(
       subscription.save()
       subscription_svc.record_transaction(subscription, SubscriptionTransaction.CREATE.value, stripe_invoice_id, request.data.get('ecommerce_order_number'))
       
-      return  JsonResponse({ 'id': subscription.id } )
+      result['id'] = subscription.id
 
     except Exception as e:
       raise
 
+    return JsonResponse(result)
     
   def update(self, request, pk=None):
     """
@@ -158,6 +161,6 @@ class SubscriptionViewSet(
           status=HTTP_400_BAD_REQUEST
         )
     except Exception as e:
-      log.error()
+      log.error("Error in cancelling/expiring user subscription.")
       raise
 

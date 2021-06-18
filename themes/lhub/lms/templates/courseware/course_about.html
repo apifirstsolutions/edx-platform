@@ -147,51 +147,64 @@ margin-right: 10px;
             </a>
           %endif
 
+        % elif user.is_authenticated and is_entitled:
+          <a href="#" class="register"> ${_("Redeem Now")} </a>
+          
+            
         % elif is_course_full:
           <span class="register disabled">
             ${_("Course is full")}
           </span>
+        
         % elif invitation_only and not can_enroll:
           <span class="register disabled">${_("Enrollment in this course is by invitation only")}</span>
+        
         ## Shib courses need the enrollment button to be displayed even when can_enroll is False,
         ## because AnonymousUsers cause can_enroll for shib courses to be False, but we need them to be able to click
         ## so that they can register and become a real user that can enroll.
         % elif not is_shib_course and not can_enroll:
           <span class="register disabled">${_("Enrollment is Closed")}</span>
+        
         %elif allow_anonymous:
           %if show_courseware_link:
             <a href="${course_target}">
             <strong>${_("View Course")}</strong>
             </a>
           %endif
+        
         %else:
           <%
             if ecommerce_checkout:
               reg_href = ecommerce_checkout_link
             else:
               reg_href="#"
+            
             if single_paid_mode:
               href_class = "add-to-cart"
             else:
               href_class = "register"
           %>
-	  %if user.is_authenticated and user.is_active:
-              <a><button style="display:none" id="add_to_cart_btn" type="button">Add to Cart </button></a>
-              <a href="http://${settings.LMS_BASE}/commerce/basket-view/"><button id="go_to_cart_btn" style="display:none;">Go to cart</button></a>
-              <a> <button id="buy_now_btn" data-sku="${course_extra_info.modes[0].sku}" type="button">Buy now</button> </a>
+          
+          %if user.is_authenticated and user.is_active:
+            <a><button style="display:none" id="add_to_cart_btn" type="button">Add to Cart </button></a>
+            <a href="http://${settings.LMS_BASE}/commerce/basket-view/"><button id="go_to_cart_btn" style="display:none;">Go to cart</button></a>
+            <a> <button id="buy_now_btn" data-sku="${course_extra_info.modes[0].sku}" type="button">Buy now</button> </a>
+          
           %elif user.is_authenticated and not(user.is_active):
               <script>
-                  $(document).ready(function(){
-                        is_active = "${user.is_active}"
-		        if (is_active != "True"){
-                            window.location.href = '/verify_email/';
-    			}
-		  });
+                $(document).ready(function() {
+                  is_active = "${user.is_active}"
+                  if (is_active != "True") {
+                    window.location.href = '/verify_email/';
+                  }
+                });
               </script>
+          
           %else:
               %if course_price != "Free":
-              <a href="/login?next=${ quote(request.path) }"><button type="button">Add to Cart </button></a>
-              <a href="/login?next=${ quote(request.path) }"> <button type="button">Buy now</button> </a>
+                <a href="/login?next=${ quote(request.path) }"><button type="button">Add to Cart </button></a>
+                <a href="/login?next=${ quote(request.path) }"> <button type="button">Buy now</button> </a>
+                
               %endif
           %endif
           
@@ -209,9 +222,11 @@ margin-right: 10px;
           <a href="${reg_href}" class="${href_class}" id="enroll_now_btn"> ${_("Redeem Now")} </a>
           <br><br><br>
           <div id="register_error"></div>
+        
         %endif
-        </div>
-       <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
+      </div>
+      
+      <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
         % if course_price != "Free":
        <input id="course_sku" value="${course_extra_info.modes[0].sku}" type="hidden"/>
         %endif

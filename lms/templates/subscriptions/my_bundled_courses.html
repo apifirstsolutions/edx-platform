@@ -1,0 +1,47 @@
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%namespace name='static' file='/static_content.html'/>
+<%block name="pagetitle">Dashboard</%block>
+
+<%block name="js_extra">
+  <script>
+    $(function(){
+      
+    });
+  </script>
+</%block>
+
+<div class="dashboard-notifications" tabindex="-1"></div>
+<main id="main" aria-label="Content" tabindex="-1">
+  <div class="dashboard" id="dashboard-main">
+    <div class="main-container">
+      <div class="my-courses" id="my-courses">
+
+        <%include file="../learner_dashboard/_dashboard_navigation_courses.html"/>
+      
+        % if len(subscriptions) > 0:
+          <ul class="listing-courses">
+            % for index, subscription in enumerate(subscriptions):
+              <%include file='./_dashboard_my_bundles_listing.html' args='subscription=subscription' />
+            % endfor
+          </ul>
+        % else:
+          <div class="empty-dashboard-message">
+            <p>${_("You have not subscribed on any Bundled Courses yet.")}</p>
+            <p class="custom-message">Subscribe to our Bundled Courses.</p>
+            <a class="btn btn-primary" href="#">
+              ${_("Explore Bundled Courses")}
+            </a>
+          </div>
+        % endif
+
+      </div>
+    </div>
+
+    <div class="side-container" role="complementary" aria-label="messages">
+      
+    </div>
+  </div>
+</main>
+
+  

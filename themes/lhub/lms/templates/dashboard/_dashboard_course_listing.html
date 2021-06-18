@@ -161,7 +161,7 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
                     % if isinstance(course_date, six.string_types):
                         <span class="info-date-block">${container_string.format(date=course_date)}</span>
                     % elif course_date is not None:
-                        <span class="info-date-block localized-datetime" data-language="${user_language}" data-timezone="${user_timezone}" data-datetime="${course_date.strftime('%Y-%m-%dT%H:%M:%S%z')}" data-format=${format} data-string="${container_string}"></span>
+                        <span class="info-date-block localized-datetime" data-language="${user_language}" data-timezone="${user_timezone}" data-datetime="${course_date.strftime('%Y-%m-%dT%H:%M:%S%z')}" data-format="${format}" data-string="${container_string}"></span>
                     % endif
                 % endif
                 % if entitlement:
@@ -184,8 +184,8 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
 
         <div class="course_number">
            <ul>
-          <li class="total_chapters">Total Units <span> ${enrollment.total_units}</span> </li>
-          <li class="completed_chapters">Completed Units <span> ${enrollment.completed_units}</span> </li>
+          <li class="total_chapters">Total Units <span> ${getattr(enrollment, 'total_units', 0)}</span> </li>
+          <li class="completed_chapters">Completed Units <span> ${getattr(enrollment, 'completed_units', 0)}</span> </li>
           </ul>
         </div>
 

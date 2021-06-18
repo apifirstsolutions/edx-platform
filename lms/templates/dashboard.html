@@ -149,7 +149,7 @@ from common.djangoapps.student.models import CourseEnrollment
           % if display_dashboard_courses:
           <%include file="learner_dashboard/_dashboard_navigation_courses.html"/>
           % endif
-          % if len(course_entitlements + course_enrollments) > 0:
+          % if len(entitlements_enrollments) > 0:
             <ul class="listing-courses">
             <%
                 share_settings = configuration_helpers.get_value(
@@ -157,7 +157,8 @@ from common.djangoapps.student.models import CourseEnrollment
                     getattr(settings, 'SOCIAL_SHARING_SETTINGS', {})
                 )
             %>
-            % for dashboard_index, enrollment in enumerate(course_entitlements + course_enrollments):
+            % for dashboard_index, enrollment in enumerate(entitlements_enrollments):
+              course: ${dashboard_index} ${enrollment.id}
               <%
                 # Check if the course run is an entitlement and if it has an associated session
                 entitlement = enrollment if isinstance(enrollment, CourseEntitlement) else None

@@ -1,6 +1,8 @@
 import collections
 from enum import Enum
 from django.db import models
+from django.conf import settings
+
 from jsonfield.fields import JSONField
 from enterprise.models import EnterpriseCustomer
 from django.contrib.auth.models import User
@@ -51,10 +53,11 @@ class SubscriptionPlan(models.Model):
     ecommerce_stockrecord_id_onetime = models.IntegerField(default=None, null=True, blank=True)
     
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
-    grace_period = models.IntegerField(default=0)
+    grace_period = models.IntegerField(default=7)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     is_utap_supported = models.BooleanField(default=False)
+    order = models.IntegerField(default=0)
     price_month = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
     price_onetime = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
     price_year = models.DecimalField(max_digits=6, decimal_places=2, default=None, null=True, blank=True)
@@ -81,7 +84,7 @@ class Subscription(models.Model):
       choices=[(cycle.value, cycle.name) for cycle in BillingCycles],
       default=BillingCycles.MONTH
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.CASCADE, null=True, blank=True)
     start_at = models.DateTimeField(default=None, null=True, blank=True)
     status = models.CharField(
@@ -131,4 +134,4 @@ class Transactions(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '#' + self.id + ' - (' + self.subscription.billing_cycle + ')' + self.subscription.subscription_plan.name
+        return '#' + str(self.id) + ' - (' + self.subscription.billing_cycle + ')' + self.subscription.subscription_plan.name

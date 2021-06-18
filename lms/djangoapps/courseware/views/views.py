@@ -46,6 +46,7 @@ from rest_framework.throttling import UserRateThrottle
 from six import text_type
 from web_fragments.fragment import Fragment
 from cms.djangoapps.course_creators.views import add_user_with_status_unrequested, get_course_creator_status
+from common.djangoapps.entitlements.models import CourseEntitlement
 
 from lms.djangoapps.survey import views as survey_views
 from common.djangoapps.course_modes.models import CourseMode, get_course_prices
@@ -95,7 +96,7 @@ from lms.djangoapps.grades.api import CourseGradeFactory
 from lms.djangoapps.instructor.enrollment import uses_shib
 from lms.djangoapps.instructor.views.api import require_global_staff
 from lms.djangoapps.verify_student.services import IDVerificationService
-from openedx.core.djangoapps.catalog.utils import get_programs, get_programs_with_type
+from openedx.core.djangoapps.catalog.utils import get_programs, get_programs_with_type, get_course_uuid_for_course
 from openedx.core.djangoapps.certificates import api as auto_certs_api
 from openedx.core.djangoapps.content.course_overviews.models import (
     Category, CourseOverview, SubCategory, DifficultyLevel
@@ -1152,6 +1153,9 @@ def course_about(request, course_id):
         if not (len(last_check) > 1):
             course_price = course_price + '0'
 
+        course_uuid = get_course_uuid_for_course(course_key)
+        is_entitled = CourseEntitlement.objects.filter(user_id=request.user.id, course_uuid=course_uuid).exists()
+        
         context = {
             'course': course,
             'course_extra_info': course_extra_info,
@@ -1180,6 +1184,7 @@ def course_about(request, course_id):
             'reviews_fragment_view': reviews_fragment_view,
             'sidebar_html_enabled': sidebar_html_enabled,
             'allow_anonymous': allow_anonymous,
+            'is_entitled': is_entitled,
         }
 
         return render_to_response('courseware/course_about.html', context)

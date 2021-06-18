@@ -176,7 +176,7 @@ def get_course_enrollments(user, org_whitelist, org_blacklist, course_limit=None
         completed_units = 0
         course_usage_key = modulestore().make_course_usage_key(enrollment.course_id)
         response = get_blocks(request,course_usage_key,user,requested_fields=['completion'],block_types_filter='vertical')
-        enrollment.total_units = len(response['blocks'])
+        enrollment.total_units = len(response['blocks'])      
         for key,block in response['blocks'].items():
             usage_key = UsageKey.from_string(block['id'])
             usage_key = usage_key.replace(course_key=modulestore().fill_in_run(usage_key.course_key))
@@ -770,6 +770,17 @@ def student_dashboard(request):
         if platform == None or platform == 'Web' or platform == 'Both':
             web_course_enrollments.append(course)
 
+    # If Enrollments and Entitlements have Order Numbers they go to "My Courses"
+    def enrollments_filter_fn(enrollment):
+        order_exists = CourseEnrollmentAttribute.objects.filter(enrollment_id=enrollment.id, name='order_number').exists()
+        is_free = enrollment.mode == 'audit'
+        return is_free or order_exists
+
+    enrollments_with_order_number = list(filter(enrollments_filter_fn, web_course_enrollments))
+    entitlements_with_order_number = list(filter(lambda ent : ent.order_number is not None, course_entitlements))
+    
+    entitlements_enrollments = entitlements_with_order_number + enrollments_with_order_number
+    
     context = {
         'urls': urls,
         'programs_data': programs_data,
@@ -782,6 +793,7 @@ def student_dashboard(request):
         'activate_account_message': activate_account_message,
         'course_enrollments': web_course_enrollments,
         'course_entitlements': course_entitlements,
+        'entitlements_enrollments': entitlements_enrollments,
         'course_entitlement_available_sessions': course_entitlement_available_sessions,
         'unfulfilled_entitlement_pseudo_sessions': unfulfilled_entitlement_pseudo_sessions,
         'course_optouts': course_optouts,
