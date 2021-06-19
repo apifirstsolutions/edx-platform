@@ -19,10 +19,13 @@ def user_login(request, user, **kwargs):
     
     if entries.count():
         for enterprise_user in entries:
-            enterprise = EnterpriseCustomer.objects.get(uuid=enterprise_user.enterprise_customer_id)  
-            subscriptions = Subscription.objects.filter(enterprise=enterprise, status=Statuses.ACTIVE.value)
+            try:
+                enterprise = EnterpriseCustomer.objects.get(uuid=enterprise_user.enterprise_customer_id)  
+                subscriptions = Subscription.objects.filter(enterprise=enterprise, status=Statuses.ACTIVE.value)
 
-            # if have active subscriptions, assign course entitlements and subscription license
-            for subscription in subscriptions:
-                subscription_svc.assign_licenses_n_entitlements(user, subscription)
+                # if have active subscriptions, assign course entitlements and subscription license
+                for subscription in subscriptions:
+                    subscription_svc.assign_licenses_n_entitlements(user, subscription)
+            except EnterpriseCustomer.DoesNotExist:
+                pass
 

@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from .helpers.unique_slugify import unique_slugify
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from ckeditor.fields import RichTextField
+from common.djangoapps.util.date_utils import strftime_localized
+
 
 class Statuses(Enum):
     ACTIVE = 'active'
@@ -41,6 +43,14 @@ class Bundle(models.Model):
         unique_slugify(self, self.name) 
         super(Bundle, self).save(**kwargs)
 class SubscriptionPlan(models.Model):
+    @property
+    def course_count(self):
+        return self.bundle.courses.count()
+
+    @property
+    def valid_until_formatted(self):
+        return strftime_localized(self.valid_until, 'SHORT_DATE')
+
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     

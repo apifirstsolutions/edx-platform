@@ -13,6 +13,6 @@ router.register('subscription', SubscriptionViewSet, basename='subscriptions')
 
 urlpatterns = [
     re_path('^', include(router.urls)),
-    re_path(r'^plan/\?featured', FeaturedSubscriptionPlan.as_view()),
+    re_path(r'^featured-plans/', FeaturedSubscriptionPlan.as_view()),
     re_path(r'^plan/(?P<id>\w+)/courses', PlanCourses.as_view()),
 ]

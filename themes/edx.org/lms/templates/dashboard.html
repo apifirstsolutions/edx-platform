@@ -186,7 +186,7 @@ from common.djangoapps.student.models import CourseEnrollment
   % endif
   <section class="my-courses" id="my-courses">
     <header class="wrapper-header-courses">
-      <h2 class="header-courses">${_("My Courses")}  courses678</h2>
+      <h2 class="header-courses">${_("My Courses")}</h2>
     </header>
     % if len(course_entitlements + course_enrollments) > 0:
         <ul class="listing-courses" data-programs='${json.dumps(programs_data)}'>

@@ -1,5 +1,5 @@
-import datetime
 import logging
+from bridgekeeper import perms
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from rest_framework.mixins import (
@@ -15,19 +15,17 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import SessionAuthentication
 
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from openedx.core.djangoapps.content.course_overviews.serializers import CourseOverviewBaseSerializer
 from openedx.core.lib.api.authentication import BearerAuthentication
-
 
 from ..services.subscription import SubscriptionService
 from ..models import Bundle, Statuses, SubscriptionPlan, Subscription, SubscriptionTransaction
 from ..serializers import (
-  BundleSerializer, 
   SubscriptionPlanSerializer,
   SubscriptionSerializer, 
 )
-
-from openedx.core.djangoapps.content.course_overviews.serializers import (
-    CourseOverviewBaseSerializer,
+from ..permissions import (
+  VIEW_SUBSCRIPTION_PLAN, 
 )
 
 AUTHENTICATION_CLASSES = (JwtAuthentication, BearerAuthentication, SessionAuthentication,)
@@ -42,7 +40,14 @@ class SubscriptionPlanViewSet(
 
   serializer_class = SubscriptionPlanSerializer
   authentication_classes = AUTHENTICATION_CLASSES
-  queryset = SubscriptionPlan.objects.all()  
+
+  def get_queryset(self):
+      """
+      Returns all subscription plans
+      """
+
+      plans = SubscriptionPlan.objects.all()
+      return perms[VIEW_SUBSCRIPTION_PLAN].filter(self.request.user, plans).order_by('order')
 class FeaturedSubscriptionPlan(ListAPIView):
     serializer_class = SubscriptionPlanSerializer
 
@@ -50,7 +55,9 @@ class FeaturedSubscriptionPlan(ListAPIView):
       """
       Returns all featured subscription plan
       """
-      return SubscriptionPlan.objects.filter(is_featured=True, is_active=True)
+    
+      plans = SubscriptionPlan.objects.filter(is_featured=True)
+      return perms[VIEW_SUBSCRIPTION_PLAN].filter(self.request.user, plans).order_by('order')
 
 class PlanCourses(ListAPIView):
     serializer_class = CourseOverviewBaseSerializer

@@ -158,7 +158,6 @@ from common.djangoapps.student.models import CourseEnrollment
                 )
             %>
             % for dashboard_index, enrollment in enumerate(entitlements_enrollments):
-              course: ${dashboard_index} ${enrollment.id}
               <%
                 # Check if the course run is an entitlement and if it has an associated session
                 entitlement = enrollment if isinstance(enrollment, CourseEntitlement) else None

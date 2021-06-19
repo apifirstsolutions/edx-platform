@@ -1,23 +1,20 @@
-<%page args="subscription" expression_filter="h"/>
+<%page args="course" expression_filter="h"/>
 <%namespace name='static' file='/static_content.html'/>
 
 <% 
 from django.urls import reverse
 from django.utils.translation import ugettext as _
-
-cancel_subscription_url = '#cancel_subscription' 
-renew_subscription_url = '#renew_subscription' 
 %>
 
 <li class="course-item">  
   <div class="course-container">
-    <article class="course" aria-labelledby="course-title-${subscription.id}" id="course-card-${subscription.id}">
-      <section class="details" aria-labelledby="details-heading-${subscription.id}">
+    <article class="course" aria-labelledby="course-title-${course.id}" id="course-card-${course.id}">
+      <section class="details" aria-labelledby="details-heading-${course.id}">
         
         <div class="wrapper-course-image" aria-hidden="true">
           % if subscription.status == 'active':
               <a 
-                href="${reverse('plan_view_tracker', args=[subscription.subscription_plan.slug])}" 
+                href="${reverse('plan_view', args=[subscription.subscription_plan.slug])}" 
                 data-course-key="${subscription.id}" 
                 class="cover course-target-link" 
                 tabindex="-1"
@@ -35,7 +32,7 @@ renew_subscription_url = '#renew_subscription'
         <div class="wrapper-course-details">
           <h3 class="course-title" id="course-title-${subscription.id}">
             <a data-course-key="${subscription.id}" 
-              href="${reverse('plan_view_tracker', args=[subscription.subscription_plan.slug])}" 
+              href="${reverse('plan_view', args=[subscription.subscription_plan.slug])}" 
               class="course-target-link title-dot">
               ${subscription.subscription_plan.name}
             </a>
@@ -75,7 +72,7 @@ renew_subscription_url = '#renew_subscription'
 
           <div class="wrapper-course-actions">
             <div class="course-actions">
-              <a href="${reverse('plan_view_tracker', args=[subscription.subscription_plan.slug])}" 
+              <a href="${reverse('plan_view', args=[subscription.subscription_plan.slug])}" 
                 class="enter-course archived course-target-link" 
                 data-course-key="${subscription.id}">
                 ${_('View Courses')}

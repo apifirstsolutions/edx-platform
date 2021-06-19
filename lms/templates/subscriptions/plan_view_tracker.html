@@ -67,6 +67,8 @@
   <div class="dashboard" id="dashboard-main">
     <div class="main-container">
       <div class="my-courses" id="my-courses">
+
+        <%include file="../learner_dashboard/_dashboard_navigation_courses.html"/>
   
         <section class="container">
         <div class="plan-summary row">
@@ -84,50 +86,6 @@
                     
                     <div class="subscription-block">${description | n}</div>
                   </div>
-
-                  % if can_subscribe:
-                    can subacribe ${can_subscribe}
-                    <div class="row" >
-                      <div class="container subscription-block">
-                        <div class="row">
-                          <div class="col-sm-6 col-md-5">
-                            % for index, option in enumerate(options):
-                              <div>
-                                % if index == 0:
-                                  <input 
-                                    type="radio" 
-                                    id="${option[0]}" 
-                                    name="subscription-option" 
-                                    class="subscription-option" 
-                                    value="${option[3]}"
-                                    checked
-                                  >
-                                % else:
-                                  <input 
-                                    type="radio" 
-                                    id="${option[0]}" 
-                                    name="subscription-option" 
-                                    class="subscription-option" 
-                                    value="${option[3]}"
-                                  >
-                                % endif
-                                  
-
-                                
-                                <label for="${option[0]}">$${option[2]} SGD ${option[1]}</label>
-                              </div>
-                            % endfor
-
-                          </div>
-                          <div class="col-sm-6 col-md-5">
-                            <input id="web_csrf_token" value="${csrf_token}" type="hidden"/>
-                            <button id="subscribe">Subscribe</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  %endif  
-
                 </div>
               </div>
 
