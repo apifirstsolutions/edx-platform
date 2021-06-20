@@ -1072,6 +1072,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/subscriptions/', include('lms.djangoapps.subscriptions.urls.api')),
     url(r'', include('lms.djangoapps.subscriptions.urls.ui')),
+    url(r'', include('lms.djangoapps.subscriptions.urls.webhook')),
 ]
 
 # LHUB Auth - SCID Pro¥xy

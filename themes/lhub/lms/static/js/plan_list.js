@@ -130,7 +130,7 @@ $(document).ready(function() {
     }
     // till here
 
-    show_bundled_courses(window.location.protocol + '//' + window.location.host + "/api/subscriptions/featured-plans/");
+    show_bundled_courses(window.location.protocol + '//' + window.location.host + "/api/subscriptions/plan");
         
 
 

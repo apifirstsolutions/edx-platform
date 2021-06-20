@@ -1,16 +1,14 @@
-import collections
-from enum import Enum
-from django.db import models
-from django.conf import settings
-
-from jsonfield.fields import JSONField
-from enterprise.models import EnterpriseCustomer
-from django.contrib.auth.models import User
-from .helpers.unique_slugify import unique_slugify
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from ckeditor.fields import RichTextField
+from enum import Enum
+
+from django.db import models
+from django.contrib.auth.models import User
+
+from enterprise.models import EnterpriseCustomer
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from common.djangoapps.util.date_utils import strftime_localized
 
+from .helpers.unique_slugify import unique_slugify
 
 class Statuses(Enum):
     ACTIVE = 'active'
@@ -43,14 +41,6 @@ class Bundle(models.Model):
         unique_slugify(self, self.name) 
         super(Bundle, self).save(**kwargs)
 class SubscriptionPlan(models.Model):
-    @property
-    def course_count(self):
-        return self.bundle.courses.count()
-
-    @property
-    def valid_until_formatted(self):
-        return strftime_localized(self.valid_until, 'SHORT_DATE')
-
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     
@@ -58,12 +48,14 @@ class SubscriptionPlan(models.Model):
     image_url = models.CharField(blank=True, max_length=255)
     description = RichTextField(default=None, null=True, blank=True)
     ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')
+    ecommerce_prod_id_month = models.IntegerField(default=None, null=True, blank=True)
+    ecommerce_prod_id_year = models.IntegerField(default=None, null=True, blank=True)
+    ecommerce_prod_id_onetime = models.IntegerField(default=None, null=True, blank=True)
     ecommerce_stockrecord_id_month = models.IntegerField(default=None, null=True, blank=True)
     ecommerce_stockrecord_id_year = models.IntegerField(default=None, null=True, blank=True)
     ecommerce_stockrecord_id_onetime = models.IntegerField(default=None, null=True, blank=True)
     
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
-    grace_period = models.IntegerField(default=7)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     is_utap_supported = models.BooleanField(default=False)
@@ -87,6 +79,14 @@ class SubscriptionPlan(models.Model):
         unique_slugify(self, self.name) 
         super(SubscriptionPlan, self).save(**kwargs)
 
+    @property
+    def course_count(self):
+        return self.bundle.courses.count()
+
+    @property
+    def valid_until_formatted(self):
+        return strftime_localized(self.valid_until, 'SHORT_DATE')
+
 class Subscription(models.Model):
     subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
     billing_cycle = models.CharField(
@@ -94,7 +94,7 @@ class Subscription(models.Model):
       choices=[(cycle.value, cycle.name) for cycle in BillingCycles],
       default=BillingCycles.MONTH
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.CASCADE, null=True, blank=True)
     start_at = models.DateTimeField(default=None, null=True, blank=True)
     status = models.CharField(
@@ -140,8 +140,8 @@ class Transactions(models.Model):
     )
     license_count = models.IntegerField()
     stripe_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
-    ecommerce_order_number = models.CharField(max_length=50, default=None, null=True, blank=True)
+    ecommerce_trans_id = models.IntegerField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '#' + str(self.id) + ' - (' + self.subscription.billing_cycle + ')' + self.subscription.subscription_plan.name
+        return '#' + self.id + ' - (' + self.subscription.billing_cycle + ')' + self.subscription.subscription_plan.name

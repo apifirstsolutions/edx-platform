@@ -1,16 +1,27 @@
 
-from common.djangoapps.student.models import CourseEnrollment
 import logging
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 import stripe
-from django.forms import ValidationError
+from bridgekeeper import perms
+from datetime import datetime
 
-from openedx.core.djangoapps.enrollments.api import add_enrollment
-from openedx.core.djangoapps.catalog.utils import get_course_uuid_for_course
+from django.forms import ValidationError
+from common.djangoapps.student.models import CourseEnrollment
 from common.djangoapps.entitlements.models import CourseEntitlement
 from common.djangoapps.course_modes.models import CourseMode
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from openedx.core.djangoapps.enrollments.api import add_enrollment
+from openedx.core.djangoapps.catalog.utils import get_course_uuid_for_course
+from enterprise.models import EnterpriseCustomerUser
 
-from ..models import BillingCycles, License, Statuses, Subscription, SubscriptionPlan, Transactions, SubscriptionTransaction
+from ..models import (
+  BillingCycles, 
+  License, 
+  Statuses, 
+  Subscription, 
+  SubscriptionPlan, 
+  SubscriptionTransaction,
+  Transactions, 
+)
 from .ecommerce import (
   create_ecommerce_product, 
   create_stockrecord, 
@@ -18,6 +29,10 @@ from .ecommerce import (
   update_stockrecord_price,
   get_stripe_customer_id,
 )
+from ..permissions import (
+    SUBSCRIBE_TO_PLAN,
+)
+
 from ..helpers.unique_slugify import unique_slugify
 from ..helpers.stripe_utils import get_billing_cycle_anchor
 
@@ -30,20 +45,14 @@ from lms.envs.common import (
 log = logging.getLogger(__name__)
 stripe.api_key = STRIPE_API_KEY
 class SubscriptionService:
-  
   # Creates a Product and Prices in Stripe.
   # Creates an Ecommerce Product with prices as product variants.
-  
-  # product
   #
   # prices = { 
   #   'month': decimal, 
   #   'year': decimal,
   #   'onetime': decimal,
   # }
-  #
-  # user, from request
-
   def create_product(self, plan, prices, user):
     unique_slugify(plan, plan.name)
     try:
@@ -88,8 +97,6 @@ class SubscriptionService:
   
   # Updates a Product name and Prices in Stripe.
   # Updates an Ecommerce Product with multiple prices options.
-
-  # FIXME use kwargs
   def update_product(self, user, plan, new_prices, new_product_name=None, new_description=None, new_valid_until=None): 
     result = {}
 
@@ -122,7 +129,14 @@ class SubscriptionService:
       # None means no change of values
       if new_product_name is not None or new_description is not None or new_valid_until is not None:
         update_ecommerce_product(user, plan.ecommerce_prod_id, new_product_name, new_description, new_valid_until)
-
+        
+        if plan.ecommerce_prod_id_month is not None:
+          update_ecommerce_product(user, plan.ecommerce_prod_id_month, new_product_name, new_description, new_valid_until)
+        if plan.ecommerce_prod_id_year is not None:
+          update_ecommerce_product(user, plan.ecommerce_prod_id_year, new_product_name, new_description, new_valid_until)
+        if plan.ecommerce_prod_id_onetime is not None:
+          update_ecommerce_product(user, plan.ecommerce_prod_id_onetime, new_product_name, new_description, new_valid_until)
+        
       return result
     
     except Exception as e:
@@ -138,9 +152,12 @@ class SubscriptionService:
       raise
 
 
-  # If using Stripe - after first payment, create a Stripe subscription with Price (from subscription plan)
-  # custome can either be user or enterprise
+  # Create a Stripe subscription and enroll users
   def create_subscription(self, subscription, stripe_customer_id=None):
+
+    if not perms[SUBSCRIBE_TO_PLAN].check(subscription.user, subscription.subscription_plan):
+      raise Exception("Permission error. Cannot subscribe to plan")
+
     result = {
       'stripe_customer_id': None,
       'stripe_subscription_id': None,
@@ -148,9 +165,9 @@ class SubscriptionService:
       'stripe_price_id': None,
     }
 
-    onetime_pay = subscription.billing_cycle == BillingCycles.ONE_TIME.value
+    onetime = subscription.billing_cycle == BillingCycles.ONE_TIME.value
    
-    if not onetime_pay and subscription.user is not None:
+    if not onetime and subscription.user is not None:
 
       price_id = getattr(subscription.subscription_plan, 'stripe_price_id_' + subscription.billing_cycle)
       result['stripe_price_id'] = price_id
@@ -209,23 +226,48 @@ class SubscriptionService:
       log.error(u"Error assigning License and entitlements of enterprise user - %s", user.username)
       raise
 
-  # Check if can change license count for enterprise subscription
+  # For enterprise subscription, check that new license count is not less than the used licenses
   def validate_license_count_change(self, subscription):
     if subscription.enterprise is not None:
       used_licenses_count = License.objects.filter(subscription__id=subscription.id).count()
       if used_licenses_count > subscription.license_count:
         raise ValidationError(u"There are already %s licenses used on this Subscription.", used_licenses_count)
 
-
-
-  def cancel_enrollments_entitlements(self, subscription):
-    # TODO - sets subscription status to CANCELLED
-    # enrollment = CourseEnrollment.objects.get(user_id=subscription.user.id, )
+  # Set all enrollments to sub. plan courses to is_active=false
+  # Set all entitlements to sub. plan courses to expire date to now()
+  def _cancel_enrollments_entitlements(self, subscription):
+    plan_course_ids = subscription.subscription_plan.bundle.courses.values('id')
+    plan_course_uuids = list(map(lambda id: get_course_uuid_for_course(str(id)), plan_course_ids))
     
-    # set student_courseenrollment is_active=false for all courses in the plan
-    # set expire date to now() of user course entitlements  for all courses in the plan
-    # handle enterprise
-    pass
+    if subscription.user is not None:
+      # Public user case
+      enrollments = CourseEnrollment.objects.filter(user_id=subscription.user.id, course_id__in=plan_course_ids)
+      entitlements = CourseEntitlement.objects.filter(user_id=subscription.user.id, course_uuid__in=plan_course_uuids) 
+    
+    elif subscription.enterprise is not None:
+      # enterprise case
+      enterprise_user_ids = EnterpriseCustomerUser.objects.filter(enterprise_customer_id=subscription.enterprise.uuid).values('user_id')
+      enrollments = CourseEnrollment.objects.filter(user_id__in=enterprise_user_ids, course_id__in=plan_course_ids)
+      entitlements = CourseEntitlement.objects.filter(user_id__in=enterprise_user_ids, course_uuid__in=plan_course_uuids)
+    
+    else:
+      raise Exception("Subscription is neither for public or enterprise")
+
+    for enrollment in enrollments:
+        enrollment.is_active = False
+        try:
+          enrollment.save()
+        except:
+          log.error("Unable to cancel enrollment id %s" % (enrollment.id))
+          pass
+
+    for entitlement in entitlements:
+        entitlement.expired_at = datetime.now()
+        try:
+          entitlement.save()
+        except:
+          log.error("Unable to cancel entitlement id %s" % (entitlement.id))
+          pass
 
   # Cancels a subscriptions
   # Deletes a Stripe subscription and record in Transactions
@@ -235,7 +277,7 @@ class SubscriptionService:
       if subscription.user is not None:
         stripe.Subscription.delete(subscription.stripe_subscription_id)
         
-      self.cancel_enrollments_entitlements(subscription)
+      self._cancel_enrollments_entitlements(subscription)
       self.record_transaction(subscription, SubscriptionTransaction.CANCEL.value)
 
       return { 'success': True }
@@ -255,24 +297,84 @@ class SubscriptionService:
           cancel_at=int(plan.valid_until.timestamp())
         )
 
-  # TODO - 
-  # (1) After firstpayment is detected from webhook, update the current subscription and next billing date
-  # (2) On expiration, update subscription status and subs. history
-  # (3) On cancellation, update subscription status and subs. history
-  # (2) Create a Stripe subscription with Price (from subscription plan)
-  def renew_subscription(self, next_billing_date):
-    # set student_courseenrollment is_active=true for all courses in the plan
-    # set expire date to null of user course entitlements  for all courses in the plan
-    # record transaction
-    pass
+  # Set all enrollments to sub. plan courses to is_active=true
+  # Set all entitlements to sub. plan courses to expire date to None
+  # Record renewal transaction
+  def _renew_enrollments_entitlements(self, subscription):
+    plan_course_ids = subscription.subscription_plan.bundle.courses.values('id')
+    plan_course_uuids = list(map(lambda id: get_course_uuid_for_course(str(id)), plan_course_ids))
+    
+    if subscription.user is not None:
+      # Public user case
+      enrollments = CourseEnrollment.objects.filter(user_id=subscription.user.id, course_id__in=plan_course_ids)
+      entitlements = CourseEntitlement.objects.filter(user_id=subscription.user.id, course_uuid__in=plan_course_uuids) 
+    
+    elif subscription.enterprise is not None:
+      # enterprise case
+      enterprise_user_ids = EnterpriseCustomerUser.objects.filter(enterprise_customer_id=subscription.enterprise.uuid).values('user_id')
+      enrollments = CourseEnrollment.objects.filter(user_id__in=enterprise_user_ids, course_id__in=plan_course_ids)
+      entitlements = CourseEntitlement.objects.filter(user_id__in=enterprise_user_ids, course_uuid__in=plan_course_uuids)
+    
+    else:
+      raise Exception("Subscription should have user or enterprise field values.")
 
+    for enrollment in enrollments:
+        enrollment.is_active = True
+        try:
+          enrollment.save()
+        except:
+          log.error("Unable to renew enrollment id %s" % (enrollment.id))
+          pass
 
-  # TODO - 
-  # Check Stripe Subscriptions status for payments and transaction information (like invoices)
-  # make necessary subscription status updates
-  def check_subscription(self, subscription_id):
-    pass
+    for entitlement in entitlements:
+        entitlement.expired_at = None
+        try:
+          entitlement.save()
+        except:
+          log.error("Unable to renew entitlement id %s" % (entitlement.id))
+          pass
 
+    self.record_transaction(subscription, SubscriptionTransaction.RENEW.value)
+  
+  
+
+  # Creates a new Stripe Subscription if the current one can be renewed
+  # Then renew enrollments and entitlements
+  def renew_subscription(self, subscription):
+
+    valid_subscription_plan = subscription.subcription_plan.valid_until > datetime.now() & subscription.subcription_plan.is_active
+    if valid_subscription_plan:
+      raise Exception("Cannot renew subscription. Subscription Plan might be no longer active or expired.")
+    if subscription.status is not Statuses.CANCELLED.value: 
+      raise Exception("Cannot renew subscription. Must be in CANCELLED state")
+    if subscription.stripe_customer_id is None: 
+      raise Exception("Cannot renew subscription. Missing Stripe Customer ID of Subscription ID %s", (subscription.id))
+    
+    try:
+      
+      sub = stripe.Subscription.retrieve(subscription.stripe_subscription_id)
+      if sub.status is not 'cancelled':
+        raise Exception("Cannot renew subscription. Stripe Subscription %s is not yet cancelled. ", (subscription.stripe_subscription_id))
+    
+      new_subscription = self.create_subscription(subscription, subscription.stripe_customer_id)
+      
+      subscription.stripe_subscription_id = new_subscription.get('stripe_subscription_id')
+      stripe_invoice_id = new_subscription.get('stripe_invoice_id')
+      subscription.status = Statuses.ACTIVE.value
+      subscription.save()
+      self._renew_enrollments_entitlements(subscription)
+      self.record_transaction(subscription, SubscriptionTransaction.RENEW.value, stripe_invoice_id)
+
+    except Exception as e:
+      log.error(str(e))
+      raise
+
+  # Proactively check Stripe Subscriptions cancelled status and make necessary actions
+  # Should be run in a cronjob
+  def check_stripe_subscription_cancelled_status(self, subscription):
+    sub = stripe.Subscription.retrieve(subscription.stripe_subscription_id)
+    if sub.status is 'cancelled' and subscription.status is not Statuses.CANCELLED.value:
+      self.cancel_subscription(subscription)
 
   # record transations when subscription status changes
   def record_transaction(self, subscription, action, stripe_invoice_id=None, ecommerce_order_number=None):

@@ -26,8 +26,6 @@ class CanViewBundle(Rule):
     # that is used to determine if the rule should allow a user
     # into django admin
     return Q(pk__in=[])
-
-
 class CanViewSubscriptionPlan(Rule):
   """
     A rule that defines who can view a plan
@@ -115,3 +113,15 @@ class IsEnterpriseAdminForBundle(Rule):
 
   def query(self, user):
     return Q(pk__in=[])
+
+
+class CanAccessCourse(Rule): 
+  """
+    Checks who can start a course 
+  """
+  def check(self, user, course=None):
+    return True
+
+  def query(self, user):
+    return Q(pk__in=[])
+  

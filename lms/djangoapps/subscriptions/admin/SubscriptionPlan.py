@@ -14,7 +14,7 @@ class SubscriptionPlanForm(forms.ModelForm):
     fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
       'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
       'price_month', 'stripe_price_id_month', 'price_year', 'stripe_price_id_year', 'price_onetime', 
-      'grace_period', 'order', 'enterprise',
+      'order', 'enterprise',
     ]
 
 class SubscriptionPlanAdmin(admin.ModelAdmin):
@@ -22,7 +22,7 @@ class SubscriptionPlanAdmin(admin.ModelAdmin):
   fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
     'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
     'price_month', 'stripe_price_id_month', 'price_year', 'stripe_price_id_year', 'price_onetime', 
-    'grace_period', 'order', 'enterprise',
+    'order', 'enterprise',
   ]
   readonly_fields = ['slug', 'ecommerce_prod_id', 'stripe_prod_id', 'stripe_price_id_month', 'stripe_price_id_year']
   search_fields = ['name', 'description', 'enterprise__name']

@@ -87,13 +87,6 @@ class SubscriptionViewSet(
   http_method_names = ['get', 'post', 'patch']
   queryset = Subscription.objects.all()
 
-  def _cancel_subscription(subscription, new_status):
-    if subscription.user is not None and \
-      subscription.status in [ Statuses.ACTIVE.value, Statuses.INACTIVE.value ] and \
-      new_status in [ Statuses.CANCELLED.value, Statuses.EXPIRED.value ]:
-      return subscription_svc.cancel_subscription(subscription)
-
-
   def create(self, request):
     # {
     #   "billing_cycle": "month",

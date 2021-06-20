@@ -876,7 +876,7 @@ $(document).ready(function() {
     if ($('#show_categorized_view').val()){
         show_most_popular_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-enrollments_count&page=1&page_size=4");
         show_free_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&sale_type=free&page=1&page_size=4");
-        show_bundled_courses(window.location.protocol + '//' + window.location.host + "/api/subscriptions/featured-plans/");
+        show_bundled_courses(window.location.protocol + '//' + window.location.host + "/api/subscriptions/featured-plans");
         show_top_rated_courses(window.location.protocol + '//' + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&ordering=-ratings&page=1&page_size=4");
         if ($('#is_authenticated').val()){
             show_recommended_courses(window.location.protocol + "//" + window.location.host + "/api/commerce/v2/web/courses/?platform_visibility=web&category=" + $("#user_industry").val() + "&page=1&page_size=4");

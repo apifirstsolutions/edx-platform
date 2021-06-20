@@ -1,5 +1,5 @@
 from django.urls import path
-from ..views import ui
+from ..views import ui, webhook
 
 urlpatterns = [
     path('bundled-courses/', ui.plan_list, name="plan_list"),

@@ -106,7 +106,6 @@ def update_ecommerce_product(user, product_id, name, description, valid_until):
     
     try:
         _ecommerce_api_client(user).subscription_hook.plan(product_id).patch(serialized)
-        # TODO if product have variants, change their name as well if not None
     except Exception as e:
         raise
 
