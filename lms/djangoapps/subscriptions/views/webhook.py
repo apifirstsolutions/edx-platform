@@ -17,7 +17,7 @@ from lms.envs.common import STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET_KEY
 
 log = logging.getLogger(__name__)
 
-stripe.api_key = STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET_KEY
+stripe.api_key = STRIPE_API_KEY
 
 @csrf_exempt
 def stripe_webhook_view(request):
