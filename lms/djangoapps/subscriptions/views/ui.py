@@ -1,12 +1,15 @@
 import logging
+from itertools import chain
 from bridgekeeper import perms
 from mako.exceptions import TopLevelLookupException
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.template import TemplateDoesNotExist
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 
 from openedx.core.djangoapps.catalog.utils import get_course_uuid_for_course
 from enterprise.models import EnterpriseCustomerUser
@@ -37,6 +40,7 @@ def plan_view(request, slug):
         plan = SubscriptionPlan.objects.get(slug=slug)
     
         if not perms[VIEW_SUBSCRIPTION_PLAN].check(user, plan):
+            logger.error("No VIEW_SUBSCRIPTION_PLAN permission.")
             raise Http404()
 
         options = []
@@ -59,20 +63,26 @@ def plan_view(request, slug):
         return render_to_response('subscriptions/plan_view.html', context, content_type='text/html')
 
     except (SubscriptionPlan.DoesNotExist, TopLevelLookupException, TemplateDoesNotExist, Exception):
+        
         raise Http404
 
 
-@ensure_csrf_cookie
+@csrf_exempt
+@cache_if_anonymous()
+def plan_image(request, slug):
+    try:
+        plan = SubscriptionPlan.objects.get(slug=slug)
+        return JsonResponse({ 'image_url': plan.image_url })
+    except:
+        return Response(
+          { 'message': "Cannot retrieve image url for slug %s" % slug }, 
+          status=HTTP_400_BAD_REQUEST
+        )
+
 @cache_if_anonymous()
 def plan_list(request):
     
-    user = request.user
-    
     try:
-        plans = SubscriptionPlan.objects.filter(is_featured=True, is_active=True).order_by('order')
-
-    
-      
         context = {
             'courses': [],
             'course_discovery_meanings': None,
@@ -92,7 +102,17 @@ def plan_list(request):
 
         return render_to_response('subscriptions/plan_list.html', context, content_type='text/html')
 
-    except (SubscriptionPlan.DoesNotExist, TopLevelLookupException, TemplateDoesNotExist, Exception):
+    except SubscriptionPlan.DoesNotExist as e:
+        logger.error(str(e))
+        raise Http404
+    except TopLevelLookupException as e:
+        logger.error(str(e))
+        raise Http404
+    except TemplateDoesNotExist as e:
+        logger.error(str(e))
+        raise Http404
+    except Exception as e:
+        logger.error(str(e))
         raise Http404
 
 
@@ -105,13 +125,17 @@ def my_bundled_courses(request):
     user_timezone_locale = user_timezone_locale_prefs(request)
     user_timezone = user_timezone_locale['user_timezone']
 
-    all_subscriptions = Subscription.objects.filter(user=user)
+    subscriptions = Subscription.objects.filter(user=user)
+   
     enterprise_user_qs = EnterpriseCustomerUser.objects.filter(user_id=user.id, linked=1)
 
     if enterprise_user_qs.exists():
         enterprise_user = enterprise_user_qs.first()
-        all_enterprise_subscriptions = Subscription.objects.filter(enterprise__id=enterprise_user.enterprise_customer_id)
-        all_subscriptions.extend(all_enterprise_subscriptions)
+        enterprise_subscriptions = Subscription.objects.filter(enterprise__uuid=enterprise_user.enterprise_customer_id)
+       
+
+    
+    all_subscriptions = list(chain(subscriptions, enterprise_subscriptions))
 
     try:
         context = {
@@ -129,7 +153,7 @@ def my_bundled_courses(request):
 
 @login_required
 @ensure_csrf_cookie
-def plan_view_tracker(request, slug):
+def my_bundled_courses_detail(request, slug):
     
     user = request.user
     
@@ -137,6 +161,7 @@ def plan_view_tracker(request, slug):
         plan = SubscriptionPlan.objects.get(slug=slug)
     
         if not perms[VIEW_SUBSCRIPTION_PLAN_TRACKER].check(user, plan):
+            logger.error("No VIEW_SUBSCRIPTION_PLAN_TRACKER permission")
             raise Http404()
 
         options = []
@@ -158,7 +183,17 @@ def plan_view_tracker(request, slug):
         }
         return render_to_response('subscriptions/plan_view_tracker.html', context, content_type='text/html')
 
-    except (SubscriptionPlan.DoesNotExist, TopLevelLookupException, TemplateDoesNotExist, Exception):
+    except SubscriptionPlan.DoesNotExist as e:
+        logger.error(str(e))
+        raise Http404
+    except TopLevelLookupException as e:
+        logger.error(str(e))
+        raise Http404
+    except TemplateDoesNotExist as e:
+        logger.error(str(e))
+        raise Http404
+    except Exception as e:
+        logger.error(str(e))
         raise Http404
 
 def bundled_courses_progress_list(request, slug):

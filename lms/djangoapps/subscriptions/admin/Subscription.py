@@ -19,8 +19,8 @@ class SubscriptionAdmin(admin.ModelAdmin):
   fields = [ 'subscription_plan', 'billing_cycle', 'user', 'enterprise', 'start_at', 'status', 
     'license_count', 'stripe_subscription_id', 'stripe_customer_id', 'stripe_price_id']
   readonly_fields = ['stripe_subscription_id', 'stripe_customer_id', 'stripe_price_id']
-  search_fields = ['subscription_plan__name', 'billing_cycle', 'user__email', 'enterprise__name']
-  list_display = ['subscription_plan', 'billing_cycle', 'user', 'enterprise']
+  search_fields = ['subscription_plan__name', 'billing_cycle', 'user__email', 'enterprise__name', 'stripe_subscription_id']
+  list_display = ['subscription_plan', 'billing_cycle', 'status', 'stripe_subscription_id', 'user', 'enterprise']
 
   def save_model(self, request, obj, form, change):
     if obj.user is not None and obj.enterprise is not None:

@@ -46,7 +46,7 @@ function show_bundled_courses(target) {
         for (var i = 0; i < plans.length; i++) {
             var plan_card = `<li class="card-slider-card-items owl-item">
             <article class="card-slider-course">
-                <a href="/plan/`+plans[i]['slug']+`/">
+                <a href="/bundled-course/`+plans[i]['slug']+`/">
                     <header class="card-slider-card-img-cont">
                     <div class="card-slider-card-cover-img">
                         <img src="` + plans[i]['image_url'] + `" alt="` + plans[i]['name'] + `">

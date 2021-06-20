@@ -1,5 +1,8 @@
 from django.db.models import Q
 from bridgekeeper.rules import EMPTY, Rule
+from datetime import datetime
+import pytz 
+
 from enterprise.models import (
   EnterpriseCustomer,
   EnterpriseCustomerUser, 
@@ -8,17 +11,19 @@ from enterprise.models import (
 )
 from .models import Subscription
 
+utc=pytz.UTC
 class CanViewBundle(Rule):
   """
     A rule that defines who can view a bundle
 
-    Return True if the Bundle is not tied to any Enterprise.
-    If it is tied to an Enterprise, only users of that Enterprise can view it.
+    - Bundle is not tied to any Enterprise.
+    - If it is tied to an Enterprise, only users of that Enterprise can view it.
   """
-  def check(self, user, bundle=None):
-    if bundle.enterprise_id is None: return True
-    
-    return EnterpriseCustomerUser.objects.filter(enterprise_customer_id=bundle.enterprise_id, user_id=user.id).exists()
+  def check(self, user, bundle):
+    if bundle.enterprise is not None:
+      return EnterpriseCustomerUser.objects.filter(enterprise_customer=bundle.enterprise, user_id=user.id).exists()
+
+    return True
 
   def query(self, user):
     # Return an always-empty queryset filter so that this always
@@ -33,11 +38,15 @@ class CanViewSubscriptionPlan(Rule):
     - If the Plan is not tied to any Enterprise.
     - If it is tied to an Enterprise, only users of that Enterprise can view it.
   """
-  def check(self, user, plan=None):
-    if not plan.is_active: return False
-    if plan.enterprise is None: return True
-    else:
-      return EnterpriseCustomerUser.objects.filter(enterprise_customer_id=plan.enterprise.id, user_id=user.id).exists()
+  def check(self, user, plan):
+    valid_plan = (plan.valid_until > utc.localize(datetime.now())) & plan.is_active
+    condition = valid_plan
+    
+    if plan.enterprise is not None:
+      is_enterprise_member = EnterpriseCustomerUser.objects.filter(enterprise_customer=plan.enterprise, user_id=user.id).exists()
+      condition &= is_enterprise_member
+
+    return condition
 
   def query(self, user):
     is_enterprise_user = EnterpriseCustomerUser.objects.filter(user_id=user.id).exists()
@@ -58,19 +67,28 @@ class CanViewSubscriptionPlanTracker(Rule):
     - If not Enterprise User, user has a subscription 
     - If Enterprise User, enterpise has a subscription 
   """
-  def check(self, user, plan=None):
-    if user.is_anonymous: return False
-
-    enterprise_user_qs = EnterpriseCustomerUser.objects.filter(user_id=user.id)
-   
-    if not enterprise_user_qs.exists():
-      have_subscription = Subscription.objects.filter(subscription_plan=plan, user=user).exists()
-      return have_subscription
-    else:
-      enterprise_user = enterprise_user_qs.first()
-      enterprise =  EnterpriseCustomer.objects.get(uuid=enterprise_user.enterprise_customer_id)
-      return Subscription.objects.filter(subscription_plan=plan, enterprise=enterprise).exists()
+  def check(self, user, plan):
     
+    condition = not user.is_anonymous
+
+    if plan.enterprise is not None:
+      is_enterprise_member = EnterpriseCustomerUser.objects.filter(
+        enterprise_customer=plan.enterprise, user_id=user.id).exists()
+
+      print("DEBUG  is_enterprise_member::", is_enterprise_member)
+
+      enterprise_have_subscription = Subscription.objects.filter(
+        subscription_plan=plan, enterprise=plan.enterprise).exists()
+
+      print("DEBUG  enterprise_have_subscription::", enterprise_have_subscription)
+
+      condition &= is_enterprise_member & enterprise_have_subscription
+    else:
+      user_has_subscription = Subscription.objects.filter(subscription_plan=plan, user=user).exists()
+      condition &= user_has_subscription
+
+    return condition
+   
   def query(self, user):
     return Q(pk__in=[])
     
@@ -79,19 +97,30 @@ class CanSubscribeToPlan(Rule):
     A rule that defines who can subscribe a plan
     - If not anonymous user
     - Plan is active
-    - If User has not subscribed or subscription is cancelled
     - If the Subscription Plan is not tied to an Enterprise
-  """
-  def check(self, user, plan=None):
-    if user.is_anonymous: return False
-    if not plan.is_active: return False
-    if plan.enterprise_id is not None: return False
-
-    have_active_subscription = \
-      Subscription.objects.filter(subscription_plan_id=plan.id, user_id=user.id, status='active').exists()
-
-    return not have_active_subscription
+    - If User has not subscribed or subscription is cancelled
     
+  """
+  def check(self, user, plan):
+    valid_plan = (plan.valid_until > utc.localize(datetime.now())) & plan.is_active
+    condition = valid_plan
+    
+    if plan.enterprise is not None and user is not None:
+      is_enterprise_member = EnterpriseCustomerUser.objects.filter(
+        enterprise_customer=plan.enterprise, user_id=user.id).exists()
+      
+      enterprise_have_no_subscription = ~Subscription.objects.filter(
+        subscription_plan=plan, enterprise=plan.enterprise).exists()
+      
+      condition &= is_enterprise_member & enterprise_have_no_subscription
+    
+    elif plan.enterprise is None and user is not None: 
+      user_has_no_subscription = ~Subscription.objects.filter(
+        subscription_plan=plan, user=user, status__in=['active', 'inactive']).exists()
+      
+      condition &= user_has_no_subscription
+
+    return condition    
   
   def query(self, user):
     return Q(pk__in=[])
@@ -104,23 +133,12 @@ class IsEnterpriseAdminForBundle(Rule):
     if bundle is None or bundle.enterprise_id is None:
       return False
     
-    isEnterpriseUser = EnterpriseCustomerUser.objects.filter(enterprise_customer_id=bundle.enterprise_id, user_id=user.id).exists()
+    isEnterpriseUser = EnterpriseCustomerUser.objects.filter(enterprise_customer=bundle.enterprise, user_id=user.id).exists()
     
     if not isEnterpriseUser:
       return False
     
-    return SystemWideEnterpriseUserRoleAssignment.objects.filter(role__name='enterprise_admin', user_id=user.id).exists()
-
-  def query(self, user):
-    return Q(pk__in=[])
-
-
-class CanAccessCourse(Rule): 
-  """
-    Checks who can start a course 
-  """
-  def check(self, user, course=None):
-    return True
+    return SystemWideEnterpriseUserRoleAssignment.objects.filter(role__name='enterprise_admin', user=user).exists()
 
   def query(self, user):
     return Q(pk__in=[])

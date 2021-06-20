@@ -5,6 +5,7 @@ from openedx.core.djangoapps.content.course_overviews.serializers import (
 )
 from .models import Bundle, SubscriptionPlan, Subscription
 class BundleSerializer(ModelSerializer):
+  course_count = ReadOnlyField()
   courses = CourseOverviewBaseSerializer(many=True, read_only=True) 
   class Meta:
     model = Bundle
@@ -13,6 +14,7 @@ class SubscriptionPlanSerializer(ModelSerializer):
   # bundle = BundleSerializer()
   course_count = ReadOnlyField()
   valid_until_formatted = ReadOnlyField()
+  image_url = ReadOnlyField()
   class Meta:
     model = SubscriptionPlan
     fields = '__all__'

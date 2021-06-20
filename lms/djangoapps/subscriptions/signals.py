@@ -15,17 +15,20 @@ subscription_svc = SubscriptionService()
 @receiver(user_logged_in, dispatch_uid='subscriptions.user_login')
 def user_login(request, user, **kwargs):
 
-    entries = EnterpriseCustomerUser.objects.filter(user_id=user.id, linked=1)
+    if not user.is_anonymous:
+
+        entries = EnterpriseCustomerUser.objects.filter(user_id=user.id)
     
-    if entries.count():
-        for enterprise_user in entries:
-            try:
-                enterprise = EnterpriseCustomer.objects.get(uuid=enterprise_user.enterprise_customer_id)  
-                subscriptions = Subscription.objects.filter(enterprise=enterprise, status=Statuses.ACTIVE.value)
+        if entries.exists():
+            for enterprise_user in entries:
+                try:
+                    enterprise = EnterpriseCustomer.objects.get(uuid=enterprise_user.enterprise_customer_id)  
+                    subscriptions = Subscription.objects.filter(enterprise=enterprise, status=Statuses.ACTIVE.value)
 
-                # if have active subscriptions, assign course entitlements and subscription license
-                for subscription in subscriptions:
-                    subscription_svc.assign_licenses_n_entitlements(user, subscription)
-            except EnterpriseCustomer.DoesNotExist:
-                pass
+                    # if have active subscriptions, assign course entitlements and subscription license
+                    for subscription in subscriptions:
+                        subscription_svc.assign_licenses_n_entitlements(user, subscription)
+                except EnterpriseCustomer.DoesNotExist:
+                    pass
 
+  

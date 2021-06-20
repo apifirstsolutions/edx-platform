@@ -3,6 +3,11 @@
 <%namespace name='static' file='/static_content.html'/>
 <%block name="pagetitle">Dashboard</%block>
 
+<% 
+from django.urls import reverse
+from django.utils.translation import ugettext as _
+%>
+
 <%block name="js_extra">
   <script>
     $(function(){
@@ -29,7 +34,7 @@
           <div class="empty-dashboard-message">
             <p>${_("You have not subscribed on any Bundled Courses yet.")}</p>
             <p class="custom-message">Subscribe to our Bundled Courses.</p>
-            <a class="btn btn-primary" href="#">
+            <a class="btn btn-primary" href="${reverse('plan_list')}">
               ${_("Explore Bundled Courses")}
             </a>
           </div>

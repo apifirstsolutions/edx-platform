@@ -11,7 +11,7 @@ class SubscriptionPlanForm(forms.ModelForm):
   description = forms.CharField(widget = CKEditorWidget())
   class Meta:
     model = SubscriptionPlan
-    fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
+    fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_upload', 'bundle', 
       'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
       'price_month', 'stripe_price_id_month', 'price_year', 'stripe_price_id_year', 'price_onetime', 
       'order', 'enterprise',
@@ -19,14 +19,14 @@ class SubscriptionPlanForm(forms.ModelForm):
 
 class SubscriptionPlanAdmin(admin.ModelAdmin):
   form = SubscriptionPlanForm
-  fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_url', 'bundle', 
+  fields = [ 'name', 'slug', 'stripe_prod_id', 'ecommerce_prod_id', 'description', 'image_upload', 'bundle', 
     'is_active', 'is_featured', 'is_utap_supported', 'valid_until', 
     'price_month', 'stripe_price_id_month', 'price_year', 'stripe_price_id_year', 'price_onetime', 
     'order', 'enterprise',
   ]
   readonly_fields = ['slug', 'ecommerce_prod_id', 'stripe_prod_id', 'stripe_price_id_month', 'stripe_price_id_year']
   search_fields = ['name', 'description', 'enterprise__name']
-  list_display = ['slug', 'name', 'description', 'enterprise', 'is_featured', 'order', 'stripe_prod_id']
+  list_display = [ 'name', 'enterprise', 'is_active', 'is_featured', 'order', 'stripe_prod_id']
 
   def save_model(self, request, plan, form, change):
     subscription_svc = SubscriptionService()

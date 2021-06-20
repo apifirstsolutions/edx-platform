@@ -197,6 +197,9 @@ class SubscriptionService:
       except Exception as e:
         log.error(u"Error occured creating Subscription in Stripe. %s", str(e))
         raise
+
+    elif onetime and subscription.user is not None:
+      self._enroll_user_to_bundled_courses(subscription.user, subscription.subscription_plan.bundle)
   
     return result
   
@@ -342,9 +345,6 @@ class SubscriptionService:
   # Then renew enrollments and entitlements
   def renew_subscription(self, subscription):
 
-    valid_subscription_plan = subscription.subcription_plan.valid_until > datetime.now() & subscription.subcription_plan.is_active
-    if valid_subscription_plan:
-      raise Exception("Cannot renew subscription. Subscription Plan might be no longer active or expired.")
     if subscription.status is not Statuses.CANCELLED.value: 
       raise Exception("Cannot renew subscription. Must be in CANCELLED state")
     if subscription.stripe_customer_id is None: 

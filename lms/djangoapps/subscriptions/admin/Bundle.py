@@ -1,5 +1,4 @@
 import logging
-from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib import admin
 from ..models import Bundle
@@ -8,17 +7,16 @@ from ..models import Bundle
 logger = logging.getLogger(__name__)
 
 class BundleForm(forms.ModelForm):
-  description = forms.CharField(widget = CKEditorWidget())
   class Meta:
     model = Bundle
-    fields = ['name', 'slug', 'description', 'courses', 'enterprise',]
+    fields = ['name', 'slug', 'courses', 'enterprise',]
 
 class BundleAdmin(admin.ModelAdmin):
   form = BundleForm
-  fields = ['name', 'slug', 'description', 'courses', 'enterprise',]
+  fields = ['name', 'slug', 'courses', 'enterprise',]
   filter_horizontal = ['courses']
   readonly_fields = ['slug']
-  search_fields = ['name', 'description', 'enterprise__name']
-  list_display = ['slug', 'name', 'enterprise']
+  search_fields = ['name', 'enterprise']
+  list_display = ['slug', 'name', 'course_count', 'enterprise']
 
 admin.site.register(Bundle, BundleAdmin)

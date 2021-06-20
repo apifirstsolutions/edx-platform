@@ -25,7 +25,7 @@ from ..serializers import (
   SubscriptionSerializer, 
 )
 from ..permissions import (
-  VIEW_SUBSCRIPTION_PLAN, 
+  VIEW_SUBSCRIPTION_PLAN,
 )
 
 AUTHENTICATION_CLASSES = (JwtAuthentication, BearerAuthentication, SessionAuthentication,)
@@ -99,11 +99,11 @@ class SubscriptionViewSet(
     # }
 
     result = { 'id': None }
-    
+
     try:
       user = User.objects.get(id=request.data.get('user'))
       plan = SubscriptionPlan.objects.get(slug=request.data.get('subscription_plan_slug'))
-      subscription =  Subscription.objects.create(
+      subscription = Subscription(
         billing_cycle=request.data.get('billing_cycle'),
         license_count=1,
         subscription_plan=plan,

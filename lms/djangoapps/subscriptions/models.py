@@ -3,6 +3,7 @@ from enum import Enum
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from enterprise.models import EnterpriseCustomer
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
@@ -29,23 +30,23 @@ class Bundle(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     courses = models.ManyToManyField(CourseOverview)
-    description = RichTextField(default=None, null=True, blank=True)
     enterprise = models.ForeignKey(EnterpriseCustomer, on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.slug
+        return self.name
 
-    def save(self, **kwargs):
-        unique_slugify(self, self.name) 
-        super(Bundle, self).save(**kwargs)
+    @property
+    def course_count(self):
+        return self.courses.count()
+
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=50, null=False, blank=False)
     slug = models.SlugField(max_length=200, blank=True)
     
     bundle = models.ForeignKey(Bundle, on_delete=models.DO_NOTHING, null=True, blank=True)
-    image_url = models.CharField(blank=True, max_length=255)
+    image_upload = models.ImageField(upload_to='subscriptions/plan', default=None, null=True, blank=True)
     description = RichTextField(default=None, null=True, blank=True)
     ecommerce_prod_id = models.IntegerField(default=None, null=True, blank=True, verbose_name='Ecommerce Product ID')
     ecommerce_prod_id_month = models.IntegerField(default=None, null=True, blank=True)
@@ -86,6 +87,10 @@ class SubscriptionPlan(models.Model):
     @property
     def valid_until_formatted(self):
         return strftime_localized(self.valid_until, 'SHORT_DATE')
+
+    @property
+    def image_url(self):
+        return settings.LMS_ROOT_URL + settings.MEDIA_URL + str(self.image_upload)
 
 class Subscription(models.Model):
     subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
@@ -140,7 +145,7 @@ class Transactions(models.Model):
     )
     license_count = models.IntegerField()
     stripe_invoice_id = models.CharField(max_length=50, default=None, null=True, blank=True)
-    ecommerce_trans_id = models.IntegerField(default=None, null=True, blank=True)
+    ecommerce_order_number = models.CharField(max_length=50, default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
