@@ -81,10 +81,6 @@ class SubscriptionPlan(models.Model):
         super(SubscriptionPlan, self).save(**kwargs)
 
     @property
-    def course_count(self):
-        return self.bundle.courses.count()
-
-    @property
     def valid_until_formatted(self):
         return strftime_localized(self.valid_until, 'SHORT_DATE')
 

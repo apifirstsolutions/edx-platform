@@ -1,6 +1,7 @@
 
 import logging
 import stripe
+import uuid as uuid_tools
 from bridgekeeper import perms
 from datetime import datetime
 
@@ -205,28 +206,44 @@ class SubscriptionService:
   
   # For Enterprise users, assign course entitlements and license for active subscriptions
   def assign_licenses_n_entitlements(self, user, subscription):
-    
+
     try:
       # check if sub. license count is not exceeded, assign  a license if not
       active_licenses_count = License.objects.filter(subscription=subscription).count()
       
       if active_licenses_count < subscription.license_count:
-        License.objects.get_or_create(user=user, subscription=subscription)
+        license, created = License.objects.get_or_create(user=user, subscription=subscription)
+        if created:
+          log.info(u"License created for subscription id %s" % subscription.id)
+          
+          # get all bundled courses related to a subscription and assign course entitlements for user
+          plan = SubscriptionPlan.objects.get(id=subscription.subscription_plan.id)
+          
+          for course in plan.bundle.courses.all():
+            course_uuid = get_course_uuid_for_course(str(course.id)) 
+            
+            if course_uuid is None: 
+              log.error(u"Cannot assign entitlement for Course %s due to missing uuid is Discovery" % course.id)
+              continue
+            
+            course_mode = CourseMode.objects.get(course_id=course.id)
+            
+            CourseEntitlement.objects.get_or_create(
+              user_id=user.id, 
+              course_uuid=course_uuid, 
+              mode=course_mode.slug,
+            )
+        else:
+          log.info(u"License %s already created before. Check that entitlements or enrollments are applied ", license.id)
+
 
       else:
         log.error(u"License count exceeded for subcription. %s", subscription.id)
         raise Exception("License count exceeded.")
 
-      # get all bundled courses related to a subscription and assign course entitlements for user
-      plan = SubscriptionPlan.objects.filter(id=subscription.subscription_plan.id)
       
-      for course in plan.bundle.courses.all():
-        course_uuid = get_course_uuid_for_course(str(course.id))
-        course_mode = CourseMode.objects.get(course_id=course.id)
-        CourseEntitlement.objects.get_or_create(user_id=user.id, course_uuid=course_uuid, mode=course_mode.slug)
-
     except Exception as e:
-      log.error(u"Error assigning License and entitlements of enterprise user - %s", user.username)
+      log.error(u"Error assigning License and entitlements of enterprise user - %s. %s", (user.username, str(e)))
       raise
 
   # For enterprise subscription, check that new license count is not less than the used licenses
